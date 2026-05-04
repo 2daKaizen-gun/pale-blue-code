@@ -1,0 +1,25 @@
+# EditorConfig — https://editorconfig.org
+# Pale Blue Code
+# 모든 에디터에서 일관된 코드 스타일 유지
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Python은 PEP 8에 따라 4 spaces
+[*.py]
+indent_size = 4
+
+# Markdown은 trailing whitespace 보존 (줄바꿈 syntax)
+[*.md]
+trim_trailing_whitespace = false
+
+# Makefile은 tab 필수
+[Makefile]
+indent_style = tab
