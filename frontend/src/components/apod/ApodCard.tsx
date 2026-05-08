@@ -1,4 +1,4 @@
-import { Apod } from '../../lib/api/apod'
+import type { Apod } from '../../lib/api/apod'
 
 interface Props {
   apod: Apod
