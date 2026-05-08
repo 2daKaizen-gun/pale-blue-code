@@ -1,10 +1,12 @@
 import ApodWidget from '../components/apod/ApodWidget'
+import PhaseCard from '../components/phases/PhaseCard'
+import { PHASES } from '../constants/phases'
 
 export default function HomePage() {
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-5xl">
       {/* 헤더 */}
-      <header className="mb-10">
+      <header className="mb-12">
         <p className="text-cosmos-muted font-mono text-xs tracking-widest mb-2">
           PALE BLUE CODE
         </p>
@@ -18,14 +20,33 @@ export default function HomePage() {
       </header>
 
       {/* 구분선 */}
-      <div className="border-t border-cosmos-border mb-10" />
+      <div className="border-t border-cosmos-border mb-12" />
 
       {/* APOD 섹션 */}
-      <section>
+      <section className="mb-16">
         <h2 className="text-cosmos-nebula font-mono text-xs tracking-widest mb-6">
           ASTRONOMY PICTURE OF THE DAY
         </h2>
         <ApodWidget />
+      </section>
+
+      {/* 구분선 */}
+      <div className="border-t border-cosmos-border mb-12" />
+
+      {/* 로드맵 섹션 */}
+      <section>
+        <h2 className="text-cosmos-nebula font-mono text-xs tracking-widest mb-2">
+          ROADMAP
+        </h2>
+        <p className="text-cosmos-muted text-sm mb-8">
+          인류가 우주를 이해해온 순서를 그대로 코드로 다시 그린다.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {PHASES.map((phase) => (
+            <PhaseCard key={phase.number} phase={phase} />
+          ))}
+        </div>
       </section>
     </div>
   )
