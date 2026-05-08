@@ -2,22 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './styles/tokens.css';
+
 @layer base {
   body {
-    background-color: #0a0a0f;
-    color: #e2e8f0;
-    font-family: 'Inter', system-ui, sans-serif;
+    background-color: var(--color-cosmos-bg);
+    color: var(--color-cosmos-text);
+    font-family: var(--font-sans);
   }
 
-  /* 스크롤바 */
   ::-webkit-scrollbar {
     width: 4px;
   }
   ::-webkit-scrollbar-track {
-    background: #0a0a0f;
+    background: var(--color-cosmos-bg);
   }
   ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: var(--color-cosmos-subtle);
     border-radius: 2px;
   }
 }
