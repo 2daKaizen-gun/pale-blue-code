@@ -1,15 +1,10 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { PHASES } from '../../constants/phases'
 
-const navItems = [
-  { path: '/',          label: '🏠 Home' },
-  { path: '/solar',     label: '🪐 Solar System' },
-  { path: '/gravity',   label: '⚛️ Gravity' },
-  { path: '/blackhole', label: '🕳️ Blackhole' },
-  { path: '/exoplanet', label: '🔭 Exoplanet' },
-  { path: '/data',      label: '📉 Data' },
-  { path: '/signal',    label: '📡 Signal' },
-  { path: '/hunt',      label: '🎯 Hunt' },
-]
+// Phase 0, 1은 둘 다 path='/' 이므로 네비에서는 1개만 (Home)
+const navPhases = PHASES.filter((p, i, arr) =>
+  arr.findIndex((x) => x.path === p.path) === i
+)
 
 export default function AppLayout() {
   return (
@@ -27,20 +22,21 @@ export default function AppLayout() {
           </span>
         </div>
 
-        {navItems.map((item) => (
+        {navPhases.map((phase) => (
           <NavLink
-            key={item.path}
-            to={item.path}
-            end={item.path === '/'}
+            key={phase.path}
+            to={phase.path}
+            end={phase.path === '/'}
             className={({ isActive }) =>
-              `px-3 py-2 rounded text-sm transition-colors ${
+              `px-3 py-2 rounded text-sm transition-colors flex items-center gap-2 ${
                 isActive
                   ? 'bg-cosmos-elevated text-cosmos-text'
                   : 'text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-elevated'
               }`
             }
           >
-            {item.label}
+            <span>{phase.emoji}</span>
+            <span>{phase.path === '/' ? 'Home' : phase.title}</span>
           </NavLink>
         ))}
       </nav>
