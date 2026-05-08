@@ -1,3 +1,7 @@
+import PhasePlaceholder from '../components/phases/PhasePlaceholder'
+import { PHASES } from '../constants/phases'
+
 export default function SignalPage() {
-  return <div>Signal</div>
+  const phase = PHASES.find((p) => p.path === '/signal')!
+  return <PhasePlaceholder phase={phase} />
 }
