@@ -41,6 +41,7 @@
 
 ### Phase 단위
 - **각 Phase = 별도 채팅방**
+- **Phase 시작 시 PRD + TechSpec 작성** (`docs/specs/phase-N/PRD.md`, `TECHSPEC.md`)
 - Phase 종료 시 인수인계 패키지 (`docs/phase-handoffs/phase-N-to-M.md`) 작성
 - 새 Phase 시작 시 인수인계 + README + 본 헌장을 첫 메시지로 붙여넣어 컨텍스트 복원
 
@@ -85,7 +86,7 @@
 | `chore` | 빌드, 설정, 의존성 |
 
 ### 스코프 예시
-`(setup)`, `(apod)`, `(solar)`, `(nbody)`, `(blackhole)`, `(exoplanet)`, `(bls)`, `(hunt)`
+`(setup)`, `(apod)`, `(solar)`, `(nbody)`, `(blackhole)`, `(exoplanet)`, `(bls)`, `(hunt)`, `(specs)`
 
 ### 예시
 ```

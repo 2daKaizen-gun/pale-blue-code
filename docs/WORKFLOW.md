@@ -5,6 +5,23 @@
 
 ---
 
+## 작업 단위의 계층
+
+Phase 작업은 3계층으로 구성된다:
+
+| 계층 | 산출물 | 작성 시점 | 위치 |
+|------|--------|-----------|------|
+| **Phase 단위** | PRD + TechSpec | Phase 시작 시 1회 | `docs/specs/phase-N/` |
+| **sub-phase 단위** | PCTC Full 사이클 | 각 sub-phase 시작/종료 | 채팅 + `docs/checks/` |
+| **커밋 단위** | PCTC Light 사이클 | 30분~1시간마다 | 채팅 → 커밋 |
+
+- PRD/TechSpec = *왜* + *무엇* (Phase 내내 reference)
+- PCTC = *어떻게* + *언제* (실행)
+
+Phase 단위 산출물은 sub-phase Plan을 *대체하지 않고 위임*한다 — TechSpec §7은 sub-phase 제목만 나열하고, 상세는 해당 sub-phase의 PCTC Plan에 맡긴다.
+
+---
+
 ## 양식 안내
 
 | 양식 | 사용 시점 | 예시 |
@@ -238,6 +255,7 @@ C: Suspense로 리팩토링 가능 — Phase 1 종료 시 검토
 - ❌ Check 생략 → 인수인계 문서가 비어 있게 되어 다음 Phase 시작이 무거워짐
 - ❌ push 누락 → 로컬 커밋이 쌓이고 자동 배포가 멈춤. 다음 sub-phase 시작 전 반드시 동기화
 - ❌ 마일스톤 표시 누락 → 진행률 감각 흐려짐. Check 후 자동으로 표시
+- ❌ PRD/TechSpec 없이 sub-phase부터 들어감 → Phase 전체 방향 불명확. Phase 시작 시 반드시 작성
 
 Claude는 위 신호 중 하나라도 감지하면 *"잠깐, 사이클 어긋났어"* 라고 말한다.
 
@@ -247,7 +265,7 @@ Claude는 위 신호 중 하나라도 감지하면 *"잠깐, 사이클 어긋났
 
 이 문서는 [`COLLABORATION.md`](./COLLABORATION.md) 의 다음 조항을 구체화한다:
 
-- §4 작업 리듬 — Sub-phase 단위 작업 + sub-phase 종료 시 push & 마일스톤 표시
+- §4 작업 리듬 — Phase 단위 PRD/TechSpec + Sub-phase 단위 PCTC + sub-phase 종료 시 push & 마일스톤 표시
 - §5 커밋 규칙 — 각 Light 사이클 종료 시 커밋
 - §6 PCTC 작업 사이클 — 본 문서가 그 상세
 - §7 천문학 지식 학습 동반 — Check 단계의 *"우주의 한 조각"*
