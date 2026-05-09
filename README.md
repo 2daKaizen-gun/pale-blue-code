@@ -18,6 +18,10 @@
 
 <br/>
 
+🔗 **Live**: [pale-blue-code.vercel.app](https://pale-blue-code.vercel.app)
+
+<br/>
+
 ## 📖 프로젝트의 영혼
 
 이 프로젝트는 단순한 포트폴리오가 아닙니다.
