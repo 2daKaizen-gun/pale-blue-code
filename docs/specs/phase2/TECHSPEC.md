@@ -4,21 +4,32 @@
 > *상태: Confirmed*
 > *PRD: ./PRD.md*
 
+> **2026-05-10 갱신**: §1 의존성 버전을 *실제 설치본* 으로 정정. Phase 2 sub-phase 2-1 [Light 1] 의존성 설치 시 React 19 환경에 맞춰 R3F v9 / drei v10 으로 페어링. R3F 공식 매트릭스: v8→React 18, v9→React 19.
+
 ---
 
 ## 1. 핵심 기술 결정
 
 | 영역 | 선택 | 대안 (검토 후 기각) | 선택 이유 |
 |------|------|-------------------|----------|
-| 3D 엔진 | Three.js 0.160+ | Babylon.js, PlayCanvas | 사실상 웹 3D의 표준, 자료/예제 압도적 |
-| React 통합 | @react-three/fiber 8.15+ | Three.js 직접 | R3F가 React 생태계의 표준, scene graph가 컴포넌트 트리, 자동 cleanup |
-| R3F 헬퍼 | @react-three/drei 9.x | 직접 구현 | OrbitControls / Stars / Html 등 90% 케이스 커버 |
+| 3D 엔진 | **Three.js 0.170+** | Babylon.js, PlayCanvas | 사실상 웹 3D의 표준, 자료/예제 압도적 |
+| React 통합 | **@react-three/fiber 9.6+** | Three.js 직접, R3F v8 (React 18용) | R3F가 React 생태계의 표준, scene graph가 컴포넌트 트리, 자동 cleanup. v9 = React 19 페어 |
+| R3F 헬퍼 | **@react-three/drei 10.7+** | drei v9 (R3F v8용), 직접 구현 | OrbitControls / Stars / Html 등 90% 케이스 커버. v10 = R3F v9 페어 |
 | 카메라 컨트롤 | drei `OrbitControls` | drei `CameraControls`, 커스텀 | 회전/줌/팬/터치 자동, Phase 2 범위에 정확히 맞음 |
 | 텍스처 출처 | Solar Textures 2K (CC-BY) | NASA Treks, 절차적 | 라이선스 명확, 용량 적정, 식별 가능한 디테일 |
 | 거리 모드 전환 | 1.5초 보간 (easeInOutCubic) | 즉시 점프, 2초+ | UX 표준, *"지구가 사라지는 1초"* 가 과정으로 보임 |
 | 상태 관리 | Zustand 4.x | React Context, props drilling | Canvas 안/밖을 잇는 공유 메모리, `useFrame` 안 리렌더 회피 |
 | 데이터 모델 | `data/planets.ts` 단일 소스, real + visual 두 값 | 한 값만 보관 후 계산 | 단위 혼란 제거, *"이 숫자 어디서 왔나"* 즉답 |
 | 개발 디버그 GUI | leva 0.9+ (개발 시에만) | 없음 | sub-phase 2-2/2-4에서 행성 위치/스케일 손으로 튜닝 |
+
+### 호환성 매트릭스 (참고)
+
+| 우리 스택 | 버전 | 페어 |
+|---|---|---|
+| React | 19.2.5 | — |
+| @react-three/fiber | 9.6.1 | React 19 짝꿍 |
+| @react-three/drei | 10.7.7 | R3F v9 짝꿍 |
+| three | 0.170.x | R3F v9 권장 범위 |
 
 ---
 
