@@ -4,7 +4,9 @@
 > *상태: Confirmed*
 > *PRD: ./PRD.md*
 
-> **2026-05-10 갱신**: §1 의존성 버전을 *실제 설치본* 으로 정정. Phase 2 sub-phase 2-1 [Light 1] 의존성 설치 시 React 19 환경에 맞춰 R3F v9 / drei v10 으로 페어링. R3F 공식 매트릭스: v8→React 18, v9→React 19.
+> **2026-05-10 갱신 (1차)**: §1 의존성 버전을 *실제 설치본* 으로 정정. Phase 2 sub-phase 2-1 [Light 1] 의존성 설치 시 React 19 환경에 맞춰 R3F v9 / drei v10 으로 페어링. R3F 공식 매트릭스: v8→React 18, v9→React 19.
+>
+> **2026-05-10 갱신 (2차)**: §4 폴더 구조의 페이지 파일명을 `SolarSystemPage.tsx` → `SolarPage.tsx` 로 정정. 실제 레포의 기존 페이지 명명 패턴 (PhaseN 이 아닌 도메인 이름 단축형) 을 따름. sub-phase 2-1 [Light 6] 라우트 연결 시 발견.
 
 ---
 
@@ -37,7 +39,7 @@
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  Page: SolarSystemPage                           │
+│  Page: SolarPage (/solar)                        │
 │  ┌────────────────────────────────────────────┐  │
 │  │  R3F <Canvas>                              │  │
 │  │  ┌──────────────────────────────────────┐  │  │
@@ -146,22 +148,22 @@ displayDistance = (mode === 'real')
 ```
 frontend/src/
 ├── pages/
-│   └── SolarSystemPage.tsx            ← Phase 2 진입점
+│   └── SolarPage.tsx                  ← Phase 2 진입점 (/solar 라우트)
 ├── components/
 │   └── solar/
 │       ├── Scene.tsx                  ← R3F Canvas 안의 루트
-│       ├── Sun.tsx
-│       ├── Planet.tsx                 ← 8개 행성 공통 컴포넌트
-│       ├── Moon.tsx
-│       ├── Starfield.tsx              ← drei <Stars> wrapper
-│       ├── CameraController.tsx       ← 행성 클릭 시 카메라 보간
-│       └── ControlPanel.tsx           ← Canvas 밖, 하단 고정 UI
+│       ├── Sun.tsx                    ← (sub-phase 2-2)
+│       ├── Planet.tsx                 ← 행성 공통 컴포넌트
+│       ├── Moon.tsx                   ← (sub-phase 2-6)
+│       ├── Starfield.tsx              ← drei <Stars> wrapper (sub-phase 2-6)
+│       ├── CameraController.tsx       ← 행성 클릭 시 카메라 보간 (sub-phase 2-5)
+│       └── ControlPanel.tsx           ← Canvas 밖, 하단 고정 UI (sub-phase 2-3 부터)
 ├── data/
 │   └── planets.ts                     ← 단일 소스
 ├── store/
-│   └── solarSystemStore.ts            ← Zustand
+│   └── solarSystemStore.ts            ← Zustand (sub-phase 2-3)
 ├── lib/
-│   └── easing.ts                      ← easeInOutCubic 등 보간 함수
+│   └── easing.ts                      ← easeInOutCubic 등 보간 함수 (sub-phase 2-4)
 └── public/
     └── textures/
         └── planets/                   ← Solar Textures 2K (CC-BY)
