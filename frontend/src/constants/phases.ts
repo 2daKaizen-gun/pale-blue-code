@@ -27,7 +27,7 @@ export const PHASES: Phase[] = [
     title: 'Foundation',
     subtitle: '기반',
     question: '토대를 어떻게 놓는가?',
-    status: 'in-progress',
+    status: 'done',
   },
   {
     number: 2,
@@ -36,7 +36,7 @@ export const PHASES: Phase[] = [
     title: 'Solar System',
     subtitle: '태양계',
     question: '우리가 아는 우주는 어떻게 생겼는가?',
-    status: 'planned',
+    status: 'in-progress',
   },
   {
     number: 3,
