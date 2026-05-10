@@ -1,5 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import { Planet } from './Planet';
+import { PLANETS } from '../../data/planets';
 
 /**
  * Pale Blue Code — Phase 2: Solar System
@@ -10,9 +12,10 @@ import { OrbitControls } from '@react-three/drei';
  *   - <Canvas> 셋업 (camera, renderer)
  *   - 조명 배치 (ambient + 태양 자리의 directional)
  *   - 카메라 컨트롤 (OrbitControls)
+ *   - PLANETS 배열을 .map() 으로 렌더 (2-2 에서 1개 → 8개 확장 시 코드 변경 0)
  *
  * 책임 아닌 것 (다른 컴포넌트로):
- *   - 행성 렌더링 → <Planet />
+ *   - 행성 자체 렌더링 → <Planet />
  *   - 컨트롤 패널 → <ControlPanel /> (Canvas 밖)
  *   - 카메라 보간 → <CameraController /> (sub-phase 2-5)
  *
@@ -28,7 +31,7 @@ export function Scene() {
         near: 0.1,           // 가장 가까운 가시 거리
         far: 1000,           // 가장 먼 가시 거리 (Phase 2-2 에서 멀리 행성 추가 시 충분)
       }}
-      // 우주 배경 — 토큰의 cosmos-bg 사용 (sub-phase 2-6 에서 starfield 로 교체 가능)
+      // 우주 배경 — 토큰의 cosmos-bg 사용
       style={{ background: 'var(--color-cosmos-bg, #000)' }}
     >
       {/* ─── 조명 ───────────────────────────────────────
@@ -44,9 +47,12 @@ export function Scene() {
       />
 
       {/* ─── 행성들 ─────────────────────────────────────
-        * [Light 5] 에서 <Planet /> 추가 예정.
-        * 지금은 비어 있어 검은 화면만 보임 (의도됨).
+        * PLANETS 는 sub-phase 2-1 에서 지구 1개, 2-2 에서 8개로 확장.
+        * .map() 패턴이라 Scene 코드는 변경 없이 자동으로 8개 렌더.
         */}
+      {PLANETS.map((planet) => (
+        <Planet key={planet.id} data={planet} />
+      ))}
 
       {/* ─── 카메라 컨트롤 ──────────────────────────────
         * 마우스 드래그 = 회전, 휠 = 줌, 우클릭 드래그 = 팬.
