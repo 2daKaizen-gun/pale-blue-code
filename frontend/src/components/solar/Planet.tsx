@@ -8,6 +8,7 @@ import {
   computeVisualRadius,
   computeVisualDistance,
 } from '../../lib/scale';
+import { Ring } from './Ring';
 
 type PlanetProps = {
   data: PlanetData;
@@ -20,36 +21,26 @@ type PlanetProps = {
  *
  * Planet — 행성 하나를 그리는 컴포넌트.
  *
- * 책임:
- *   - sphere geometry (저폴리곤)
- *   - 텍스처 입히기
- *   - 공전 위치 배치 (computeVisualDistance + initialAngle)
- *   - 자전축 기울기 적용
- *   - 매 프레임 자전 (rotationPeriod_hours 의 부호로 방향 결정)
- *
- * sub-phase 2-2 [Light 6] 변경:
- *   - data.visualRadius / data.visualDistance 제거 → scale 함수 호출
- *   - 행성별 leva useControls 제거 → Scene 의 전역 'Scale' 패널이 담당
- *   - scale prop 추가 (sub-2-3 Zustand 도입 시 store 로 이동 가능)
+ * sub-phase 2-2 [Light 8]:
+ *   - data.ring 있으면 <Ring /> 자식 렌더
+ *   - Ring 위치: 중간 group 안 (자전축 기울기 받음) + mesh 와 형제 (자전 영향 X)
  *
  * ─── group 3단 구조 ─────────────────────────────────
  *   [외부 group] position = 공전 위치 (xz 평면, 황도면)
  *     [중간 group] rotation = 자전축 기울기 (z축 기준)
  *       [mesh] rotation.y = 자전 (useFrame 매 프레임 갱신)
+ *       [Ring] 자전축 기울기는 받고 자전은 안 받음
  */
 export function Planet({ data, initialAngle, scale }: PlanetProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const texture = useTexture(data.texture);
 
-  // ─── 비례 압축으로 시각 값 계산 ─────────────────────
   const radius = computeVisualRadius(data.realRadius_km, scale);
   const distance = computeVisualDistance(data.realDistance_km, scale);
 
-  // ─── 공전 위치 (xz 평면, 황도면) ─────────────────────
   const x = Math.cos(initialAngle) * distance;
   const z = Math.sin(initialAngle) * distance;
 
-  // ─── 자전 애니메이션 ─────────────────────────────────
   const SECONDS_PER_REVOLUTION = 25;
 
   useFrame((_, delta) => {
@@ -59,15 +50,7 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
     meshRef.current.rotation.y += direction * radiansPerSecond * delta;
   });
 
-  // ─── 자전축 기울기 ──────────────────────────────────
-// sub-phase 2-1 의 상수 23.5° → [Light 7] 에서 data.axialTilt_deg 로 교체.
-// 한 줄 변경이 8개 천체의 *실제 천문학적 기울기* 를 동시에 적용.
-//
-// 주목할 값:
-//   천왕성 97.77° → 거의 옆으로 누운 행성. *원반처럼* 자전
-//   금성   177.4° → 거의 뒤집힘. rotationPeriod 음수와 *이중 표현*
-//                  (NASA 규약: 공전과 반대 방향 자전 = 음수. axialTilt 와 함께 의식적으로 둘 다 적용)
-const AXIAL_TILT_RAD = (data.axialTilt_deg * Math.PI) / 180;
+  const AXIAL_TILT_RAD = (data.axialTilt_deg * Math.PI) / 180;
 
   return (
     <group position={[x, 0, z]}>
@@ -76,6 +59,8 @@ const AXIAL_TILT_RAD = (data.axialTilt_deg * Math.PI) / 180;
           <sphereGeometry args={[radius, 32, 32]} />
           <meshStandardMaterial map={texture} />
         </mesh>
+        {/* 토성/천왕성만 ring 필드 있음. 다른 행성은 undefined → 렌더 X */}
+        {data.ring && <Ring data={data.ring} scale={scale} />}
       </group>
     </group>
   );

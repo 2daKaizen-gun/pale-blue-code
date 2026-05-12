@@ -1,11 +1,9 @@
 /**
  * Pale Blue Code — Phase 2: Solar System
  *
- * 태양계 행성 데이터 — *real 값만* 보관 (sub-2-2 [Light 6] 의 비례 압축 도입 후).
+ * 태양계 행성 데이터.
  *
- * 시각 값 (visualRadius, visualDistance) 은 `lib/scale.ts` 의 함수가 계산.
- * 이전엔 두 값을 함께 보관했으나 — 손튜닝 추측치를 8개에 박는 부담 + 근거 부재로
- * 단일 소스 (real) + 함수 (scale) 패턴으로 전환.
+ * 시각 값은 lib/scale.ts 의 함수가 계산. data 는 real 값만 보관.
  *
  * 참고: NASA Planetary Fact Sheet
  * https://nssdc.gsfc.nasa.gov/planetary/factsheet/
@@ -15,27 +13,42 @@ export type PlanetId =
   | 'mercury' | 'venus' | 'earth' | 'mars'
   | 'jupiter' | 'saturn' | 'uranus' | 'neptune'
 
+/**
+ * 고리 데이터 — 판별 합집합 (discriminated union).
+ *   - texture: 토성처럼 풍부한 줄무늬가 있는 고리 (PNG with alpha)
+ *   - solid: 천왕성처럼 단조로운 가는 띠 (단색 + 투명도)
+ *
+ * 컴포넌트 (Ring.tsx) 가 type 으로 분기. TypeScript 가 타입 좁히기 강제.
+ */
+export type RingData =
+  | {
+      type: 'texture'
+      texture: string
+      innerRadius_km: number
+      outerRadius_km: number
+    }
+  | {
+      type: 'solid'
+      color: string
+      opacity: number
+      innerRadius_km: number
+      outerRadius_km: number
+    }
+
 export type PlanetData = {
   id: PlanetId
   name: { ko: string; en: string }
 
-  // 실제 값 (NASA, km / days / hours)
   realRadius_km: number
-  realDistance_km: number       // 평균 궤도 반경 (태양 중심)
-  orbitalPeriod_days: number    // 공전 주기
-  rotationPeriod_hours: number  // 자전 주기 (음수 = 역회전)
-  axialTilt_deg: number         // 자전축 기울기
+  realDistance_km: number
+  orbitalPeriod_days: number
+  rotationPeriod_hours: number
+  axialTilt_deg: number
 
-  // 자산
   texture: string
   description: string
 
-  // 토성 전용 — 고리
-  ring?: {
-    texture: string
-    innerRadius_km: number      // 실제 km (시각화 시 동일 압축 함수 거침)
-    outerRadius_km: number
-  }
+  ring?: RingData
 }
 
 export const PLANETS: readonly PlanetData[] = [
@@ -57,7 +70,7 @@ export const PLANETS: readonly PlanetData[] = [
     realRadius_km: 6_051.8,
     realDistance_km: 108_200_000,
     orbitalPeriod_days: 224.7,
-    rotationPeriod_hours: -5832.5,    // 역회전 (음수)
+    rotationPeriod_hours: -5832.5,
     axialTilt_deg: 177.4,
     texture: '/textures/planets/venus.jpg',
     description:
@@ -66,8 +79,8 @@ export const PLANETS: readonly PlanetData[] = [
   {
     id: 'earth',
     name: { ko: '지구', en: 'Earth' },
-    realRadius_km: 6_371,             // EARTH_RADIUS_KM 의 기준값
-    realDistance_km: 149_600_000,     // 1 AU 의 정의
+    realRadius_km: 6_371,
+    realDistance_km: 149_600_000,
     orbitalPeriod_days: 365.25,
     rotationPeriod_hours: 23.93,
     axialTilt_deg: 23.5,
@@ -111,9 +124,10 @@ export const PLANETS: readonly PlanetData[] = [
     description:
       '고리의 행성. 고리는 99% 가 얼음 입자로, 두께가 평균 10m 에 불과하다. 토성의 밀도는 물보다 낮아 *거대한 욕조* 가 있으면 떠오른다.',
     ring: {
+      type: 'texture',
       texture: '/textures/planets/saturn_ring.png',
-      innerRadius_km: 74_500,         // 실제 고리 내경 (Saturn body 58_232 km 의 약 1.28배)
-      outerRadius_km: 140_220,        // 실제 고리 외경 (약 2.41배)
+      innerRadius_km: 74_500,       // 실제 (D ring 안쪽)
+      outerRadius_km: 140_220,      // 실제 (A ring 바깥)
     },
   },
   {
@@ -123,10 +137,17 @@ export const PLANETS: readonly PlanetData[] = [
     realDistance_km: 2_872_500_000,
     orbitalPeriod_days: 30_589,
     rotationPeriod_hours: -17.24,
-    axialTilt_deg: 97.77,             // 옆으로 누움 — [Light 7] 에서 시각화
+    axialTilt_deg: 97.77,
     texture: '/textures/planets/uranus.jpg',
     description:
-      '옆으로 누운 행성. 자전축이 98° 기울어져 사실상 *굴러가듯* 공전한다. 과거 대규모 충돌의 흔적으로 추정.',
+      '옆으로 누운 행성. 자전축이 98° 기울어져 사실상 *굴러가듯* 공전한다. 1977년 별 가림 관측으로 *어두운 13개 고리* 가 발견됨 — 토성에 이은 두 번째 고리 행성.',
+    ring: {
+      type: 'solid',
+      color: '#9aa0a8',             // 어두운 회청색 — 얼음+탄소 잔해
+      opacity: 0.35,
+      innerRadius_km: 41_837,       // 6 ring (안쪽)
+      outerRadius_km: 51_150,       // ε ring (가장 밝은 외곽 고리)
+    },
   },
   {
     id: 'neptune',
