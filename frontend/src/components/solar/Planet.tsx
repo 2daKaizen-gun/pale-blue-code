@@ -60,8 +60,14 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
   });
 
   // ─── 자전축 기울기 ──────────────────────────────────
-  // [Light 7] 에서 data.axialTilt_deg 로 교체 예정.
-  const AXIAL_TILT_RAD = (23.5 * Math.PI) / 180;
+// sub-phase 2-1 의 상수 23.5° → [Light 7] 에서 data.axialTilt_deg 로 교체.
+// 한 줄 변경이 8개 천체의 *실제 천문학적 기울기* 를 동시에 적용.
+//
+// 주목할 값:
+//   천왕성 97.77° → 거의 옆으로 누운 행성. *원반처럼* 자전
+//   금성   177.4° → 거의 뒤집힘. rotationPeriod 음수와 *이중 표현*
+//                  (NASA 규약: 공전과 반대 방향 자전 = 음수. axialTilt 와 함께 의식적으로 둘 다 적용)
+const AXIAL_TILT_RAD = (data.axialTilt_deg * Math.PI) / 180;
 
   return (
     <group position={[x, 0, z]}>
