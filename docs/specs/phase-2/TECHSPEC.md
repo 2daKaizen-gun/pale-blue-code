@@ -7,6 +7,8 @@
 > **2026-05-10 갱신 (1차)**: §1 의존성 버전을 *실제 설치본* 으로 정정. Phase 2 sub-phase 2-1 [Light 1] 의존성 설치 시 React 19 환경에 맞춰 R3F v9 / drei v10 으로 페어링. R3F 공식 매트릭스: v8→React 18, v9→React 19.
 >
 > **2026-05-10 갱신 (2차)**: §4 폴더 구조의 페이지 파일명을 `SolarSystemPage.tsx` → `SolarPage.tsx` 로 정정. 실제 레포의 기존 페이지 명명 패턴 (PhaseN 이 아닌 도메인 이름 단축형) 을 따름. sub-phase 2-1 [Light 6] 라우트 연결 시 발견.
+>
+> **2026-05-12 갱신 (3차)**: §1 + §3 의 *데이터 모델 결정* 을 뒤집음. sub-phase 2-2 [Light 5] leva 손튜닝 중 발견 — 8개 행성에 직접 `visualRadius`/`visualDistance` 박는 방식이 *손튜닝 부담 + 근거 부재*. 비례 압축 함수 `(real / earthReal) ^ k × scale` 도입 (`lib/scale.ts`) 으로 한 함수가 전 천체 자동 계산. 이전 결정 *"단위 혼란 제거"* 의 근거는 함수 내부 단위 변환 단일화로 더 강화. sub-phase 2-4 의 거리 토글이 *exponent k 의 0.5 → 1.0 부드러운 보간* 으로 정리되어 토글 메시지도 수학적으로 우아해짐.
 
 ---
 
@@ -21,7 +23,7 @@
 | 텍스처 출처 | Solar Textures 2K (CC-BY) | NASA Treks, 절차적 | 라이선스 명확, 용량 적정, 식별 가능한 디테일 |
 | 거리 모드 전환 | 1.5초 보간 (easeInOutCubic) | 즉시 점프, 2초+ | UX 표준, *"지구가 사라지는 1초"* 가 과정으로 보임 |
 | 상태 관리 | Zustand 4.x | React Context, props drilling | Canvas 안/밖을 잇는 공유 메모리, `useFrame` 안 리렌더 회피 |
-| 데이터 모델 | `data/planets.ts` 단일 소스, real + visual 두 값 | 한 값만 보관 후 계산 | 단위 혼란 제거, *"이 숫자 어디서 왔나"* 즉답 |
+| 데이터 모델 | `data/planets.ts` 는 real 값만 보관, `lib/scale.ts` 의 비례 압축 함수로 visual 계산 | real + visual 두 값 보관 (sub-2-2 [Light 6] 까지 사용 후 기각) | 비례 압축 함수가 단일 소스. 손튜닝 추측치 제거, *"이 숫자 어디서 왔나"* = `computeVisualRadius(...)` 한 줄로 답변 |
 | 개발 디버그 GUI | leva 0.9+ (개발 시에만) | 없음 | sub-phase 2-2/2-4에서 행성 위치/스케일 손으로 튜닝 |
 
 ### 호환성 매트릭스 (참고)
@@ -98,10 +100,6 @@ export type PlanetData = {
   orbitalPeriod_days: number    // 공전 주기
   rotationPeriod_hours: number  // 자전 주기 (음수 = 역회전)
 
-  // 시각적 값 (R3F scene unit, 1 unit ≈ 화면 중앙 기준)
-  visualRadius: number
-  visualDistance: number
-
   // 시각화 자산
   texture: string               // public/textures/planets/{id}.jpg
   color: string                 // 토큰 키 (예: 'cosmos-mars')
@@ -132,14 +130,19 @@ export type MoonData = {
 
 ### 스케일 변환
 
-거리 토글이 *"실제 비율"* 로 갈 때:
-```
-displayDistance = (mode === 'real')
-  ? realDistance_km / SCALE_FACTOR
-  : visualDistance
+`lib/scale.ts` 가 단일 진실:
+
+```typescript
+visualRadius   = (realRadius_km / EARTH_RADIUS_KM) ^ radiusExponent   × radiusScale
+visualDistance = (realDistance_km / ONE_AU_KM)     ^ distanceExponent × distanceScale
 ```
 
-`SCALE_FACTOR` = 사용자가 *지구가 점이 되는* 것을 *볼 수 있는* 최대값. 튜닝 대상 (sub-phase 2-4).
+거리 토글 (sub-phase 2-4) 은 `distanceExponent` 를 *0.5 (시각 모드) ↔ 1.0 (실제 모드)* 로 보간 + `distanceScale` 동반 조정.
+
+| 모드 | radiusExponent | distanceExponent | 의미 |
+|------|----------------|------------------|------|
+| 시각 | 0.5 | 0.5 | 제곱근 압축. 행성 식별 가능 |
+| 실제 | 1.0 | 1.0 | 비례 그대로. *지구가 점이 되는 1초* |
 
 ---
 
