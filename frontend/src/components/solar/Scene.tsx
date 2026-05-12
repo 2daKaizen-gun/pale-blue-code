@@ -6,16 +6,21 @@ import { Sun } from './Sun';
 import { PLANETS } from '../../data/planets';
 import { DEFAULT_SCALE } from '../../lib/scale';
 
-const DEFAULT_AMBIENT = 0.15;
+/**
+ * sub-phase 2-2 [Light 9] 손튜닝 결과:
+ *   - DEFAULT_AMBIENT: 0.15 → 0.3 (행성 밤 면 식별 가능)
+ *   - 카메라 position: [0, 30, 70] → [0, 60, 150]
+ *     (distanceScale=20 적용 후 해왕성 거리 109 까지 한 화면에)
+ */
+const DEFAULT_AMBIENT = 0.3;
 
 /**
  * Pale Blue Code — Phase 2: Solar System
  *
  * Scene — R3F Canvas 루트 + leva 전역 패널.
  *
- * sub-phase 2-2 [Light 8]:
- *   - leva 'Lighting' 폴더 추가 (ambient 슬라이더)
- *   - 'Scale' 폴더와 분리해서 관심사별 그룹화
+ * leva 패널은 sub-phase 2-7 까지 유지 (dev only).
+ * 더 만져보고 더 좋은 값을 찾으면 위 상수 + DEFAULT_SCALE 갱신.
  */
 export function Scene() {
   const tunedScale = useControls('Scale', {
@@ -63,7 +68,7 @@ export function Scene() {
 
       <Canvas
         camera={{
-          position: [0, 30, 70],
+          position: [0, 60, 150],   // distanceScale=20 기준, 해왕성까지 한 화면
           fov: 50,
           near: 0.1,
           far: 1000,
@@ -91,7 +96,7 @@ export function Scene() {
           enableDamping
           dampingFactor={0.05}
           minDistance={10}
-          maxDistance={200}
+          maxDistance={300}        // 카메라 후퇴에 맞춰 maxDistance 도 확대
         />
       </Canvas>
     </>

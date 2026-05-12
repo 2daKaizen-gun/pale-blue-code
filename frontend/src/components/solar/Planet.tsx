@@ -21,15 +21,11 @@ type PlanetProps = {
  *
  * Planet — 행성 하나를 그리는 컴포넌트.
  *
- * sub-phase 2-2 [Light 8]:
- *   - data.ring 있으면 <Ring /> 자식 렌더
- *   - Ring 위치: 중간 group 안 (자전축 기울기 받음) + mesh 와 형제 (자전 영향 X)
- *
  * ─── group 3단 구조 ─────────────────────────────────
  *   [외부 group] position = 공전 위치 (xz 평면, 황도면)
  *     [중간 group] rotation = 자전축 기울기 (z축 기준)
- *       [mesh] rotation.y = 자전 (useFrame 매 프레임 갱신)
- *       [Ring] 자전축 기울기는 받고 자전은 안 받음
+ *       [mesh] rotation.y = 자전
+ *       [Ring] 자전축 기울기는 받고, 자기 속도로 독립 회전
  */
 export function Planet({ data, initialAngle, scale }: PlanetProps) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -43,10 +39,12 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
 
   const SECONDS_PER_REVOLUTION = 25;
 
+  // 자전 방향 — Ring 에도 전달해 *같은 방향* 회전 (다른 속도로)
+  const direction = Math.sign(data.rotationPeriod_hours) || 1;
+
   useFrame((_, delta) => {
     if (!meshRef.current) return;
     const radiansPerSecond = (2 * Math.PI) / SECONDS_PER_REVOLUTION;
-    const direction = Math.sign(data.rotationPeriod_hours) || 1;
     meshRef.current.rotation.y += direction * radiansPerSecond * delta;
   });
 
@@ -59,8 +57,13 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
           <sphereGeometry args={[radius, 32, 32]} />
           <meshStandardMaterial map={texture} />
         </mesh>
-        {/* 토성/천왕성만 ring 필드 있음. 다른 행성은 undefined → 렌더 X */}
-        {data.ring && <Ring data={data.ring} scale={scale} />}
+        {data.ring && (
+          <Ring
+            data={data.ring}
+            scale={scale}
+            rotationDirection={direction}
+          />
+        )}
       </group>
     </group>
   );

@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import type { RingData } from '../../data/planets';
@@ -6,6 +8,7 @@ import { computeVisualRadius, type ScaleConfig } from '../../lib/scale';
 type RingProps = {
   data: RingData;
   scale: ScaleConfig;
+  rotationDirection: number; // +1 또는 -1 (행성의 자전 방향과 동일)
 };
 
 /**
@@ -13,50 +16,70 @@ type RingProps = {
  *
  * Ring — 행성 고리 컴포넌트. 토성/천왕성 두 종류를 *판별 합집합* 으로 처리.
  *
+ * sub-phase 2-2 [Light 9] 갱신:
+ *   - 자전 추가. 행성보다 *느린* 속도로 독립 회전.
+ *   - 회전축은 행성 자전축 (중간 group 안에 있으니 자동)
+ *   - 회전 방향은 행성과 동일 (rotationDirection prop)
+ *
+ *   현실은 *차등 회전* (내경 빠름, 외경 느림) 이지만, 시각화에서는
+ *   *통합 회전* 으로 단순화. 행성보다 느린 속도가 *별개 천체* 임을 시각적으로 전달.
+ *
  * ─── 좌표계 ─────────────────────────────────────────
- *   Three.js 의 ringGeometry 는 *xy 평면* 에 그려짐 (정면).
- *   x축 기준 90° 회전 → xz 평면 (황도면) 에 놓임.
- *
- *   Planet.tsx 의 *중간 group* (자전축 기울기 적용된 좌표계) 안에 두면:
- *     - 토성: 26.73° 기울어진 고리 (정확)
- *     - 천왕성: 97.77° → *옆으로 선* 고리 (정확, 시각적 임팩트)
- *
- * ─── 자전과 분리 ────────────────────────────────────
- *   mesh 안이 아닌 *형제* 로 둠 — 자전 영향 받지 않음.
- *   고리는 행성 표면이 아니라 *주변 입자들* 이라 행성과 함께 돌지 않음.
- *
- * ─── hook 규칙 회피 ─────────────────────────────────
- *   useTexture 는 hook → 조건부 호출 불가.
- *   따라서 type 으로 분기 후 각각 별도 컴포넌트로 위임 (RingTextured / RingSolid).
+ *   ringGeometry 는 xy 평면 → x축 90° 회전으로 xz 평면 (황도면) 으로.
+ *   회전축은 *원래 ringGeometry 의 z* → 90° 회전 후엔 *y축* → 즉 우리가 일반적으로
+ *   생각하는 *고리 면에 수직인 축* (= 행성 자전축).
  */
-export function Ring({ data, scale }: RingProps) {
+
+const SECONDS_PER_REVOLUTION = 50; // 행성 (25초) 의 절반 속도
+
+export function Ring({ data, scale, rotationDirection }: RingProps) {
   if (data.type === 'texture') {
-    return <RingTextured data={data} scale={scale} />;
+    return (
+      <RingTextured
+        data={data}
+        scale={scale}
+        rotationDirection={rotationDirection}
+      />
+    );
   }
-  return <RingSolid data={data} scale={scale} />;
+  return (
+    <RingSolid
+      data={data}
+      scale={scale}
+      rotationDirection={rotationDirection}
+    />
+  );
 }
 
 // ─── 토성 같은 텍스처 고리 ──────────────────────────
 function RingTextured({
   data,
   scale,
+  rotationDirection,
 }: {
   data: Extract<RingData, { type: 'texture' }>;
   scale: ScaleConfig;
+  rotationDirection: number;
 }) {
+  const meshRef = useRef<THREE.Mesh>(null);
   const texture = useTexture(data.texture);
   const inner = computeVisualRadius(data.innerRadius_km, scale);
   const outer = computeVisualRadius(data.outerRadius_km, scale);
 
+  useFrame((_, delta) => {
+    if (!meshRef.current) return;
+    const radiansPerSecond = (2 * Math.PI) / SECONDS_PER_REVOLUTION;
+    // rotation.z = ringGeometry 의 *원래 z축* 회전 = 90° 회전 후의 *고리 면 수직축* 회전
+    meshRef.current.rotation.z += rotationDirection * radiansPerSecond * delta;
+  });
+
   return (
-    <mesh rotation={[Math.PI / 2, 0, 0]}>
-      {/* ringGeometry args: [innerRadius, outerRadius, thetaSegments]
-        * 64 segments = 둥근 고리. 32 면 다각형이 보임. */}
+    <mesh ref={meshRef} rotation={[Math.PI / 2, 0, 0]}>
       <ringGeometry args={[inner, outer, 64]} />
       <meshBasicMaterial
         map={texture}
         transparent
-        side={THREE.DoubleSide}   // 양면 보임 (아래에서 볼 때도 안 사라짐)
+        side={THREE.DoubleSide}
       />
     </mesh>
   );
@@ -66,15 +89,24 @@ function RingTextured({
 function RingSolid({
   data,
   scale,
+  rotationDirection,
 }: {
   data: Extract<RingData, { type: 'solid' }>;
   scale: ScaleConfig;
+  rotationDirection: number;
 }) {
+  const meshRef = useRef<THREE.Mesh>(null);
   const inner = computeVisualRadius(data.innerRadius_km, scale);
   const outer = computeVisualRadius(data.outerRadius_km, scale);
 
+  useFrame((_, delta) => {
+    if (!meshRef.current) return;
+    const radiansPerSecond = (2 * Math.PI) / SECONDS_PER_REVOLUTION;
+    meshRef.current.rotation.z += rotationDirection * radiansPerSecond * delta;
+  });
+
   return (
-    <mesh rotation={[Math.PI / 2, 0, 0]}>
+    <mesh ref={meshRef} rotation={[Math.PI / 2, 0, 0]}>
       <ringGeometry args={[inner, outer, 64]} />
       <meshBasicMaterial
         color={data.color}
