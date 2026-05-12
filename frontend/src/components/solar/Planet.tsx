@@ -6,6 +6,7 @@ import type { PlanetData } from '../../data/planets';
 
 type PlanetProps = {
   data: PlanetData;
+  initialAngle: number; // 라디안. t=0 시점의 공전 각도 (Scene 이 index 로 분배)
 };
 
 /**
@@ -16,66 +17,64 @@ type PlanetProps = {
  * 책임:
  *   - sphere geometry (저폴리곤)
  *   - 텍스처 입히기
- *   - 자전축 기울기 적용 (지구 = 23.5°)
- *   - 매 프레임 자전 (rotationPeriod_hours 기반)
+ *   - 공전 *위치* 배치 (visualDistance + initialAngle, sub-phase 2-2 [Light 4])
+ *   - 자전축 기울기 적용
+ *   - 매 프레임 자전 (rotationPeriod_hours 의 부호로 방향 결정)
  *
- * 책임 아닌 것 (sub-phase 2-2 ~ 2-5 에서):
- *   - 공전 (2-3)
- *   - 거리 스케일 토글 (2-4)
- *   - 호버/클릭 인터랙션 (2-5)
+ * 책임 아닌 것:
+ *   - 공전 *애니메이션* — sub-phase 2-3 (initialAngle 을 시간 따라 변하게)
+ *   - 거리 스케일 토글 — sub-phase 2-4
+ *   - 호버/클릭 인터랙션 — sub-phase 2-5
+ *
+ * ─── group 3단 구조 ─────────────────────────────────
+ *   [외부 group] position = 공전 위치 (xz 평면, 황도면)
+ *     [중간 group] rotation = 자전축 기울기 (z축 기준)
+ *       [mesh] rotation.y = 자전 (useFrame 매 프레임 갱신)
+ *
+ *   세 변환을 분리한 이유: 한 group 에 다 박으면 서로 간섭.
+ *   특히 sub-phase 2-3 에서 외부 group 의 position 이 시간 따라 변할 때
+ *   내부 자전축 / 자전이 영향받지 않게 좌표계를 격리.
  *
  * 자세한 데이터 모델은 docs/specs/phase-2/TECHSPEC.md §3 참조.
  */
-export function Planet({ data }: PlanetProps) {
-  // ─── 자전 메쉬에 대한 ref ─────────────────────────────
-  // useRef 로 mesh 인스턴스를 잡아 useFrame 에서 매 프레임 회전.
-  // ref 사용하면 React 리렌더 없이 직접 Three.js 객체 조작 → 60fps 유지의 핵심.
+export function Planet({ data, initialAngle }: PlanetProps) {
   const meshRef = useRef<THREE.Mesh>(null);
-
-  // ─── 텍스처 로드 ─────────────────────────────────────
-  // drei 의 useTexture: <Suspense> 와 자동 통합되어 로딩 중엔 부모 fallback 표시.
-  // 현재 SolarSystemPage 가 Suspense 로 감싸지 않아도 R3F 가 알아서 처리.
   const texture = useTexture(data.texture);
 
+  // ─── 공전 위치 (xz 평면) ─────────────────────────────
+  // 황도면 (ecliptic plane) — 모든 행성이 거의 같은 평면에서 공전.
+  //   x = cos(θ) × r,  z = sin(θ) × r
+  // sub-phase 2-3 에서 시간 따라 θ 가 변하면 이 계산이 useFrame 안으로 이동.
+  const x = Math.cos(initialAngle) * data.visualDistance;
+  const z = Math.sin(initialAngle) * data.visualDistance;
+
   // ─── 자전 애니메이션 ─────────────────────────────────
-  // useFrame: 매 프레임 호출 (60fps 기준 초당 60번).
-  // delta = 이전 프레임으로부터의 경과 시간 (초). 모니터 주사율 무관하게 일관된 속도.
-  //
-  // 자전 속도 계산:
-  //   rotationPeriod_hours = 한 바퀴에 걸리는 실제 시간 (지구 = 23.934h)
-  //   화면 한 바퀴 = 25초 (느긋한 감상용) 로 보임
-  //   → 1초당 회전 라디안 = 2π / 25 ≈ 0.2513
-  //
-  // sub-phase 2-3 에서 시간 속도 컨트롤 도입 시 이 값을 store 와 연동.
-  const SECONDS_PER_REVOLUTION = 25; // 화면상 한 바퀴 시간
+  // 자전 속도 — 일단 임의값. sub-phase 2-3 의 timeSpeed store 와 연동 예정.
+  // rotationPeriod_hours 의 *부호* 만 사용 (음수 = 역회전, 예: 금성).
+  const SECONDS_PER_REVOLUTION = 25;
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
-
     const radiansPerSecond = (2 * Math.PI) / SECONDS_PER_REVOLUTION;
-    // 자전 방향: rotationPeriod_hours 가 음수면 역회전 (예: 금성)
     const direction = Math.sign(data.rotationPeriod_hours) || 1;
     meshRef.current.rotation.y += direction * radiansPerSecond * delta;
   });
 
   // ─── 자전축 기울기 ──────────────────────────────────
-  // 지구의 자전축은 공전면에 대해 23.5° 기울어져 있음 (계절의 원인).
-  // group 으로 감싸 기울기를 부모에 적용하면, 자전(useFrame)은 자식 메쉬에서.
-  // 기울기 = 라디안 단위 → 23.5° × π/180.
-  //
-  // sub-phase 2-2 에서 행성별 axialTilt 값을 PlanetData 에 추가 가능.
-  // 지금은 지구만이라 상수로.
+  // [Light 5] 에서 data.axialTilt_deg 로 교체 예정. 일단 23.5° 유지.
+  // 23.5° = 지구 기준값 → 현재는 모든 행성이 지구와 같은 기울기로 보임 (부채).
   const AXIAL_TILT_RAD = (23.5 * Math.PI) / 180;
 
   return (
-    <group rotation={[0, 0, AXIAL_TILT_RAD]}>
-      <mesh ref={meshRef}>
-        {/* sphereGeometry args: [반지름, widthSegments, heightSegments]
-          * segments = 구의 분할 수. 32×32 = 적당히 매끄럽고 가벼움.
-          * TechSpec §6: 모바일 60fps 미달 시 16×16 으로 감소. */}
-        <sphereGeometry args={[data.visualRadius, 32, 32]} />
-        <meshStandardMaterial map={texture} />
-      </mesh>
+    <group position={[x, 0, z]}>
+      <group rotation={[0, 0, AXIAL_TILT_RAD]}>
+        <mesh ref={meshRef}>
+          {/* sphereGeometry args: [반지름, widthSegments, heightSegments]
+            * TechSpec §6: 모바일 60fps 미달 시 32 → 16 으로 감소. */}
+          <sphereGeometry args={[data.visualRadius, 32, 32]} />
+          <meshStandardMaterial map={texture} />
+        </mesh>
+      </group>
     </group>
   );
 }
