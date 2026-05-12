@@ -1,13 +1,18 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
-import { useControls } from 'leva';
 import * as THREE from 'three';
 import type { PlanetData } from '../../data/planets';
+import {
+  type ScaleConfig,
+  computeVisualRadius,
+  computeVisualDistance,
+} from '../../lib/scale';
 
 type PlanetProps = {
   data: PlanetData;
   initialAngle: number;
+  scale: ScaleConfig;
 };
 
 /**
@@ -18,45 +23,29 @@ type PlanetProps = {
  * 책임:
  *   - sphere geometry (저폴리곤)
  *   - 텍스처 입히기
- *   - 공전 위치 배치 (visualDistance + initialAngle)
+ *   - 공전 위치 배치 (computeVisualDistance + initialAngle)
  *   - 자전축 기울기 적용
  *   - 매 프레임 자전 (rotationPeriod_hours 의 부호로 방향 결정)
  *
- * sub-phase 2-2 [Light 5]:
- *   leva 통합 — dev 모드에서 visualRadius / visualDistance 라이브 조정.
- *   행성 이름 (en) 으로 leva 폴더 자동 분리 → 8개 행성이 각자 패널 가짐.
+ * sub-phase 2-2 [Light 6] 변경:
+ *   - data.visualRadius / data.visualDistance 제거 → scale 함수 호출
+ *   - 행성별 leva useControls 제거 → Scene 의 전역 'Scale' 패널이 담당
+ *   - scale prop 추가 (sub-2-3 Zustand 도입 시 store 로 이동 가능)
  *
  * ─── group 3단 구조 ─────────────────────────────────
  *   [외부 group] position = 공전 위치 (xz 평면, 황도면)
  *     [중간 group] rotation = 자전축 기울기 (z축 기준)
  *       [mesh] rotation.y = 자전 (useFrame 매 프레임 갱신)
  */
-export function Planet({ data, initialAngle }: PlanetProps) {
+export function Planet({ data, initialAngle, scale }: PlanetProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const texture = useTexture(data.texture);
 
-  // ─── leva 패널 (dev only) ────────────────────────────
-  // 행성 이름 (en) 으로 폴더 자동 분리 — leva 패널에 'Mercury', 'Venus', ... 8개 폴더.
-  // 첫 인자가 폴더 이름 역할.
-  const tuned = useControls(data.name.en, {
-    radius: {
-      value: data.visualRadius,
-      min: 0.1,
-      max: 6,
-      step: 0.1,
-    },
-    distance: {
-      value: data.visualDistance,
-      min: 5,
-      max: 80,
-      step: 0.5,
-    },
-  });
+  // ─── 비례 압축으로 시각 값 계산 ─────────────────────
+  const radius = computeVisualRadius(data.realRadius_km, scale);
+  const distance = computeVisualDistance(data.realDistance_km, scale);
 
-  const radius = import.meta.env.DEV ? tuned.radius : data.visualRadius;
-  const distance = import.meta.env.DEV ? tuned.distance : data.visualDistance;
-
-  // ─── 공전 위치 (xz 평면) ─────────────────────────────
+  // ─── 공전 위치 (xz 평면, 황도면) ─────────────────────
   const x = Math.cos(initialAngle) * distance;
   const z = Math.sin(initialAngle) * distance;
 
@@ -71,7 +60,7 @@ export function Planet({ data, initialAngle }: PlanetProps) {
   });
 
   // ─── 자전축 기울기 ──────────────────────────────────
-  // [Light 6] 에서 data.axialTilt_deg 로 교체 예정.
+  // [Light 7] 에서 data.axialTilt_deg 로 교체 예정.
   const AXIAL_TILT_RAD = (23.5 * Math.PI) / 180;
 
   return (
