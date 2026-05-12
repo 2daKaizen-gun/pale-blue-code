@@ -1,6 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Planet } from './Planet';
+import { Sun } from './Sun';
 import { PLANETS } from '../../data/planets';
 
 /**
@@ -10,60 +11,63 @@ import { PLANETS } from '../../data/planets';
  *
  * 이 컴포넌트의 책임:
  *   - <Canvas> 셋업 (camera, renderer)
- *   - 조명 배치 (ambient + 태양 자리의 directional)
+ *   - 조명 배치 (ambient 만; 광원은 <Sun /> 의 pointLight 가 담당)
  *   - 카메라 컨트롤 (OrbitControls)
- *   - PLANETS 배열을 .map() 으로 렌더 (2-2 에서 1개 → 8개 확장 시 코드 변경 0)
+ *   - PLANETS 배열을 .map() 으로 렌더
  *
- * 책임 아닌 것 (다른 컴포넌트로):
- *   - 행성 자체 렌더링 → <Planet />
- *   - 컨트롤 패널 → <ControlPanel /> (Canvas 밖)
- *   - 카메라 보간 → <CameraController /> (sub-phase 2-5)
+ * sub-phase 2-2 변경 사항:
+ *   - directionalLight 제거 → <Sun /> 안의 pointLight 가 *진짜* 광원
+ *     (두 광원 공존 시 빛 방향이 어긋나 교육적 일관성 깨짐)
+ *   - <Sun /> 추가 (원점)
+ *   - 카메라 초기 position 후퇴 + maxDistance 확대
+ *     (해왕성 visualDistance = 50 이라 기존 maxDistance=50 으로는 막힘)
  *
  * 자세한 아키텍처는 docs/specs/phase-2/TECHSPEC.md §2 참조.
  */
 export function Scene() {
   return (
     <Canvas
-      // 카메라 초기 위치 — 지구를 비스듬히 위에서 내려다보기
+      // 카메라 초기 위치 — 태양계 전체가 한눈에 들어오는 비스듬한 시점.
+      // sub-phase 2-1 의 [0,2,5] 는 지구 하나에 맞춰진 값. 이제 태양 + 8개 행성이
+      // 흩어져있으니 훨씬 뒤로 후퇴.
       camera={{
-        position: [0, 2, 5], // x, y, z (R3F 기본 단위, 지구 반지름 = 1)
-        fov: 50,             // 시야각 (도). 50° = 표준 렌즈 느낌
-        near: 0.1,           // 가장 가까운 가시 거리
-        far: 1000,           // 가장 먼 가시 거리 (Phase 2-2 에서 멀리 행성 추가 시 충분)
+        position: [0, 30, 70], // 위에서 비스듬히 내려다보는 각도
+        fov: 50,
+        near: 0.1,
+        far: 1000,
       }}
-      // 우주 배경 — 토큰의 cosmos-bg 사용
       style={{ background: 'var(--color-cosmos-bg, #000)' }}
     >
       {/* ─── 조명 ───────────────────────────────────────
-        * ambient: 모든 면에 약한 균일 조명. 어두운 면이 완전 검정 되지 않게.
-        * directional: 태양 자리 (원점 부근) 에서 발산하는 강한 평행광.
-        *   실제 태양처럼 거리 제곱 감쇠는 안 함 (TechSpec §5 알려진 한계).
+        * ambient: 완전한 *밤 면* 이 통째로 사라지지 않게 약하게.
+        * 광원의 본체는 <Sun /> 안의 pointLight (decay=0, distance=0).
         */}
       <ambientLight intensity={0.15} />
-      <directionalLight
-        position={[5, 3, 5]}
-        intensity={1.5}
-        color="#fff5e6" // 약간 노란 햇빛
-      />
+
+      {/* ─── 태양 (원점) ────────────────────────────────
+        * pointLight 를 자식으로 가짐 → 태양 위치에서 사방으로 빛 발산.
+        * meshBasicMaterial 로 자체 발광 (빛을 받지 않고 자기 텍스처 그대로).
+        */}
+      <Sun />
 
       {/* ─── 행성들 ─────────────────────────────────────
-        * PLANETS 는 sub-phase 2-1 에서 지구 1개, 2-2 에서 8개로 확장.
-        * .map() 패턴이라 Scene 코드는 변경 없이 자동으로 8개 렌더.
+        * PLANETS 가 sub-phase 2-2 [Light 2] 에서 8개로 확장됨.
+        * .map() 패턴이라 Scene 코드 변경 없이 자동으로 8개 렌더.
         */}
       {PLANETS.map((planet) => (
         <Planet key={planet.id} data={planet} />
       ))}
 
       {/* ─── 카메라 컨트롤 ──────────────────────────────
-        * 마우스 드래그 = 회전, 휠 = 줌, 우클릭 드래그 = 팬.
-        * makeDefault: 다른 컴포넌트가 useThree() 로 controls 접근 가능 (2-5 에서 활용).
+        * minDistance: 태양 안으로 못 들어가게 (visualRadius=8 보다 약간 큼).
+        * maxDistance: 해왕성 (visualDistance=50) + 여유. 별 배경 (sub-2-6) 까지 고려.
         */}
       <OrbitControls
         makeDefault
         enableDamping
         dampingFactor={0.05}
-        minDistance={1.5}  // 너무 가까이 줌 못 들어가게 (행성 안으로 들어감 방지)
-        maxDistance={50}   // 너무 멀리 못 빠지게 (sub-phase 2-2 에서 행성 추가 후 다시 조정)
+        minDistance={10}
+        maxDistance={200}
       />
     </Canvas>
   );
