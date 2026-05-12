@@ -1,31 +1,41 @@
-# Planet Textures — Attribution
+# Pale Blue Code — Asset Attribution
 
-이 폴더의 모든 행성 텍스처는 **Solar System Scope** 의 자료를 사용한다.
+이 프로젝트는 외부 저작자의 자산을 사용한다. CC-BY 4.0 등 라이선스 의무에 따라 출처를 명시한다.
 
-## 출처
+---
 
-- **사이트**: https://www.solarsystemscope.com/textures/
-- **저자**: INOVE (Solar System Scope team)
-- **라이선스**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+## 행성 / 태양 텍스처
 
-## 사용 규약
+**출처**: Solar Textures by Solar System Scope
+**URL**: https://www.solarsystemscope.com/textures/
+**저작자**: INOVE
+**라이선스**: [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+**변경 사항**: 원본 그대로 사용 (리사이즈/편집 없음)
 
-CC-BY 4.0 의 핵심 의무:
-- ✅ 출처 명시 (이 파일이 그 역할)
-- ✅ 라이선스 링크 제공
-- ✅ 변경 사항 표시 (해상도 변경 / 이름 변경)
-- ⚠️ 영리 / 비영리 모두 사용 가능
-- ⚠️ 파생 저작물에 *동일 라이선스 강제 의무 없음* (단, AGPL-3.0 인 본 프로젝트 코드는 별도 적용)
+### 사용한 파일
 
-## 변경 사항
+| 파일 (이 레포) | 원본 파일명 | 용도 |
+|---|---|---|
+| `sun.jpg` | `2k_sun.jpg` | 태양 표면 |
+| `mercury.jpg` | `2k_mercury.jpg` | 수성 |
+| `venus.jpg` | `2k_venus_surface.jpg` | 금성 (표면 텍스처) |
+| `earth.jpg` | `2k_earth_daymap.jpg` | 지구 (sub-phase 2-1 부터 사용 중) |
+| `mars.jpg` | `2k_mars.jpg` | 화성 |
+| `jupiter.jpg` | `2k_jupiter.jpg` | 목성 |
+| `saturn.jpg` | `2k_saturn.jpg` | 토성 본체 |
+| `saturn_ring.png` | `2k_saturn_ring_alpha.png` | 토성 고리 (알파 채널) |
+| `uranus.jpg` | `2k_uranus.jpg` | 천왕성 |
+| `neptune.jpg` | `2k_neptune.jpg` | 해왕성 |
 
-- 파일명을 영문 ID로 통일 (`2k_earth_daymap.jpg` → `earth.jpg` 등)
-- 일부 텍스처는 2K 해상도로 사용 (원본은 8K 까지 제공)
+---
 
-## 텍스처 목록
+## 사용 의무 충족
 
-| 행성 | 파일 | 출처 페이지 |
-|------|------|-------------|
-| 지구 | `earth.jpg` | https://www.solarsystemscope.com/textures/ |
+- ✅ 출처 명시 (Solar System Scope / INOVE)
+- ✅ 라이선스 링크 (CC-BY 4.0)
+- ✅ 변경 사항 표시 (없음)
+- ✅ 동일/호환 라이선스 — 이 레포는 AGPL-3.0 으로 공개, CC-BY 4.0 은 부착물 라이선스로 양립
 
-(sub-phase 2-2 에서 8개 행성 + 태양 + 달 모두 추가 예정)
+---
+
+*"별빛은 누구의 것도 아니지만, 그 별빛을 사진으로 옮긴 사람의 이름은 남긴다."*
