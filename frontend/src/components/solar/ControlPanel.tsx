@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import {
   useSolarSystemStore,
   SPEED_OPTIONS,
@@ -27,16 +27,15 @@ import {
  *   *<input>/<textarea> 포커스 중에는 무시* — 정상 입력 보호
  *
  * ─── 모바일 속도 제한 ──────────────────────────────
- *   (pointer: coarse) = 터치 디바이스. 100,000× *숨김* — 비활성 아닌 *부재*.
+ *   (pointer: coarse) = 터치 디바이스. 100,000× *숨김*.
  *   PRD §6: 배터리 보호. *한 단계 낮춤*.
- *   외장 키보드 + 모바일 케이스 → 4 키는 작동 (특이 케이스 허용).
  *
  * ─── 리셋의 책임 범위 ──────────────────────────────
  *   *시간만* 리셋. 카메라 리셋은 sub-2-5 별도 버튼.
- *   책임 분리: ↺ = 시뮬레이션 시간 / sub-2-5 ⌂ = 카메라 시점
  */
 
 const MOBILE_MAX_SPEED = 10_000
+const COARSE_POINTER_QUERY = '(pointer: coarse)'
 
 /**
  * 속도 표기: 1×, 100×, 10,000×, 100,000×.
@@ -46,23 +45,42 @@ function formatSpeed(speed: SpeedOption): string {
   return `${speed.toLocaleString('en-US')}×`
 }
 
+// ─── useSyncExternalStore 패턴: 외부 source (matchMedia) 와 정확 동기화 ──
+//
+// useEffect + setState 패턴은 React 19 에서 *cascading render 안티패턴* 으로 경고됨.
+// useSyncExternalStore 는 외부 source 와 *tear 없이* 동기화하는 공식 hook.
+//
+// Zustand 가 내부적으로 이 hook 을 사용 — 즉 우리는 매번 *간접적으로* 써왔음.
+// 직접 사용하면 *외부 reactive source 와 React 의 연결고리* 가 보임.
+//
+//   subscribe   : source 변경 시 React 에게 알리는 방법 (callback 등록 + cleanup 반환)
+//   getSnapshot : 현재 source 의 *순간 값* (매번 동일 입력 → 동일 출력)
+//   getServerSnapshot : SSR 시 사용할 *서버 측 스냅샷* (Vite SPA 라 사실상 무관)
+
+function subscribeCoarsePointer(callback: () => void): () => void {
+  const mq = window.matchMedia(COARSE_POINTER_QUERY)
+  mq.addEventListener('change', callback)
+  return () => mq.removeEventListener('change', callback)
+}
+
+function getCoarsePointerSnapshot(): boolean {
+  return window.matchMedia(COARSE_POINTER_QUERY).matches
+}
+
+function getCoarsePointerServerSnapshot(): boolean {
+  return false // SSR 환경에선 데스크톱 가정 (안전한 default)
+}
+
 /**
- * 터치 디바이스 (pointer: coarse) 여부. SSR 안전.
- * 디바이스 회전 / 외장 마우스 연결 등으로 바뀌면 자동 추적.
+ * 터치 디바이스 (pointer: coarse) 여부.
+ * SSR 안전, cascading render 0, 디바이스 회전/외장 마우스 연결 자동 추적.
  */
 function useIsTouchDevice(): boolean {
-  const [isTouch, setIsTouch] = useState(false)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(pointer: coarse)')
-    setIsTouch(mq.matches)
-
-    const handler = (e: MediaQueryListEvent) => setIsTouch(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-
-  return isTouch
+  return useSyncExternalStore(
+    subscribeCoarsePointer,
+    getCoarsePointerSnapshot,
+    getCoarsePointerServerSnapshot,
+  )
 }
 
 export function ControlPanel() {
