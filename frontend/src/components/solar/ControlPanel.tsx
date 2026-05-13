@@ -16,9 +16,14 @@ import {
  *
  * ─── sub-phase 2-3 안에서의 위치 ────────────────────
  *   [Light 4] 시각적 셸 + 강조 분기
- *   [Light 5] ★현재★ — 정지/재생 wire-up
- *   [Light 6] — 속도 선택 wire-up
+ *   [Light 5] 정지/재생 wire-up
+ *   [Light 6] ★현재★ — 속도 선택 wire-up
  *   [Light 7] — 리셋 + 모바일 속도 제한 + 키보드 단축키
+ *
+ * ─── 속도 클릭 시맨틱 ───────────────────────────────
+ *   정지 중에 속도 버튼 클릭 → *자동 재생* (Spotify/Apple Music 패턴).
+ *   *명시적 액션 = 적극적 의도* 가정. 사용자가 100× 누르면 100× 로 가고 싶은 거.
+ *   store 의 setTimeSpeed 가 이미 그렇게 작동 (prevSpeed 도 같이 갱신).
  *
  * ─── sub-2-4 예고 ──────────────────────────────────
  *   자전 토글 + 거리 토글 + 전체 진실 프리셋 버튼이 이 패널에 추가됨.
@@ -41,6 +46,7 @@ export function ControlPanel() {
   // Canvas 밖이라 매 프레임 리렌더 걱정 없음 (속도 변경은 사용자 액션 시점만).
   const currentSpeed = useSolarSystemStore((s) => s.timeSpeed)
   const togglePause = useSolarSystemStore((s) => s.togglePause)
+  const setTimeSpeed = useSolarSystemStore((s) => s.setTimeSpeed)
   const isPaused = currentSpeed === 0
 
   return (
@@ -63,7 +69,7 @@ export function ControlPanel() {
 
         <div className="h-6 w-px bg-white/10" aria-hidden />
 
-        {/* ── 속도 선택 ── [Light 6] 에서 wire-up ── */}
+        {/* ── 속도 선택 — 정지 중 클릭 시 자동 재생 ── */}
         <div role="group" aria-label="시간 속도" className="flex gap-1">
           {SPEED_OPTIONS.map((speed) => {
             const isActive = currentSpeed === speed
@@ -71,6 +77,7 @@ export function ControlPanel() {
               <button
                 key={speed}
                 type="button"
+                onClick={() => setTimeSpeed(speed)}
                 aria-label={`속도 ${formatSpeed(speed)}`}
                 aria-pressed={isActive}
                 className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
