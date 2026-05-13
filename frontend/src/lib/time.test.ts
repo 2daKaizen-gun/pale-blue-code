@@ -11,6 +11,12 @@ import { computeOrbitAngle, computeRotationAngle } from './time'
  *   - 정확한 값 (0, 정주기, 반주기) 은 toBe / toBeCloseTo
  *   - 실제 천체 데이터 (수성 88일, 해왕성 60182일, 금성 -5832.5h) 로
  *     상대 비율 검증 → *실제 우주의 비례* 가 코드에 반영되는지
+ *
+ * ─── -0 vs +0 ───────────────────────────────────────
+ *   IEEE 754 는 0 에도 부호 비트를 보관. 음수로 나눈 0 은 -0.
+ *   Object.is(0, -0) === false → toBe 는 깐깐함.
+ *   시각적으로는 무관하니 음수 주기 케이스는 toBeCloseTo 로 *부동소수점 근사 비교*.
+ *   원리적 TDD 학습 포인트: *수학적 같음* ≠ *비트 표현 같음*.
  */
 
 describe('computeOrbitAngle', () => {
@@ -52,7 +58,8 @@ describe('computeOrbitAngle', () => {
 describe('computeRotationAngle', () => {
   it('returns 0 when simulationDays is 0', () => {
     expect(computeRotationAngle(0, 24)).toBe(0)
-    expect(computeRotationAngle(0, -5832.5)).toBe(0)
+    // 음수 주기로 나눈 0 = -0 (IEEE 754). 시각적 무관 → toBeCloseTo 로 근사 비교.
+    expect(computeRotationAngle(0, -5832.5)).toBeCloseTo(0, 10)
   })
 
   it('completes 2π after one earth day for 24h rotation', () => {
