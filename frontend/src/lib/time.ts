@@ -52,3 +52,32 @@ export function computeRotationAngle(
   const periodDays = rotationPeriodHours / HOURS_PER_DAY
   return (simulationDays / periodDays) * TWO_PI
 }
+
+/**
+ * 시각화 보정용 *효과적* 자전 주기 계산.
+ *
+ * NASA Fact Sheet 는 *축 기울기* + *자전 주기 부호* 두 가지로 회전 방향을 표현.
+ * 예) 금성 axialTilt=177.4°, rotationPeriod=-5832.5h → *둘 다* 시계 방향 표현
+ *
+ * 그런데 Three.js 의 group 회전을 그대로 적용하면 두 부호가 *수학적으로 캔슬* 됨:
+ *   - axialTilt 177.4° → z축 거의 180° 회전 → 좌표계가 위아래로 뒤집힘
+ *   - 뒤집힌 좌표계에서 mesh.rotation.y 음수 회전 → 외부 관찰자엔 *양수 회전* 으로 보임
+ *   - 결과: 다른 행성과 같은 방향으로 자전하는 듯한 *시각적 버그*
+ *
+ * 보정: axialTilt 가 90~270° 범위에 있으면 좌표계가 뒤집힌 것 → period 부호 반전으로 상쇄.
+ *
+ * 비유: *지구본을 거꾸로 들고 시계 반대 방향으로 돌리면 보는 사람한텐 시계 방향*.
+ * 두 부호 중 하나만 적용하면 정확함. 우리는 좌표계 뒤집기를 시각적 임팩트 (특히 천왕성
+ * 의 *옆으로 누운 자전*) 위해 유지하고, 회전 부호를 보정하는 쪽 선택.
+ *
+ * @param rotationPeriodHours - NASA 원본 값 (data/planets.ts)
+ * @param axialTiltDeg - 자전축 기울기 (0~180° 범위 예상)
+ * @returns 시각화에 적용할 보정된 주기
+ */
+export function getEffectiveRotationPeriod(
+  rotationPeriodHours: number,
+  axialTiltDeg: number,
+): number {
+  const isFlipped = axialTiltDeg > 90 && axialTiltDeg < 270
+  return isFlipped ? -rotationPeriodHours : rotationPeriodHours
+}

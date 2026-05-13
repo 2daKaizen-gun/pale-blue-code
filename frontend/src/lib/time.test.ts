@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { computeOrbitAngle, computeRotationAngle } from './time'
+import {
+  computeOrbitAngle,
+  computeRotationAngle,
+  getEffectiveRotationPeriod,
+} from './time'
 
 /**
  * Pale Blue Code — Phase 2: Solar System
@@ -93,5 +97,31 @@ describe('computeRotationAngle', () => {
     // 약 1.39 회전 시계 방향 → -2π * (24/17.24)
     expect(result).toBeCloseTo(-2 * Math.PI * (24 / 17.24), 10)
     expect(result).toBeLessThan(0)
+  })
+})
+
+describe('getEffectiveRotationPeriod', () => {
+  it('preserves period when axial tilt is upright (0-90°)', () => {
+    // 지구: 23.5° 기울기, 정방향 자전
+    expect(getEffectiveRotationPeriod(23.93, 23.5)).toBe(23.93)
+    // 화성: 25.19° 기울기
+    expect(getEffectiveRotationPeriod(24.62, 25.19)).toBe(24.62)
+    // 수성: 거의 0° 기울기
+    expect(getEffectiveRotationPeriod(1407.6, 0.034)).toBe(1407.6)
+  })
+
+  it('flips period sign when axial tilt is between 90° and 270° (flipped frame)', () => {
+    // 금성: NASA 관습 그대로 (axial 177.4° + period -5832.5h) 는
+    // Three.js 회전 행렬 적용 시 부호 캔슬 → 보정 위해 부호 반전
+    expect(getEffectiveRotationPeriod(-5832.5, 177.4)).toBe(5832.5)
+
+    // 천왕성: 97.77° 도 뒤집힘 범위에 포함 → 부호 반전
+    expect(getEffectiveRotationPeriod(-17.24, 97.77)).toBe(17.24)
+  })
+
+  it('handles edge cases at exactly 90° and 270° (not flipped)', () => {
+    // 정확히 90° 는 *회전축이 공전면에 누움* — 완전 뒤집힘 X
+    expect(getEffectiveRotationPeriod(24, 90)).toBe(24)
+    expect(getEffectiveRotationPeriod(24, 270)).toBe(24)
   })
 })
