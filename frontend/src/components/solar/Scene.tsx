@@ -5,6 +5,7 @@ import { Leva, useControls } from 'leva'
 import { Planet } from './Planet'
 import { Sun } from './Sun'
 import { TimeAdvancer } from './TimeAdvancer'
+import { OrbitPath } from './OrbitPath'
 import { PLANETS } from '../../data/planets'
 import { DEFAULT_SCALE } from '../../lib/scale'
 import { useSolarSystemStore } from '../../store/solarSystemStore'
@@ -28,7 +29,8 @@ const DEFAULT_AMBIENT = 0.3
  * ─── sub-phase 2-3 [Light 3] 변경 ──────────────────
  *   1. <TimeAdvancer /> 를 Canvas 의 첫 자식으로 추가 — 다른 useFrame 보다 먼저 실행
  *   2. leva 의 'Time (dev)' 섹션 추가 — timeSpeed 직접 조작 가능 (개발자 도구)
- *   3. ControlPanel (사용자 도구) 은 sub-2-3 의 [Light 4-7] 에서 SolarPage 에 추가됨
+ *   3. <OrbitPath /> 추가 — 각 행성 자기 궤도 라인. 행성보다 먼저 렌더 (z-order 영향 X 지만 의미상)
+ *   4. ControlPanel (사용자 도구) 은 sub-2-3 의 [Light 4-7] 에서 SolarPage 에 추가됨
  *
  *   leva 와 ControlPanel 의 *공존* — sub-2-2 회고의 *개발자 도구 vs 사용자 도구* 분리.
  *   둘 다 같은 store 를 읽지만 UX 책임이 완전히 다름.
@@ -115,12 +117,17 @@ export function Scene() {
         {PLANETS.map((planet, index) => {
           const initialAngle = (index / PLANETS.length) * Math.PI * 2
           return (
-            <Planet
-              key={planet.id}
-              data={planet}
-              initialAngle={initialAngle}
-              scale={scale}
-            />
+            <group key={planet.id}>
+              <OrbitPath
+                realDistanceKm={planet.realDistance_km}
+                scale={scale}
+              />
+              <Planet
+                data={planet}
+                initialAngle={initialAngle}
+                scale={scale}
+              />
+            </group>
           )
         })}
 
