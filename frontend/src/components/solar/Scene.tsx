@@ -6,6 +6,7 @@ import { Planet } from './Planet'
 import { Sun } from './Sun'
 import { TimeAdvancer } from './TimeAdvancer'
 import { OrbitPath } from './OrbitPath'
+import { Starfield } from './Starfield'
 import { PLANETS } from '../../data/planets'
 import { DEFAULT_SCALE } from '../../lib/scale'
 import { useSolarSystemStore } from '../../store/solarSystemStore'
@@ -29,11 +30,12 @@ const DEFAULT_AMBIENT = 0.3
  * ─── sub-phase 2-3 [Light 3] 변경 ──────────────────
  *   1. <TimeAdvancer /> 를 Canvas 의 첫 자식으로 추가 — 다른 useFrame 보다 먼저 실행
  *   2. leva 의 'Time (dev)' 섹션 추가 — timeSpeed 직접 조작 가능 (개발자 도구)
- *   3. <OrbitPath /> 추가 — 각 행성 자기 궤도 라인. 행성보다 먼저 렌더 (z-order 영향 X 지만 의미상)
+ *   3. <OrbitPath /> 추가 — 각 행성 자기 궤도 라인
  *   4. ControlPanel (사용자 도구) 은 sub-2-3 의 [Light 4-7] 에서 SolarPage 에 추가됨
  *
- *   leva 와 ControlPanel 의 *공존* — sub-2-2 회고의 *개발자 도구 vs 사용자 도구* 분리.
- *   둘 다 같은 store 를 읽지만 UX 책임이 완전히 다름.
+ * ─── sub-phase 2-3 [Light 8] 변경 ──────────────────
+ *   <Starfield /> 추가 — sub-2-6 에서 당겨옴. drei <Stars> 한 줄이라 sub-phase 작업으로
+ *   끄집어내는 게 오히려 과한 격식.
  */
 export function Scene() {
   const tunedScale = useControls('Scale', {
@@ -107,8 +109,11 @@ export function Scene() {
         }}
         style={{ background: 'var(--color-cosmos-bg, #000)' }}
       >
-        {/* 첫 자식 — 다른 useFrame 보다 먼저 실행되어 simulationDays 갱신 */}
+        {/* 인프라 — 다른 useFrame 보다 먼저 실행되어 simulationDays 갱신 */}
         <TimeAdvancer />
+
+        {/* 배경 — sphere 형태 별 분포. 카메라 어디 가도 모든 방향에 별 */}
+        <Starfield />
 
         <ambientLight intensity={ambient} />
 
