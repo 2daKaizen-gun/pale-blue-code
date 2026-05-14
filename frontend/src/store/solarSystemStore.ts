@@ -7,24 +7,24 @@ import { create } from 'zustand'
  *
  * ─── 시간 매핑 ───────────────────────────────────────
  *   1 real second × timeSpeed = N simulation days
- *     timeSpeed = 1      → 지구 1년 ≈ 365초 (6분)
- *     timeSpeed = 100    → 지구 1년 ≈ 3.65초
- *     timeSpeed = 10000  → 지구 1년 ≈ 36ms (블러)
- *     timeSpeed = 100000 → 해왕성 165년 ≈ 0.6초 (보이는 한계)
+ *     timeSpeed = 0.1   → 지구 자전 10초/회전, *느림의 관찰*
+ *     timeSpeed = 1     → 지구 1년 ≈ 365초 (6분)
+ *     timeSpeed = 100   → 지구 1년 ≈ 3.65초, 내행성 공전 관찰
+ *     timeSpeed = 10000 → 해왕성 1바퀴 6초, 외행성까지 한 화면
+ *
+ *   sub-2-3 [Light 8.5] 갱신: 100,000× 제거 (인간 눈에 의미 없음) + 0.1× 추가
+ *   (느린 자전 관찰). 빠름과 느림 양쪽으로 학습 가치.
  *
  * ─── 정지의 의미 ─────────────────────────────────────
  *   timeSpeed === 0 → 정지 상태
  *   prevSpeed       → 정지 직전 활성 속도 (재개 시 복귀)
  *
- *   비디오 플레이어의 ⏸ 와 같은 시맨틱: *현재 속도를 잃지 않고 잠시 멈춤*.
- *   사용자가 정지 중에 다른 속도 버튼을 누르면 자동 재생.
- *
  * ─── useFrame 안 사용 패턴 ─────────────────────────
  *   useFrame 안에서는 *반드시* `useSolarSystemStore.getState()` 호출.
- *   selector 구독 (useSolarSystemStore(s => s.x)) 금지 — 매 프레임 리렌더 폭탄.
+ *   selector 구독 금지 — 매 프레임 리렌더 폭탄.
  */
 
-export const SPEED_OPTIONS = [1, 100, 10000, 100000] as const
+export const SPEED_OPTIONS = [0.1, 1, 100, 10_000] as const
 export type SpeedOption = (typeof SPEED_OPTIONS)[number]
 export const DEFAULT_SPEED: SpeedOption = 1
 
@@ -66,10 +66,8 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
   togglePause: () => {
     const { timeSpeed, prevSpeed } = get()
     if (timeSpeed === 0) {
-      // 정지 → 재개
       set({ timeSpeed: prevSpeed })
     } else {
-      // 활성 → 정지 (현재 속도 기억)
       set({ prevSpeed: timeSpeed as SpeedOption, timeSpeed: 0 })
     }
   },
