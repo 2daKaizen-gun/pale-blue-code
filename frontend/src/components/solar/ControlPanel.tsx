@@ -8,7 +8,14 @@ import {
 /**
  * Pale Blue Code — Phase 2: Solar System
  *
- * ControlPanel — 사용자가 시간을 조작하는 도구. Canvas 밖, 화면 하단 고정.
+ * ControlPanel — 사용자가 시간 + 진실 모드를 조작하는 도구. Canvas 밖, 화면 하단 고정.
+ *
+ * ─── 레이아웃 (sub-2-4 갱신) ─────────────────────────
+ *   [정지] | [속도 4개] | [거리] [자전] [전체 진실] | [리셋]
+ *      시간 그룹                    진실 토글 그룹      reset
+ *
+ *   *시간* 은 일시적 (스페이스 한 번이면 복원), *모드* 는 영구적 (다음 토글까지 유지).
+ *   다른 의미라 시각적으로 분리 (구분선).
  *
  * ─── 키보드 단축키 ─────────────────────────────────
  *   Space: 정지/재생
@@ -16,12 +23,19 @@ import {
  *   R: 리셋
  *   *<input>/<textarea> 포커스 중에는 무시*
  *
+ *   모드 토글 단축키 (D=거리/T=자전/A=전체) 는 sub-2-5 또는 sub-2-6 별도.
+ *
+ * ─── 진실 토글 UX (sub-2-4) ────────────────────────
+ *   각 토글 활성 (mode='real') 시 bg-white/20 — 사용자가 *지금 진실 모드* 임을 시각 인지.
+ *   비활성 (mode='visual') 은 기본 상태 (어두운 우주 배경).
+ *   *전체 진실* 은 양쪽 모드 모두 'real' 일 때만 활성 표시 (= 둘 다 진실 상태).
+ *
  * ─── 모바일 속도 제한 ──────────────────────────────
  *   현재 SPEED_OPTIONS 최대값이 10,000× 라 실효 제한 없음.
- *   인프라는 sub-2-7 모바일 최적화 / 향후 더 빠른 속도 추가 위해 유지.
+ *   인프라는 sub-2-7 모바일 최적화 위해 유지.
  *
  * ─── 리셋의 책임 범위 ──────────────────────────────
- *   *시간만* 리셋. 카메라 리셋은 sub-2-5 별도 버튼.
+ *   *시간만* 리셋. 모드/카메라는 별도. 카메라 리셋은 sub-2-5.
  */
 
 const MOBILE_MAX_SPEED = 10_000
@@ -55,18 +69,29 @@ function useIsTouchDevice(): boolean {
 }
 
 export function ControlPanel() {
+  // ── 시간 컨트롤 (sub-2-3) ────────────────────────
   const currentSpeed = useSolarSystemStore((s) => s.timeSpeed)
   const togglePause = useSolarSystemStore((s) => s.togglePause)
   const setTimeSpeed = useSolarSystemStore((s) => s.setTimeSpeed)
   const reset = useSolarSystemStore((s) => s.reset)
   const isPaused = currentSpeed === 0
 
+  // ── 진실 토글 (sub-2-4) ──────────────────────────
+  const scaleMode = useSolarSystemStore((s) => s.scaleMode)
+  const rotationMode = useSolarSystemStore((s) => s.rotationMode)
+  const toggleScaleMode = useSolarSystemStore((s) => s.toggleScaleMode)
+  const toggleRotationMode = useSolarSystemStore((s) => s.toggleRotationMode)
+  const toggleAllTruth = useSolarSystemStore((s) => s.toggleAllTruth)
+  const isScaleReal = scaleMode === 'real'
+  const isRotationReal = rotationMode === 'real'
+  const isAllTruth = isScaleReal && isRotationReal
+
   const isTouch = useIsTouchDevice()
   const availableSpeeds: readonly SpeedOption[] = isTouch
     ? SPEED_OPTIONS.filter((s) => s <= MOBILE_MAX_SPEED)
     : SPEED_OPTIONS
 
-  // ─── 키보드 단축키 ─────────────────────────────────
+  // ─── 키보드 단축키 (시간만 — 모드 단축키는 sub-2-5/6) ─────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement
@@ -145,7 +170,70 @@ export function ControlPanel() {
 
         <div className="h-6 w-px bg-white/10" aria-hidden />
 
-        {/* ── 리셋 ── R ── 시간만 (카메라는 sub-2-5 별도) ── */}
+        {/* ── 진실 토글 (Light 8 + 9) ────────────────── */}
+        <div
+          role="group"
+          aria-label="진실 토글"
+          className="flex gap-1"
+        >
+          <button
+            type="button"
+            onClick={toggleScaleMode}
+            aria-label={
+              isScaleReal
+                ? '거리 시각 모드로 (현재 진실)'
+                : '거리 진실 모드로 (현재 시각)'
+            }
+            aria-pressed={isScaleReal}
+            className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
+              isScaleReal
+                ? 'bg-white/20 text-white'
+                : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            거리
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleRotationMode}
+            aria-label={
+              isRotationReal
+                ? '자전 시각 모드로 (현재 진실)'
+                : '자전 진실 모드로 (현재 시각)'
+            }
+            aria-pressed={isRotationReal}
+            className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
+              isRotationReal
+                ? 'bg-white/20 text-white'
+                : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            자전
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleAllTruth}
+            aria-label={
+              isAllTruth
+                ? '전체 시각 모드로 (현재 둘 다 진실)'
+                : '전체 진실 모드 (거리 + 자전 동시)'
+            }
+            aria-pressed={isAllTruth}
+            className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
+              isAllTruth
+                ? 'bg-white/20 text-white'
+                : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            전체 진실
+          </button>
+        </div>
+
+        <div className="h-6 w-px bg-white/10" aria-hidden />
+
+        {/* ── 리셋 ── R ── 시간만 (모드/카메라 X) ── */}
         <button
           type="button"
           onClick={reset}
