@@ -16,18 +16,19 @@
  *   여지 있지만, JS double 의 15 유효숫자 안에서 *수 시간 단위 사용* 까지는 무영향.
  *
  * ─── 합성 순서 (sub-2-4 자전 토글) ─────────────────────
- *   호출 측 (Planet.tsx) 에서 다음 순서로 합성:
+ *   호출 측 (Planet.tsx 등) 에서 다음 순서로 합성:
  *     realPeriod                                            // NASA 원본
- *     → getVisualRotationPeriod(realPeriod)                // visual 압축 (부호 보존)
- *     → lerp(visual, real, easeInOutCubic(progress))       // mode 보간
- *     → getEffectiveRotationPeriod(period, tilt)           // axial-flip 보정
- *     → computeRotationAngle(days, effective)              // 각도
+ *     → getInterpolatedRotationPeriod(real, mode, eased)    // mode 보간 (visual ↔ real)
+ *     → getEffectiveRotationPeriod(period, tilt)            // axial-flip 보정
+ *     → computeRotationAngle(days, effective)               // 각도
  *
- *   왜 *visual 먼저, effective 나중* 인가:
- *     visual = 데이터 본질의 압축 (스피드의 크기 — 케플러 비례 완화)
- *     effective = 좌표계 부산물 보정 (시각적 부호 캔슬 상쇄)
- *   두 책임이 의미적으로 다르므로 분리. 결과는 어느 순서든 수학적으로 동일.
+ *   왜 *보간 먼저, 보정 나중* 인가:
+ *     보간 = 데이터 본질의 변환 (visual ↔ real)
+ *     보정 = 좌표계 부산물 (시각적 부호 캔슬 상쇄)
+ *   두 책임이 의미적으로 다르므로 분리.
  */
+
+import { lerp } from './easing'
 
 const TWO_PI = 2 * Math.PI
 const HOURS_PER_DAY = 24
@@ -41,11 +42,6 @@ export type RotationMode = 'visual' | 'real'
 
 /**
  * 공전 각도. xz 평면 (황도면) 의 회전.
- *
- * @param simulationDays - store 누적 시뮬레이션 시간 (days)
- * @param orbitalPeriodDays - 천체의 실제 공전 주기 (data/planets.ts)
- * @param initialAngle - t=0 시점의 시작 각도 (Scene 에서 행성마다 다르게 부여)
- * @returns 라디안 단위 각도 (modulo X)
  */
 export function computeOrbitAngle(
   simulationDays: number,
@@ -56,14 +52,8 @@ export function computeOrbitAngle(
 }
 
 /**
- * 자전 각도. y축 (자전축 기울기 적용 후의 그 축) 회전.
- *
- * 음수 rotationPeriodHours = 역회전 (금성 -5832.5h, 천왕성 -17.24h).
- * 부호가 결과 각도로 자연스럽게 전파 — Planet.tsx 의 direction 변수 제거 가능.
- *
- * @param simulationDays - store 누적 시뮬레이션 시간 (days)
- * @param rotationPeriodHours - 자전 주기 시간 단위 (음수 가능)
- * @returns 라디안 단위 각도
+ * 자전 각도. y축 회전.
+ * 음수 rotationPeriodHours = 역회전 (금성, 천왕성). 부호 자연 전파.
  */
 export function computeRotationAngle(
   simulationDays: number,
@@ -87,12 +77,6 @@ export function computeRotationAngle(
  * 보정: axialTilt 가 90~270° 범위에 있으면 좌표계가 뒤집힌 것 → period 부호 반전으로 상쇄.
  *
  * 비유: *지구본을 거꾸로 들고 시계 반대 방향으로 돌리면 보는 사람한텐 시계 방향*.
- * 두 부호 중 하나만 적용하면 정확함. 우리는 좌표계 뒤집기를 시각적 임팩트 (특히 천왕성
- * 의 *옆으로 누운 자전*) 위해 유지하고, 회전 부호를 보정하는 쪽 선택.
- *
- * @param rotationPeriodHours - NASA 원본 값 (data/planets.ts)
- * @param axialTiltDeg - 자전축 기울기 (0~180° 범위 예상)
- * @returns 시각화에 적용할 보정된 주기
  */
 export function getEffectiveRotationPeriod(
   rotationPeriodHours: number,
@@ -108,24 +92,53 @@ export function getEffectiveRotationPeriod(
  * 공식: `sign(period) × (|period| / 24)^0.5 × 24`
  *
  * 의미:
- *   24h (지구) 가 *불변 기준점* — 지구는 거의 그대로 (23.93h → 23.96h)
+ *   24h (지구) 가 *불변 기준점*
  *   24h 보다 *큰* 주기 (느린 자전) → 압축됨   : 수성 1407.6h → 184h
  *   24h 보다 *작은* 주기 (빠른 자전) → 팽창됨 : 목성 9.93h → 15.4h
  *
  * 결과: 케플러 비례를 *완화하되 보존*. 1x 에서 수성/목성이 둘 다 *보이는* 속도.
- * lib/scale.ts 의 distanceExponent 0.5 와 *수학적으로 같은 압축* — 같은 결.
  *
  * sub-2-4 자전 토글 'visual' 모드의 값. 'real' 모드는 원본 그대로.
- * 보간은 호출 측 (Planet.tsx) 의 lerp(visual, real, eased) — 이 함수는 visual 만 책임.
- *
- * 부호 보존: 금성 -5832.5h → -374h. 역회전이 *visual 모드에서도* 유지됨.
- *
- * @param realPeriodHours - NASA 원본 (data/planets.ts 의 rotationPeriod_hours)
- * @returns 시각 모드 자전 주기 (시간 단위, 음수 가능)
+ * 보간은 getInterpolatedRotationPeriod 가 담당.
  */
 export function getVisualRotationPeriod(realPeriodHours: number): number {
   if (realPeriodHours === 0) return 0
   const sign = Math.sign(realPeriodHours)
   const magnitude = Math.abs(realPeriodHours)
   return sign * Math.sqrt(magnitude / HOURS_PER_DAY) * HOURS_PER_DAY
+}
+
+/**
+ * sub-2-4 자전 토글의 *보간된 자전 주기* 도출.
+ *
+ * scale.ts 의 getInterpolatedScaleConfig 와 정확한 미러:
+ *   mode='real' 토글 직후 → 직전엔 visual. progress=0 시점에 visual 값.
+ *   progress=1 시점에 real 값 도달. 1.5초 동안 visual → real 부드럽게.
+ *   mode='visual' 정반대.
+ *
+ *   *"mode 는 도달하려는 목표, progress 는 얼마나 갔는가"* — store 패러다임 일치.
+ *
+ * 부호 보존:
+ *   금성 (-5832.5h) → visual (-374h) → 보간 중 항상 음수.
+ *   천왕성 (-17.24h) → visual (-20.3h) → 둘 다 음수, 보간 중 음수.
+ *   *역회전이 토글 중에도 일관* 유지.
+ *
+ * 축 기울기 보정 (axial-flip) 은 *이 함수 결과 후* 호출 측에서
+ * getEffectiveRotationPeriod 로 합성. 두 책임 분리.
+ *
+ * @param realPeriodHours - NASA 원본 (data/planets.ts)
+ * @param mode - 도달 목표 모드
+ * @param progress - eased 0~1 (호출 측에서 easeInOutCubic 적용 후 전달)
+ * @returns 그 순간의 자전 주기 (시간 단위, 부호 보존)
+ */
+export function getInterpolatedRotationPeriod(
+  realPeriodHours: number,
+  mode: RotationMode,
+  progress: number,
+): number {
+  if (realPeriodHours === 0) return 0
+  const visual = getVisualRotationPeriod(realPeriodHours)
+  return mode === 'real'
+    ? lerp(visual, realPeriodHours, progress)
+    : lerp(realPeriodHours, visual, progress)
 }

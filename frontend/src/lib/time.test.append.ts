@@ -1,130 +1,97 @@
 /**
- * ⚠️ append 가이드:
- *   기존 lib/time.test.ts 파일 *맨 아래* 에 아래 describe 블록을 추가.
- *   import 문은 기존 파일에서 `getVisualRotationPeriod` 만 추가 분리.
- *
- *   예) 기존:
- *     import { computeOrbitAngle, computeRotationAngle, getEffectiveRotationPeriod } from './time'
- *   변경:
- *     import {
- *       computeOrbitAngle,
- *       computeRotationAngle,
- *       getEffectiveRotationPeriod,
- *       getVisualRotationPeriod,
- *     } from './time'
+ * ⚠️ append 가이드 (Light 6a):
+ *   lib/time.test.ts 의 import 문에 `getInterpolatedRotationPeriod` 추가.
+ *   파일 *맨 아래* 에 아래 describe 블록 append.
  */
 
 import { describe, it, expect } from 'vitest'
 import {
+  getInterpolatedRotationPeriod,
   getVisualRotationPeriod,
   getEffectiveRotationPeriod,
 } from './time'
 
-describe('getVisualRotationPeriod', () => {
-  it('returns 0 for 0 input (가드)', () => {
-    expect(getVisualRotationPeriod(0)).toBe(0)
+describe('getInterpolatedRotationPeriod', () => {
+  it('mode=real, progress=0 → visual 값 (출발 = 압축된 visual)', () => {
+    // 지구 23.93h 의 visual ≈ 23.96h
+    const result = getInterpolatedRotationPeriod(23.93, 'real', 0)
+    expect(result).toBeCloseTo(getVisualRotationPeriod(23.93))
   })
 
-  it('preserves sign for positive period (지구 — 정회전)', () => {
-    // 지구 23.93h → 약 23.96h. 24h 기준점 근처는 거의 불변
-    const result = getVisualRotationPeriod(23.93)
-    expect(result).toBeGreaterThan(0)
-    expect(result).toBeCloseTo(23.96, 1)
+  it('mode=real, progress=1 → real 값 (도착 = NASA 원본)', () => {
+    const result = getInterpolatedRotationPeriod(23.93, 'real', 1)
+    expect(result).toBeCloseTo(23.93)
   })
 
-  it('preserves sign for negative period (금성 — 역회전)', () => {
-    // 금성 -5832.5h → -374h. 역회전이 visual 에서도 보존
-    const result = getVisualRotationPeriod(-5832.5)
-    expect(result).toBeLessThan(0)
-    expect(result).toBeCloseTo(-374, 0)
+  it('mode=visual, progress=0 → real 값 (출발 = 원본)', () => {
+    const result = getInterpolatedRotationPeriod(23.93, 'visual', 0)
+    expect(result).toBeCloseTo(23.93)
   })
 
-  it('compresses long periods toward 24h (수성)', () => {
-    // 수성 1407.6h (58.65일) → 184h (7.7일). 압축 비율 약 7.6배
-    const result = getVisualRotationPeriod(1407.6)
-    expect(result).toBeCloseTo(184, 0)
-    expect(result).toBeLessThan(1407.6) // 압축됨
+  it('mode=visual, progress=1 → visual 값 (도착 = 압축)', () => {
+    const result = getInterpolatedRotationPeriod(23.93, 'visual', 1)
+    expect(result).toBeCloseTo(getVisualRotationPeriod(23.93))
   })
 
-  it('expands short periods toward 24h (목성)', () => {
-    // 목성 9.93h → 15.4h. 빠른 자전을 *느리게* 늘려서 보이게 함
-    const result = getVisualRotationPeriod(9.93)
-    expect(result).toBeCloseTo(15.4, 1)
-    expect(result).toBeGreaterThan(9.93) // 팽창됨
+  it('수성 보간 — 진실로 갈수록 *느려진다* (정량 검증)', () => {
+    // 수성 real 1407.6h, visual 184h. real 모드 가는 중엔 period 증가 = 느려짐
+    const start = getInterpolatedRotationPeriod(1407.6, 'real', 0)
+    const mid = getInterpolatedRotationPeriod(1407.6, 'real', 0.5)
+    const end = getInterpolatedRotationPeriod(1407.6, 'real', 1)
+    expect(start).toBeCloseTo(184, 0)   // visual
+    expect(end).toBeCloseTo(1407.6, 0)  // real
+    expect(mid).toBeCloseTo((184 + 1407.6) / 2, 0) // lerp 중간
+    expect(start).toBeLessThan(end) // *수성이 진실 모드 도달 시 거의 멈춤* 의 수학
   })
 
-  it('leaves 24h unchanged (기준점)', () => {
-    // 정확히 24h 면 그대로 24h — sqrt(1) × 24 = 24
-    expect(getVisualRotationPeriod(24)).toBeCloseTo(24)
+  it('목성 보간 — 진실로 갈수록 *빨라진다* (정량 검증)', () => {
+    // 목성 real 9.93h, visual 15.4h. real 모드 가는 중엔 period 감소 = 빨라짐
+    const start = getInterpolatedRotationPeriod(9.93, 'real', 0)
+    const end = getInterpolatedRotationPeriod(9.93, 'real', 1)
+    expect(start).toBeCloseTo(15.4, 1) // visual (느림)
+    expect(end).toBeCloseTo(9.93, 1)   // real (빠름)
+    expect(end).toBeLessThan(start) // *목성이 진실 모드 도달 시 광속* 의 수학
   })
 
-  it('leaves -24h unchanged with sign preserved (가상 역회전 기준점)', () => {
-    expect(getVisualRotationPeriod(-24)).toBeCloseTo(-24)
+  it('금성 음수 보간 — 부호 보존 (역회전 유지)', () => {
+    // 금성 real -5832.5h, visual -374h. 둘 다 음수 → 보간 중 항상 음수
+    const start = getInterpolatedRotationPeriod(-5832.5, 'real', 0)
+    const mid = getInterpolatedRotationPeriod(-5832.5, 'real', 0.5)
+    const end = getInterpolatedRotationPeriod(-5832.5, 'real', 1)
+    expect(start).toBeLessThan(0)
+    expect(mid).toBeLessThan(0)
+    expect(end).toBeLessThan(0)
+    expect(end).toBeCloseTo(-5832.5, 0)
   })
 
-  it('produces TechSpec table values (NASA 전 행성)', () => {
-    // TechSpec §3 시간/자전 변환 표의 visual 컬럼 검증
-    expect(getVisualRotationPeriod(1407.6)).toBeCloseTo(184, 0)   // 수성
-    expect(getVisualRotationPeriod(-5832.5)).toBeCloseTo(-374, 0) // 금성
-    expect(getVisualRotationPeriod(23.93)).toBeCloseTo(24, 0)     // 지구
-    expect(getVisualRotationPeriod(24.62)).toBeCloseTo(24.3, 1)   // 화성
-    expect(getVisualRotationPeriod(9.93)).toBeCloseTo(15.4, 1)    // 목성
-    expect(getVisualRotationPeriod(10.66)).toBeCloseTo(16.0, 1)   // 토성
-    expect(getVisualRotationPeriod(-17.24)).toBeCloseTo(-20.3, 1) // 천왕성
-    expect(getVisualRotationPeriod(16.11)).toBeCloseTo(19.7, 1)   // 해왕성
-  })
-
-  it('is monotonic on positive inputs (큰 real → 큰 visual)', () => {
-    // 단조성 — 압축 후에도 순서 보존. 수성(느림) → 목성(빠름) 순서 유지
-    expect(getVisualRotationPeriod(9.93)).toBeLessThan(
-      getVisualRotationPeriod(24),
-    )
-    expect(getVisualRotationPeriod(24)).toBeLessThan(
-      getVisualRotationPeriod(1407.6),
-    )
+  it('0 입력 → 0 (정지 행성 가드)', () => {
+    expect(getInterpolatedRotationPeriod(0, 'real', 0.5)).toBe(0)
+    expect(getInterpolatedRotationPeriod(0, 'visual', 0.5)).toBe(0)
   })
 })
 
-describe('getVisualRotationPeriod ∘ getEffectiveRotationPeriod 합성', () => {
-  // sub-2-4 핵심: visual → effective 순서로 합성해도 *real → effective* 와
-  // 같은 axial-flip 보정이 작동해야 함.
+describe('보간 + axial-flip 합성 (Light 6 호출 측 시뮬레이션)', () => {
+  // Planet/Ring/Sun 의 매 프레임 흐름 미리 검증:
+  //   real → interpolated (보간) → effective (보정) → angle
 
-  it('금성 visual 모드에서 axial-flip 부호 반전이 작동한다', () => {
-    // 금성 — real -5832.5h, axialTilt 177.4° (flipped)
+  it('금성 토글 중 합성 — axial-flip 보정이 보간 값에도 작동', () => {
+    // 금성: real -5832.5h, axialTilt 177.4° (flipped)
     const real = -5832.5
     const tilt = 177.4
 
-    // visual 압축 → 부호 보존 → -374h
-    const visual = getVisualRotationPeriod(real)
-    expect(visual).toBeLessThan(0)
+    const interpolated = getInterpolatedRotationPeriod(real, 'real', 0.5)
+    expect(interpolated).toBeLessThan(0) // 보간 중 음수 유지
 
-    // effective 보정 → flipped 라 부호 반전 → +374h
-    const effective = getEffectiveRotationPeriod(visual, tilt)
-    expect(effective).toBeGreaterThan(0)
-    expect(effective).toBeCloseTo(374, 0)
+    const effective = getEffectiveRotationPeriod(interpolated, tilt)
+    expect(effective).toBeGreaterThan(0) // flip 보정 → 양수
   })
 
-  it('천왕성 visual 모드에서 axial-flip 부호 반전이 작동한다', () => {
-    // 천왕성 — real -17.24h, axialTilt 97.77° (flipped)
-    const real = -17.24
-    const tilt = 97.77
-
-    const visual = getVisualRotationPeriod(real)
-    const effective = getEffectiveRotationPeriod(visual, tilt)
-
-    // 두 번 부호 반전 (real 음수 + flipped) → 양수
-    expect(effective).toBeGreaterThan(0)
-  })
-
-  it('지구는 합성해도 변하지 않는다 (정상 case)', () => {
-    // 지구 — real 23.93h, axialTilt 23.5° (not flipped)
+  it('지구 보간 중 합성 — 정상 case 부호 그대로', () => {
     const real = 23.93
     const tilt = 23.5
 
-    const visual = getVisualRotationPeriod(real)
-    const effective = getEffectiveRotationPeriod(visual, tilt)
-
-    // 압축 + flip 미적용 → 거의 그대로
-    expect(effective).toBeCloseTo(23.96, 1)
+    const interpolated = getInterpolatedRotationPeriod(real, 'real', 0.5)
+    const effective = getEffectiveRotationPeriod(interpolated, tilt)
+    expect(effective).toBeGreaterThan(0) // 둘 다 양수
   })
 })
