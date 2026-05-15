@@ -33,6 +33,13 @@ const TWO_PI = 2 * Math.PI
 const HOURS_PER_DAY = 24
 
 /**
+ * 자전 토글 (sub-2-4) 의 두 모드.
+ *   - 'visual': 부호 보존 sqrt 압축. 케플러 비례 *완화하되 보존*
+ *   - 'real':   NASA 원본 값. *수성이 멈추고 목성이 광속이 되는 1초*
+ */
+export type RotationMode = 'visual' | 'real'
+
+/**
  * 공전 각도. xz 평면 (황도면) 의 회전.
  *
  * @param simulationDays - store 누적 시뮬레이션 시간 (days)

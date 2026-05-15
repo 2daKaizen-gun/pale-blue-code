@@ -1,9 +1,11 @@
 import { create } from 'zustand'
+import type { ScaleMode } from '../lib/scale'
+import type { RotationMode } from '../lib/time'
 
 /**
  * Pale Blue Code — Phase 2: Solar System
  *
- * 시간 컨트롤 store. Canvas 안(useFrame) 과 밖(ControlPanel) 의 공유 메모리.
+ * 시간 + 진실 토글 store. Canvas 안(useFrame) 과 밖(ControlPanel) 의 공유 메모리.
  *
  * ─── 시간 매핑 ───────────────────────────────────────
  *   1 real second × timeSpeed = N simulation days
@@ -19,6 +21,18 @@ import { create } from 'zustand'
  *   timeSpeed === 0 → 정지 상태
  *   prevSpeed       → 정지 직전 활성 속도 (재개 시 복귀)
  *
+ * ─── 진실 토글 패러다임 (sub-2-4) ──────────────────────
+ *   *store 에 progress 를 저장하지 않는다.* mode + changedAt 2쌍만 보관.
+ *   매 프레임 컴포넌트가 (performance.now() - changedAt) / 1500 으로 progress 도출.
+ *
+ *   왜:
+ *     - 매 프레임 setState 0 → sub-2-3 의 *useFrame 안 리렌더 0* 보장 유지
+ *     - 정지/리셋이 보간 중에도 자연 작동 (sub-2-3 *증분→절대* 패러다임 확장)
+ *     - 중복 토글 자동 방어: changedAt 만 새로 세팅 → 진행 중 보간이 새 시점에서 재시작
+ *     - 프리셋의 *동시성* 확보: 두 changedAt 에 동일 timestamp → 양쪽 progress 동기
+ *
+ *   초기값 -Infinity: 페이지 진입 시 *이미 visual 도달 상태* 의미 (progress = 1).
+ *
  * ─── useFrame 안 사용 패턴 ─────────────────────────
  *   useFrame 안에서는 *반드시* `useSolarSystemStore.getState()` 호출.
  *   selector 구독 금지 — 매 프레임 리렌더 폭탄.
@@ -28,7 +42,11 @@ export const SPEED_OPTIONS = [0.1, 1, 100, 10_000] as const
 export type SpeedOption = (typeof SPEED_OPTIONS)[number]
 export const DEFAULT_SPEED: SpeedOption = 1
 
+/** sub-2-4 보간 총 시간 (ms). easeInOutCubic 1.5초. */
+export const TRANSITION_DURATION_MS = 1500
+
 interface SolarSystemStore {
+  // ─── 시간 (sub-2-3) ──────────────────────────────
   /** 누적 시뮬레이션 시간 (단위: days). 0 = 페이지 진입 시점. */
   simulationDays: number
 
@@ -38,6 +56,20 @@ interface SolarSystemStore {
   /** 정지 직전 활성 속도. 재개 시 복귀 대상. */
   prevSpeed: SpeedOption
 
+  // ─── 진실 토글 (sub-2-4) ─────────────────────────
+  /** 거리 토글의 *현재 목표* 모드. */
+  scaleMode: ScaleMode
+
+  /** scaleMode 가 마지막으로 변경된 시각 (performance.now() ms). */
+  scaleModeChangedAt: number
+
+  /** 자전 토글의 *현재 목표* 모드. */
+  rotationMode: RotationMode
+
+  /** rotationMode 가 마지막으로 변경된 시각 (performance.now() ms). */
+  rotationModeChangedAt: number
+
+  // ─── 액션 ────────────────────────────────────────
   /** 활성 속도로 변경. 정지 중이었어도 자동 재생. */
   setTimeSpeed: (speed: SpeedOption) => void
 
@@ -52,12 +84,33 @@ interface SolarSystemStore {
    * 정지 상태면 no-op. 활성이면 simulationDays 누적.
    */
   advanceTime: (deltaSeconds: number) => void
+
+  /** 거리 토글. mode 반전 + changedAt 갱신. */
+  toggleScaleMode: () => void
+
+  /** 자전 토글. mode 반전 + changedAt 갱신. */
+  toggleRotationMode: () => void
+
+  /**
+   * 전체 진실 프리셋.
+   *   - 둘 다 real 이면 → 둘 다 visual (탈출 경로)
+   *   - 아니면         → 둘 다 real
+   *   양쪽 changedAt 에 *동일 timestamp* 세팅 → 두 보간 정확 동기.
+   *
+   *   *PRD §3 의 영혼: 교육적 거짓말이 진실로 동시에 무너지는 순간.*
+   */
+  toggleAllTruth: () => void
 }
 
 export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
   simulationDays: 0,
   timeSpeed: DEFAULT_SPEED,
   prevSpeed: DEFAULT_SPEED,
+
+  scaleMode: 'visual',
+  scaleModeChangedAt: -Infinity, // 이미 도달 상태 = progress 1
+  rotationMode: 'visual',
+  rotationModeChangedAt: -Infinity,
 
   setTimeSpeed: (speed) => {
     set({ timeSpeed: speed, prevSpeed: speed })
@@ -77,6 +130,7 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
       simulationDays: 0,
       timeSpeed: DEFAULT_SPEED,
       prevSpeed: DEFAULT_SPEED,
+      // 모드는 리셋하지 않음 — 사용자가 진실 모드 본 후 시간만 리셋하는 케이스 흔함
     })
   },
 
@@ -86,5 +140,34 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
     set((s) => ({
       simulationDays: s.simulationDays + deltaSeconds * timeSpeed,
     }))
+  },
+
+  toggleScaleMode: () => {
+    const { scaleMode } = get()
+    set({
+      scaleMode: scaleMode === 'visual' ? 'real' : 'visual',
+      scaleModeChangedAt: performance.now(),
+    })
+  },
+
+  toggleRotationMode: () => {
+    const { rotationMode } = get()
+    set({
+      rotationMode: rotationMode === 'visual' ? 'real' : 'visual',
+      rotationModeChangedAt: performance.now(),
+    })
+  },
+
+  toggleAllTruth: () => {
+    const { scaleMode, rotationMode } = get()
+    const allTruth = scaleMode === 'real' && rotationMode === 'real'
+    const target: ScaleMode = allTruth ? 'visual' : 'real'
+    const now = performance.now()
+    set({
+      scaleMode: target,
+      rotationMode: target,
+      scaleModeChangedAt: now,
+      rotationModeChangedAt: now,
+    })
   },
 }))
