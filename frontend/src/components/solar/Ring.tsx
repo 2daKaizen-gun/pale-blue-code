@@ -66,7 +66,7 @@ const RING_SPEED_FACTOR = 0.5
  * RingTextured/RingSolid 공용 — Planet 의 useFrame 자전 블록과 *완전 동일* 흐름.
  */
 function useRingRotation(
-  meshRef: RefObject<THREE.Mesh>,
+  meshRef: RefObject<THREE.Mesh | null>,
   parent: ParentRotation,
 ) {
   useFrame(() => {
