@@ -62,27 +62,17 @@ describe('getInterpolatedScaleConfig', () => {
     expect(DEFAULT_SCALE).toEqual(snapshot)
   })
 
-  it('지구 거리 보간 — visual 진실 토글 시 *멀어지는 방향* 으로 변환', () => {
-    // 1 AU 지구. progress 0→1 (mode=real) 동안 거리가 *증가*. 케플러 비례 풀림.
-    const EARTH_KM = 149_600_000
-    const cfgStart = getInterpolatedScaleConfig(DEFAULT_SCALE, 'real', 0)
-    const cfgMid = getInterpolatedScaleConfig(DEFAULT_SCALE, 'real', 0.5)
-    const cfgEnd = getInterpolatedScaleConfig(DEFAULT_SCALE, 'real', 1)
+  it('해왕성 보간 — 진실로 갈수록 *멀어진다* (PRD §3 영혼의 수학)', () => {
+    // 해왕성 30.05 AU. visual(exp=0.5) → real(exp=1.0) 동안 거리 110 → 601 폭증
+    const NEPTUNE_KM = 30.05 * 149_600_000
+    const cfgVisual = getInterpolatedScaleConfig(DEFAULT_SCALE, 'real', 0)
+    const cfgReal = getInterpolatedScaleConfig(DEFAULT_SCALE, 'real', 1)
 
-    const dStart = computeVisualDistance(EARTH_KM, cfgStart) // exp=0.5 → 20
-    const dMid = computeVisualDistance(EARTH_KM, cfgMid)     // exp=0.75 → 20
-    const dEnd = computeVisualDistance(EARTH_KM, cfgEnd)     // exp=1.0 → 20
+    const dVisual = computeVisualDistance(NEPTUNE_KM, cfgVisual)
+    const dReal = computeVisualDistance(NEPTUNE_KM, cfgReal)
 
-    // 지구는 1 AU 라 어떤 exponent 든 결과 같음 (1^x = 1). 별도 검증
-    expect(dStart).toBeCloseTo(20)
-    expect(dEnd).toBeCloseTo(20)
-
-    // 해왕성 (30 AU) 으로 단조 증가 확인 — *진실로 갈수록 멀어짐*
-    const NEPTUNE_KM = 30.05 * EARTH_KM
-    const nStart = computeVisualDistance(NEPTUNE_KM, cfgStart) // ≈ 110
-    const nEnd = computeVisualDistance(NEPTUNE_KM, cfgEnd)     // ≈ 601
-    expect(nEnd).toBeGreaterThan(nStart) // 진실 = 더 멀리
-    expect(nStart).toBeCloseTo(109.6, 0)
-    expect(nEnd).toBeCloseTo(601, 0)
+    expect(dVisual).toBeCloseTo(109.6, 0)
+    expect(dReal).toBeCloseTo(601, 0)
+    expect(dReal).toBeGreaterThan(dVisual) // *진실 = 더 멀리*
   })
 })
