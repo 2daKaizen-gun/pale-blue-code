@@ -14,6 +14,19 @@
  *   결과는 modulo 처리하지 않음. 호출자가 mesh.rotation 에 박으면 Three.js 가
  *   내부적으로 wrap. simulationDays 가 매우 커지면 Math.cos/sin 정밀도 손실
  *   여지 있지만, JS double 의 15 유효숫자 안에서 *수 시간 단위 사용* 까지는 무영향.
+ *
+ * ─── 합성 순서 (sub-2-4 자전 토글) ─────────────────────
+ *   호출 측 (Planet.tsx) 에서 다음 순서로 합성:
+ *     realPeriod                                            // NASA 원본
+ *     → getVisualRotationPeriod(realPeriod)                // visual 압축 (부호 보존)
+ *     → lerp(visual, real, easeInOutCubic(progress))       // mode 보간
+ *     → getEffectiveRotationPeriod(period, tilt)           // axial-flip 보정
+ *     → computeRotationAngle(days, effective)              // 각도
+ *
+ *   왜 *visual 먼저, effective 나중* 인가:
+ *     visual = 데이터 본질의 압축 (스피드의 크기 — 케플러 비례 완화)
+ *     effective = 좌표계 부산물 보정 (시각적 부호 캔슬 상쇄)
+ *   두 책임이 의미적으로 다르므로 분리. 결과는 어느 순서든 수학적으로 동일.
  */
 
 const TWO_PI = 2 * Math.PI
@@ -80,4 +93,32 @@ export function getEffectiveRotationPeriod(
 ): number {
   const isFlipped = axialTiltDeg > 90 && axialTiltDeg < 270
   return isFlipped ? -rotationPeriodHours : rotationPeriodHours
+}
+
+/**
+ * NASA 원본 자전 주기 → *시각적* 자전 주기 (부호 보존 sqrt 압축).
+ *
+ * 공식: `sign(period) × (|period| / 24)^0.5 × 24`
+ *
+ * 의미:
+ *   24h (지구) 가 *불변 기준점* — 지구는 거의 그대로 (23.93h → 23.96h)
+ *   24h 보다 *큰* 주기 (느린 자전) → 압축됨   : 수성 1407.6h → 184h
+ *   24h 보다 *작은* 주기 (빠른 자전) → 팽창됨 : 목성 9.93h → 15.4h
+ *
+ * 결과: 케플러 비례를 *완화하되 보존*. 1x 에서 수성/목성이 둘 다 *보이는* 속도.
+ * lib/scale.ts 의 distanceExponent 0.5 와 *수학적으로 같은 압축* — 같은 결.
+ *
+ * sub-2-4 자전 토글 'visual' 모드의 값. 'real' 모드는 원본 그대로.
+ * 보간은 호출 측 (Planet.tsx) 의 lerp(visual, real, eased) — 이 함수는 visual 만 책임.
+ *
+ * 부호 보존: 금성 -5832.5h → -374h. 역회전이 *visual 모드에서도* 유지됨.
+ *
+ * @param realPeriodHours - NASA 원본 (data/planets.ts 의 rotationPeriod_hours)
+ * @returns 시각 모드 자전 주기 (시간 단위, 음수 가능)
+ */
+export function getVisualRotationPeriod(realPeriodHours: number): number {
+  if (realPeriodHours === 0) return 0
+  const sign = Math.sign(realPeriodHours)
+  const magnitude = Math.abs(realPeriodHours)
+  return sign * Math.sqrt(magnitude / HOURS_PER_DAY) * HOURS_PER_DAY
 }
