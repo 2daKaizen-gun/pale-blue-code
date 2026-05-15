@@ -1,16 +1,33 @@
-import { useRef } from 'react'
+import { useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import type { RingData } from '../../data/planets'
 import { computeVisualRadius, type ScaleConfig } from '../../lib/scale'
-import { computeRotationAngle } from '../../lib/time'
-import { useSolarSystemStore } from '../../store/solarSystemStore'
+import {
+  computeRotationAngle,
+  getEffectiveRotationPeriod,
+  getInterpolatedRotationPeriod,
+} from '../../lib/time'
+import {
+  computeTransitionProgress,
+  easeInOutCubic,
+} from '../../lib/easing'
+import {
+  useSolarSystemStore,
+  TRANSITION_DURATION_MS,
+} from '../../store/solarSystemStore'
+
+/** 부모 행성 데이터 중 *자전 보간에 필요한 두 필드* 만. */
+type ParentRotation = {
+  rotationPeriod_hours: number
+  axialTilt_deg: number
+}
 
 type RingProps = {
   data: RingData
   scale: ScaleConfig
-  parentRotationPeriodHours: number // 부호가 결과 각도로 자연 전파
+  parent: ParentRotation
 }
 
 /**
@@ -19,65 +36,92 @@ type RingProps = {
  * Ring — 행성 고리 컴포넌트. 토성/천왕성 두 종류를 *판별 합집합* 으로 처리.
  *
  * ─── sub-phase 2-3 [Light 3] 변경 ──────────────────
- *   SECONDS_PER_REVOLUTION 상수 제거.
- *   rotationDirection prop 제거 → parentRotationPeriodHours 받음.
- *   부모 자전 주기 × RING_SPEED_FACTOR 로 *상대 속도* 결정.
- *   부호는 부모 주기에 이미 내재 (금성 -5832.5, 천왕성 -17.24).
+ *   parentRotationPeriodHours 단일 number prop 받음. RING_SPEED_FACTOR=0.5 상대.
  *
- *   현실은 *차등 회전* (내경 빠름, 외경 느림) 이지만 시각화는 *통합 회전*.
- *   행성보다 느린 속도가 *별개 천체* 임을 시각적으로 전달.
+ * ─── sub-phase 2-4 [Light 6c] 변경 ──────────────────
+ *   prop 시그니처: `parentRotationPeriodHours: number` → `parent: { rotationPeriod_hours, axialTilt_deg }`.
+ *
+ *   왜:
+ *     Planet 의 effectiveRotationPeriod 가 *매 프레임 보간된 동적값* 으로 변함.
+ *     이걸 prop 으로 매 프레임 전달하면 Ring 매 프레임 re-render. 부담.
+ *
+ *   해결:
+ *     parent 는 *정적* data (rotationPeriod_hours, axialTilt_deg 두 NASA 값).
+ *     Ring 이 *자체로 store 구독* 해 자전 보간 적용 — Planet 의 보간과 *완전 동기*
+ *     (같은 store, 같은 함수, 같은 progress).
+ *
+ *     매 프레임 prop 변경 0, Ring re-render 0.
  *
  * ─── 좌표계 ─────────────────────────────────────────
  *   ringGeometry 는 xy 평면 → x축 90° 회전으로 xz 평면 (황도면).
- *   회전축은 *원래 ringGeometry 의 z* → 90° 회전 후엔 *y축* 같은 방향
+ *   회전축은 *원래 ringGeometry 의 z* → 90° 회전 후엔 *y축 같은 방향*
  *   = 부모 행성 자전축 (중간 group 안에 있으니 자동).
  */
 
 // 행성 자전 속도의 50%. 시각적 차별화 + 별개 천체 느낌
 const RING_SPEED_FACTOR = 0.5
 
-export function Ring({ data, scale, parentRotationPeriodHours }: RingProps) {
-  if (data.type === 'texture') {
-    return (
-      <RingTextured
-        data={data}
-        scale={scale}
-        parentRotationPeriodHours={parentRotationPeriodHours}
-      />
+/**
+ * 자전 보간된 회전을 mesh.rotation.z 에 매 프레임 적용.
+ * RingTextured/RingSolid 공용 — Planet 의 useFrame 자전 블록과 *완전 동일* 흐름.
+ */
+function useRingRotation(
+  meshRef: RefObject<THREE.Mesh>,
+  parent: ParentRotation,
+) {
+  useFrame(() => {
+    if (!meshRef.current) return
+    const {
+      simulationDays,
+      rotationMode,
+      rotationModeChangedAt,
+    } = useSolarSystemStore.getState()
+
+    const progress = easeInOutCubic(
+      computeTransitionProgress(
+        performance.now(),
+        rotationModeChangedAt,
+        TRANSITION_DURATION_MS,
+      ),
     )
+    const interpolated = getInterpolatedRotationPeriod(
+      parent.rotationPeriod_hours,
+      rotationMode,
+      progress,
+    )
+    const effective = getEffectiveRotationPeriod(
+      interpolated,
+      parent.axialTilt_deg,
+    )
+    // rotation.z = ringGeometry 의 원래 z축 (90° 회전 후 고리 면 수직축)
+    meshRef.current.rotation.z =
+      computeRotationAngle(simulationDays, effective) * RING_SPEED_FACTOR
+  })
+}
+
+export function Ring({ data, scale, parent }: RingProps) {
+  if (data.type === 'texture') {
+    return <RingTextured data={data} scale={scale} parent={parent} />
   }
-  return (
-    <RingSolid
-      data={data}
-      scale={scale}
-      parentRotationPeriodHours={parentRotationPeriodHours}
-    />
-  )
+  return <RingSolid data={data} scale={scale} parent={parent} />
 }
 
 // ─── 토성 같은 텍스처 고리 ──────────────────────────
 function RingTextured({
   data,
   scale,
-  parentRotationPeriodHours,
+  parent,
 }: {
   data: Extract<RingData, { type: 'texture' }>
   scale: ScaleConfig
-  parentRotationPeriodHours: number
+  parent: ParentRotation
 }) {
   const meshRef = useRef<THREE.Mesh>(null)
   const texture = useTexture(data.texture)
   const inner = computeVisualRadius(data.innerRadius_km, scale)
   const outer = computeVisualRadius(data.outerRadius_km, scale)
 
-  useFrame(() => {
-    if (!meshRef.current) return
-    const { simulationDays } = useSolarSystemStore.getState()
-    // rotation.z = ringGeometry 의 *원래 z축* 회전 = 90° 회전 후의 *고리 면 수직축* 회전
-    meshRef.current.rotation.z =
-      computeRotationAngle(simulationDays, parentRotationPeriodHours) *
-      RING_SPEED_FACTOR
-  })
+  useRingRotation(meshRef, parent)
 
   return (
     <mesh ref={meshRef} rotation={[Math.PI / 2, 0, 0]}>
@@ -91,23 +135,17 @@ function RingTextured({
 function RingSolid({
   data,
   scale,
-  parentRotationPeriodHours,
+  parent,
 }: {
   data: Extract<RingData, { type: 'solid' }>
   scale: ScaleConfig
-  parentRotationPeriodHours: number
+  parent: ParentRotation
 }) {
   const meshRef = useRef<THREE.Mesh>(null)
   const inner = computeVisualRadius(data.innerRadius_km, scale)
   const outer = computeVisualRadius(data.outerRadius_km, scale)
 
-  useFrame(() => {
-    if (!meshRef.current) return
-    const { simulationDays } = useSolarSystemStore.getState()
-    meshRef.current.rotation.z =
-      computeRotationAngle(simulationDays, parentRotationPeriodHours) *
-      RING_SPEED_FACTOR
-  })
+  useRingRotation(meshRef, parent)
 
   return (
     <mesh ref={meshRef} rotation={[Math.PI / 2, 0, 0]}>
