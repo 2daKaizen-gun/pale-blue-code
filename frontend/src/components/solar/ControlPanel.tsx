@@ -95,7 +95,7 @@ export function ControlPanel() {
   // F5: 메모리 비워 어차피 초기값이지만, 방어적 명시.
   // HMR: zustand 상태가 module reload 후에도 유지되는데, 이걸 끊음.
   useEffect(() => {
-    useSolarSystemStore.getState().resetAll()
+    useSolarSystemStore.getState().reset()
   }, [])
 
   // ─── 키보드 단축키 (시간만 — 모드 단축키는 sub-2-5/6) ─────
@@ -240,11 +240,11 @@ export function ControlPanel() {
 
         <div className="h-6 w-px bg-white/10" aria-hidden />
 
-        {/* ── 리셋 ── R ── 시간만 (모드/카메라 X) ── */}
+        {/* ── 리셋 ── R ── 시간 + 모드 전부 처음으로 (카메라는 sub-2-5) ── */}
         <button
           type="button"
           onClick={reset}
-          aria-label="시간 리셋 (R)"
+          aria-label="전체 리셋 (R)"
           className="flex h-10 w-10 items-center justify-center rounded-lg text-lg text-white/80 transition hover:bg-white/10"
         >
           ↺

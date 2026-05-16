@@ -73,23 +73,8 @@ describe('toggleAllTruth — 동시성 보장', () => {
   })
 })
 
-describe('reset 은 모드를 건드리지 않는다', () => {
-  it('시간만 리셋, 모드 보존 (사용자가 진실 모드 본 후 시간만 되감기 케이스)', () => {
-    useSolarSystemStore.setState({
-      simulationDays: 1234,
-      scaleMode: 'real',
-      rotationMode: 'real',
-    })
-    useSolarSystemStore.getState().reset()
-    const s = useSolarSystemStore.getState()
-    expect(s.simulationDays).toBe(0)
-    expect(s.scaleMode).toBe('real')
-    expect(s.rotationMode).toBe('real')
-  })
-})
-
-describe('resetAll — 페이지 mount 시점 전체 초기화', () => {
-  it('시간 + 모드 둘 다 visual / 1× 로 복귀', () => {
+describe('reset — 모든 것 처음으로 (시간 + 모드)', () => {
+  it('진실 모드 + 큰 simulationDays + 큰 speed → 모두 초기값', () => {
     useSolarSystemStore.setState({
       simulationDays: 9999,
       timeSpeed: 10_000,
@@ -99,7 +84,7 @@ describe('resetAll — 페이지 mount 시점 전체 초기화', () => {
       rotationMode: 'real',
       rotationModeChangedAt: 67890,
     })
-    useSolarSystemStore.getState().resetAll()
+    useSolarSystemStore.getState().reset()
     const s = useSolarSystemStore.getState()
     expect(s.simulationDays).toBe(0)
     expect(s.timeSpeed).toBe(1)
