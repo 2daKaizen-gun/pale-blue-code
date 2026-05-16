@@ -91,6 +91,13 @@ export function ControlPanel() {
     ? SPEED_OPTIONS.filter((s) => s <= MOBILE_MAX_SPEED)
     : SPEED_OPTIONS
 
+  // ─── 페이지 진입 시 모든 상태 초기화 (F5 / HMR 어느 쪽이든) ────
+  // F5: 메모리 비워 어차피 초기값이지만, 방어적 명시.
+  // HMR: zustand 상태가 module reload 후에도 유지되는데, 이걸 끊음.
+  useEffect(() => {
+    useSolarSystemStore.getState().resetAll()
+  }, [])
+
   // ─── 키보드 단축키 (시간만 — 모드 단축키는 sub-2-5/6) ─────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

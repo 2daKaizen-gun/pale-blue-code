@@ -80,6 +80,19 @@ interface SolarSystemStore {
   reset: () => void
 
   /**
+   * *모든 것* 리셋 — 페이지 mount 시점에 자동 호출 (F5 / Vite HMR 모두 커버).
+   *
+   * `reset` 과 차이:
+   *   reset    = 시간만 (사용자 명시 액션 — R 버튼 / ↺ 클릭)
+   *   resetAll = 시간 + 진실 모드 둘 다 (페이지 진입 시점 자동)
+   *
+   * 왜 분리:
+   *   사용자가 *진실 모드 보면서 시간만 되감기* 케이스 흔함 → reset 이 모드 건드리면 X.
+   *   페이지 진입 시점에는 *깨끗한 visual 모드* 가 PRD §3 *60초 시나리오의 0~10s* 의도.
+   */
+  resetAll: () => void
+
+  /**
    * 매 프레임 <TimeAdvancer /> 에서 호출.
    * 정지 상태면 no-op. 활성이면 simulationDays 누적.
    */
@@ -131,6 +144,18 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
       timeSpeed: DEFAULT_SPEED,
       prevSpeed: DEFAULT_SPEED,
       // 모드는 리셋하지 않음 — 사용자가 진실 모드 본 후 시간만 리셋하는 케이스 흔함
+    })
+  },
+
+  resetAll: () => {
+    set({
+      simulationDays: 0,
+      timeSpeed: DEFAULT_SPEED,
+      prevSpeed: DEFAULT_SPEED,
+      scaleMode: 'visual',
+      scaleModeChangedAt: -Infinity,
+      rotationMode: 'visual',
+      rotationModeChangedAt: -Infinity,
     })
   },
 

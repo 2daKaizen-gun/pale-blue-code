@@ -87,3 +87,26 @@ describe('reset 은 모드를 건드리지 않는다', () => {
     expect(s.rotationMode).toBe('real')
   })
 })
+
+describe('resetAll — 페이지 mount 시점 전체 초기화', () => {
+  it('시간 + 모드 둘 다 visual / 1× 로 복귀', () => {
+    useSolarSystemStore.setState({
+      simulationDays: 9999,
+      timeSpeed: 10_000,
+      prevSpeed: 100,
+      scaleMode: 'real',
+      scaleModeChangedAt: 12345,
+      rotationMode: 'real',
+      rotationModeChangedAt: 67890,
+    })
+    useSolarSystemStore.getState().resetAll()
+    const s = useSolarSystemStore.getState()
+    expect(s.simulationDays).toBe(0)
+    expect(s.timeSpeed).toBe(1)
+    expect(s.prevSpeed).toBe(1)
+    expect(s.scaleMode).toBe('visual')
+    expect(s.rotationMode).toBe('visual')
+    expect(s.scaleModeChangedAt).toBe(-Infinity)
+    expect(s.rotationModeChangedAt).toBe(-Infinity)
+  })
+})
