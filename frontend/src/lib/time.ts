@@ -3,29 +3,22 @@
  *
  * 시간 기반 각도 계산의 단일 진실. store 의 simulationDays ↔ 천체의 회전 각도.
  *
- * 순수 함수만. side effect 없음 → TDD 적합. lib/scale.ts 의
- * computeVisualRadius/Distance 와 같은 격: data → number 단방향.
+ * ─── sub-2-4 [Light 9.5] 갱신 ──────────────────────
+ *   사용자 피드백: *자전 토글 임팩트가 약함, 수성 멈추는 게 안 느껴짐*.
  *
- * ─── 부호 규약 ───────────────────────────────────────
- *   양수 각도 = 시계 반대 방향 (수학 관례).
- *   금성처럼 rotationPeriod_hours 가 음수면 결과 각도도 음수 → 역회전.
- *   부호가 *방향 + 속도* 를 한 숫자에 통합 — 별도 direction prop 불필요해짐.
+ *   진단:
+ *     기존 sqrt 압축 (exp=0.5):
+ *       수성 1407.6h → visual 184h (1초당 13% 회전)
+ *       real 1407.6h (1초당 1.7%)
+ *       비율 7.6배 — 수성 visual 도 이미 *너무 느려* real 차이 인지 어려움
  *
- *   결과는 modulo 처리하지 않음. 호출자가 mesh.rotation 에 박으면 Three.js 가
- *   내부적으로 wrap. simulationDays 가 매우 커지면 Math.cos/sin 정밀도 손실
- *   여지 있지만, JS double 의 15 유효숫자 안에서 *수 시간 단위 사용* 까지는 무영향.
- *
- * ─── 합성 순서 (sub-2-4 자전 토글) ─────────────────────
- *   호출 측 (Planet.tsx 등) 에서 다음 순서로 합성:
- *     realPeriod                                            // NASA 원본
- *     → getInterpolatedRotationPeriod(real, mode, eased)    // mode 보간 (visual ↔ real)
- *     → getEffectiveRotationPeriod(period, tilt)            // axial-flip 보정
- *     → computeRotationAngle(days, effective)               // 각도
- *
- *   왜 *보간 먼저, 보정 나중* 인가:
- *     보간 = 데이터 본질의 변환 (visual ↔ real)
- *     보정 = 좌표계 부산물 (시각적 부호 캔슬 상쇄)
- *   두 책임이 의미적으로 다르므로 분리.
+ *   해결:
+ *     압축 강도 ↑ (exp=0.5 → 0.3):
+ *       수성 visual 184h → 81h (1초당 30% 회전 — *분명히 도는* 속도)
+ *       real → 1407.6h (1초당 1.7%) 그대로
+ *       비율 17배 — *수성이 잘 돌다가 멈추는* 임팩트
+ *     목성 visual 15.4h → 18.5h (현재보다 살짝 느려져, real 9.93h 와의 차이 키움)
+ *     지구 24h 거의 그대로 (기준점 보존, exp 변경에 둔감)
  */
 
 import { lerp } from './easing'
@@ -33,16 +26,17 @@ import { lerp } from './easing'
 const TWO_PI = 2 * Math.PI
 const HOURS_PER_DAY = 24
 
+/** sub-2-4 [Light 9.5] visual 자전 압축 강도. 0.5 (sqrt) 에서 강화. */
+const VISUAL_COMPRESSION_EXPONENT = 0.3
+
 /**
  * 자전 토글 (sub-2-4) 의 두 모드.
- *   - 'visual': 부호 보존 sqrt 압축. 케플러 비례 *완화하되 보존*
- *   - 'real':   NASA 원본 값. *수성이 멈추고 목성이 광속이 되는 1초*
+ *   - 'visual': 부호 보존 압축 (exp=0.3). 케플러 비례 *완화하되 보존*
+ *   - 'real':   NASA 원본. *수성이 멈추고 목성이 광속이 되는 1초*
  */
 export type RotationMode = 'visual' | 'real'
 
-/**
- * 공전 각도. xz 평면 (황도면) 의 회전.
- */
+/** 공전 각도. xz 평면 (황도면) 의 회전. */
 export function computeOrbitAngle(
   simulationDays: number,
   orbitalPeriodDays: number,
@@ -53,7 +47,7 @@ export function computeOrbitAngle(
 
 /**
  * 자전 각도. y축 회전.
- * 음수 rotationPeriodHours = 역회전 (금성, 천왕성). 부호 자연 전파.
+ * 음수 rotationPeriodHours = 역회전. 부호 자연 전파.
  */
 export function computeRotationAngle(
   simulationDays: number,
@@ -66,17 +60,11 @@ export function computeRotationAngle(
 /**
  * 시각화 보정용 *효과적* 자전 주기 계산.
  *
- * NASA Fact Sheet 는 *축 기울기* + *자전 주기 부호* 두 가지로 회전 방향을 표현.
- * 예) 금성 axialTilt=177.4°, rotationPeriod=-5832.5h → *둘 다* 시계 방향 표현
+ * NASA Fact Sheet 는 *축 기울기* + *자전 주기 부호* 둘로 회전 방향 표현.
+ * 예) 금성 axialTilt=177.4°, rotationPeriod=-5832.5h
  *
- * 그런데 Three.js 의 group 회전을 그대로 적용하면 두 부호가 *수학적으로 캔슬* 됨:
- *   - axialTilt 177.4° → z축 거의 180° 회전 → 좌표계가 위아래로 뒤집힘
- *   - 뒤집힌 좌표계에서 mesh.rotation.y 음수 회전 → 외부 관찰자엔 *양수 회전* 으로 보임
- *   - 결과: 다른 행성과 같은 방향으로 자전하는 듯한 *시각적 버그*
- *
- * 보정: axialTilt 가 90~270° 범위에 있으면 좌표계가 뒤집힌 것 → period 부호 반전으로 상쇄.
- *
- * 비유: *지구본을 거꾸로 들고 시계 반대 방향으로 돌리면 보는 사람한텐 시계 방향*.
+ * Three.js group 회전 적용 시 두 부호가 *수학적으로 캔슬* — 같은 방향 회전처럼 보임.
+ * 보정: axialTilt 가 90~270° 면 좌표계 뒤집힘 → period 부호 반전.
  */
 export function getEffectiveRotationPeriod(
   rotationPeriodHours: number,
@@ -87,49 +75,50 @@ export function getEffectiveRotationPeriod(
 }
 
 /**
- * NASA 원본 자전 주기 → *시각적* 자전 주기 (부호 보존 sqrt 압축).
+ * NASA 원본 자전 주기 → *시각적* 자전 주기 (부호 보존 압축).
  *
- * 공식: `sign(period) × (|period| / 24)^0.5 × 24`
+ * 공식: `sign(period) × (|period| / 24)^VISUAL_COMPRESSION_EXPONENT × 24`
  *
- * 의미:
- *   24h (지구) 가 *불변 기준점*
- *   24h 보다 *큰* 주기 (느린 자전) → 압축됨   : 수성 1407.6h → 184h
- *   24h 보다 *작은* 주기 (빠른 자전) → 팽창됨 : 목성 9.93h → 15.4h
+ * exp=0.3 (sub-2-4 Light 9.5):
+ *   24h (지구) 가 기준점 — 거의 불변
+ *   수성 1407.6h → 81h    (17배 압축)
+ *   금성 -5832.5h → -125h (47배 압축)
+ *   목성 9.93h → 18.5h    (1.9배 팽창)
  *
- * 결과: 케플러 비례를 *완화하되 보존*. 1x 에서 수성/목성이 둘 다 *보이는* 속도.
+ * 결과: 케플러 비례를 *완화하되 보존*. visual 모드에서 *모든 행성이 보이는 속도로 회전*.
  *
- * sub-2-4 자전 토글 'visual' 모드의 값. 'real' 모드는 원본 그대로.
+ * 부호 보존: 금성/천왕성 역회전이 visual 모드에서도 유지.
+ *
  * 보간은 getInterpolatedRotationPeriod 가 담당.
  */
 export function getVisualRotationPeriod(realPeriodHours: number): number {
   if (realPeriodHours === 0) return 0
   const sign = Math.sign(realPeriodHours)
   const magnitude = Math.abs(realPeriodHours)
-  return sign * Math.sqrt(magnitude / HOURS_PER_DAY) * HOURS_PER_DAY
+  return (
+    sign *
+    Math.pow(magnitude / HOURS_PER_DAY, VISUAL_COMPRESSION_EXPONENT) *
+    HOURS_PER_DAY
+  )
 }
 
 /**
  * sub-2-4 자전 토글의 *보간된 자전 주기* 도출.
  *
  * scale.ts 의 getInterpolatedScaleConfig 와 정확한 미러:
- *   mode='real' 토글 직후 → 직전엔 visual. progress=0 시점에 visual 값.
- *   progress=1 시점에 real 값 도달. 1.5초 동안 visual → real 부드럽게.
- *   mode='visual' 정반대.
+ *   mode='real' 토글 직후 → progress=0 visual 값, progress=1 real 값
+ *   mode='visual' 정반대
  *
- *   *"mode 는 도달하려는 목표, progress 는 얼마나 갔는가"* — store 패러다임 일치.
+ *   부호 보존:
+ *     금성 (-5832.5h) → visual (-125h) → 보간 중 항상 음수
+ *     역회전 일관 유지.
  *
- * 부호 보존:
- *   금성 (-5832.5h) → visual (-374h) → 보간 중 항상 음수.
- *   천왕성 (-17.24h) → visual (-20.3h) → 둘 다 음수, 보간 중 음수.
- *   *역회전이 토글 중에도 일관* 유지.
+ * 축 기울기 보정 (axial-flip) 은 이 함수 *후* 호출 측에서 합성.
  *
- * 축 기울기 보정 (axial-flip) 은 *이 함수 결과 후* 호출 측에서
- * getEffectiveRotationPeriod 로 합성. 두 책임 분리.
- *
- * @param realPeriodHours - NASA 원본 (data/planets.ts)
+ * @param realPeriodHours - NASA 원본
  * @param mode - 도달 목표 모드
- * @param progress - eased 0~1 (호출 측에서 easeInOutCubic 적용 후 전달)
- * @returns 그 순간의 자전 주기 (시간 단위, 부호 보존)
+ * @param progress - eased 0~1
+ * @returns 그 순간의 자전 주기 (시간, 부호 보존)
  */
 export function getInterpolatedRotationPeriod(
   realPeriodHours: number,

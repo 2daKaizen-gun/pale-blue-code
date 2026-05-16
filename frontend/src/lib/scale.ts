@@ -7,100 +7,98 @@
  *   visualRadius   = (realRadius_km   / EARTH_RADIUS) ^ radiusExponent   × radiusScale
  *   visualDistance = (realDistance_km / ONE_AU)       ^ distanceExponent × distanceScale
  *
- * exponent:
- *   1.0 → 실제 비율 (sub-phase 2-4 실제 모드)
- *   0.5 → 제곱근 압축 (시각 모드 기본값)
- *   0   → 모두 같은 값
+ * ─── sub-2-4 [Light 9.5] 갱신 ──────────────────────
+ *   사용자 피드백: *real 모드에서 수성이 태양 안에 박힘*.
  *
- * ─── sub-2-4 보간 패러다임 ──────────────────────────
- *   store 에 *현재* exponent 를 저장하지 않음. mode + changedAt 만.
- *   매 프레임 컴포넌트가 progress 계산 → easeInOutCubic →
- *   getInterpolatedScaleConfig 로 *그 순간의 ScaleConfig* 도출.
- *   sub-2-3 의 *증분→절대 시간* 패러다임을 *보간 상태* 로 확장한 결.
+ *   진단:
+ *     real exp=1.0 + scale=20 → 수성 거리 0.387 × 20 = 7.74
+ *     태양 radius (radiusExponent=0.5 유지) = 10.45 → 수성이 태양 *안*
+ *
+ *   해결:
+ *     distanceScale 도 보간 대상에 포함 (visual=20, real=80).
+ *     real 모드 수성 = 0.387 × 80 = 30.96 → 태양 밖 3배 거리.
+ *     해왕성 = 30.05 × 80 = 2404 → *완전히 화면 밖* (PRD §3 *길 잃음* 정신).
+ *
+ *     radiusScale/radiusExponent 는 그대로 — radius 토글은 sub-2-4 범위 외.
  */
 
-import { lerp } from './easing';
+import { lerp } from './easing'
 
-const EARTH_RADIUS_KM = 6_371;
-const ONE_AU_KM = 149_600_000;
+const EARTH_RADIUS_KM = 6_371
+const ONE_AU_KM = 149_600_000
 
 export type ScaleConfig = {
-  radiusExponent: number;
-  radiusScale: number;
-  distanceExponent: number;
-  distanceScale: number;
-};
+  radiusExponent: number
+  radiusScale: number
+  distanceExponent: number
+  distanceScale: number
+}
 
 /**
  * 거리 토글 (sub-2-4) 의 두 모드.
- *   - 'visual': distanceExponent 0.5 (제곱근 압축). 화면 안 한꺼번에 모이는 시각 모드
- *   - 'real':   distanceExponent 1.0 (비례 그대로). *지구가 점이 되는 1초*
+ *   - 'visual': distanceExponent 0.5 + distanceScale 20. 한 화면 모임
+ *   - 'real':   distanceExponent 1.0 + distanceScale 80. *지구가 점이 되고 해왕성은 화면 밖*
  */
-export type ScaleMode = 'visual' | 'real';
+export type ScaleMode = 'visual' | 'real'
 
-const VISUAL_DISTANCE_EXPONENT = 0.5;
-const REAL_DISTANCE_EXPONENT = 1.0;
+const VISUAL_DISTANCE_EXPONENT = 0.5
+const REAL_DISTANCE_EXPONENT = 1.0
+const VISUAL_DISTANCE_SCALE = 20
+const REAL_DISTANCE_SCALE = 80
 
-/**
- * 시각 모드 기본값 — sub-phase 2-2 [Light 9] 손튜닝 결과.
- *
- * 계산 결과 미리보기 (참고):
- *   태양 반지름: (695_700 / 6_371) ^ 0.5 × 1.0 = 10.45
- *   수성 거리:   (0.387) ^ 0.5 × 20 = 12.44   → 태양 밖 (gap 약 2)
- *   해왕성 거리: (30.05) ^ 0.5 × 20 = 109.64  → maxDistance 200 안
- */
 export const DEFAULT_SCALE: ScaleConfig = {
   radiusExponent: 0.5,
   radiusScale: 1.0,
-  distanceExponent: 0.5,
-  distanceScale: 20,
-};
+  distanceExponent: VISUAL_DISTANCE_EXPONENT,
+  distanceScale: VISUAL_DISTANCE_SCALE,
+}
 
 export const computeVisualRadius = (
   realRadius_km: number,
-  config: ScaleConfig
+  config: ScaleConfig,
 ): number => {
-  const ratio = realRadius_km / EARTH_RADIUS_KM;
-  return Math.pow(ratio, config.radiusExponent) * config.radiusScale;
-};
+  const ratio = realRadius_km / EARTH_RADIUS_KM
+  return Math.pow(ratio, config.radiusExponent) * config.radiusScale
+}
 
 export const computeVisualDistance = (
   realDistance_km: number,
-  config: ScaleConfig
+  config: ScaleConfig,
 ): number => {
-  const distanceAU = realDistance_km / ONE_AU_KM;
-  return Math.pow(distanceAU, config.distanceExponent) * config.distanceScale;
-};
+  const distanceAU = realDistance_km / ONE_AU_KM
+  return Math.pow(distanceAU, config.distanceExponent) * config.distanceScale
+}
 
 /**
  * sub-2-4 거리 토글의 *보간된 ScaleConfig* 도출.
  *
- * 보간 모델:
- *   mode='real' 토글 직후 → 직전엔 visual 이었음. progress=0 시점에 0.5 (visual).
- *   progress=1 시점에 1.0 (real) 도달. 1.5초 동안 0.5 → 1.0 부드럽게.
- *   mode='visual' 토글은 정반대로 1.0 → 0.5.
+ * exponent + scale *둘 다* 보간:
+ *   visual: exp=0.5, scale=20  → 행성들 한 화면 모임
+ *   real:   exp=1.0, scale=80  → 진짜 비례, 광활한 거리
  *
- *   *"mode 는 도달하려는 목표, progress 는 얼마나 갔는가"* 의 의미.
+ * radiusExponent/radiusScale 은 baseConfig 그대로 (radius 토글 범위 외).
  *
- * 매 프레임 새 객체 생성 (8행성 × 60fps ≈ 480 obj/s) — 4필드 객체라 nursery GC,
- * 측정상 영향 0. *불변성* 보장이 *재계산 안전성* 보다 우선.
- *
- * @param baseConfig - DEFAULT_SCALE 등 기본 설정 (distanceExponent 제외 필드 그대로)
+ * @param baseConfig - DEFAULT_SCALE 등 기본 설정 (radius 관련 필드만 의미 있음)
  * @param mode - 도달 목표 모드
  * @param progress - eased 0~1 (호출 측에서 easeInOutCubic 적용 후 전달)
- * @returns distanceExponent 만 보간된 새 ScaleConfig (불변, 새 객체)
+ * @returns distanceExponent + distanceScale 보간된 새 ScaleConfig
  */
 export function getInterpolatedScaleConfig(
   baseConfig: ScaleConfig,
   mode: ScaleMode,
-  progress: number
+  progress: number,
 ): ScaleConfig {
   const fromExp =
-    mode === 'real' ? VISUAL_DISTANCE_EXPONENT : REAL_DISTANCE_EXPONENT;
+    mode === 'real' ? VISUAL_DISTANCE_EXPONENT : REAL_DISTANCE_EXPONENT
   const toExp =
-    mode === 'real' ? REAL_DISTANCE_EXPONENT : VISUAL_DISTANCE_EXPONENT;
+    mode === 'real' ? REAL_DISTANCE_EXPONENT : VISUAL_DISTANCE_EXPONENT
+  const fromScale =
+    mode === 'real' ? VISUAL_DISTANCE_SCALE : REAL_DISTANCE_SCALE
+  const toScale =
+    mode === 'real' ? REAL_DISTANCE_SCALE : VISUAL_DISTANCE_SCALE
   return {
     ...baseConfig,
     distanceExponent: lerp(fromExp, toExp, progress),
-  };
+    distanceScale: lerp(fromScale, toScale, progress),
+  }
 }
