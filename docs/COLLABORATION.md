@@ -42,15 +42,39 @@
 ### Phase 단위
 - **각 Phase = 별도 채팅방**
 - **Phase 시작 시 PRD + TechSpec 작성** (`docs/specs/phase-N/PRD.md`, `TECHSPEC.md`)
+- **Phase 시작 시 GitHub Milestone 생성** (open 상태) — 아래 *"GitHub 진행 관리"* 참조
 - Phase 종료 시 인수인계 패키지 (`docs/phase-handoffs/phase-N-to-M.md`) 작성
+- Phase 종료 시 GitHub Milestone close
 - 새 Phase 시작 시 인수인계 + README + 본 헌장을 첫 메시지로 붙여넣어 컨텍스트 복원
 
 ### Sub-phase 단위 (Phase 내부)
 - Phase 안의 sub-phase (예: 1-1, 1-2 ...) 단위로 작업
 - 각 sub-phase = PCTC 1사이클
-- **sub-phase 종료 시 다음 두 가지를 반드시 수행한다**:
-  1. **`git push origin main` 실행** — 로컬 커밋을 원격에 동기화 (Check 단계 마지막 스텝)
-  2. **마일스톤 현황 표시** — 현재 Phase의 sub-phase 진행 상황을 체크리스트로 시각화
+- **sub-phase 시작 시 GitHub Issue 생성** — Plan 확정 직후, Plan 내용이 Issue 본문이 됨
+- **sub-phase 종료 시 다음 세 가지를 반드시 수행한다**:
+  1. **GitHub Issue close** — 마지막 커밋 메시지에 `Closes #N` 포함 (push 시 자동 close) 또는 `gh issue close N` 수동 실행
+  2. **`git push origin main` 실행** — 로컬 커밋을 원격에 동기화 (Check 단계 마지막 스텝, `Closes #N` 트리거)
+  3. **마일스톤 현황 표시** — 현재 Phase의 sub-phase 진행 상황을 체크리스트로 시각화
+
+### GitHub 진행 관리 (Issue / Milestone)
+
+진행 추적의 *두 번째 축*. PCTC 사이클이 **작업의 결**을 잡는다면, GitHub Issue/Milestone 은 **진행의 가시화** 를 맡는다. 둘은 서로 대체가 아니라 보완이다.
+
+매핑:
+
+| 우리 계층 | GitHub 도구 | 생명주기 |
+|---|---|---|
+| **Phase** | Milestone | Phase 시작 시 open → 모든 sub-phase Issue close 후 milestone close |
+| **sub-phase** | Issue | Plan 단계 open → Check 단계 close |
+| **Light** | Issue 본문의 체크리스트 항목 (`- [ ]`) | 커밋마다 체크 |
+
+- **Milestone 제목 규칙**: `Phase {N} — {이름}` (예: `Phase 2 — Solar System`)
+- **Issue 제목 규칙**: `{N-M}: {sub-phase 제목}` (예: `2-5: Planet hover/click + camera zoom`)
+- **Issue 본문 구성**: Plan / Lights / Success criteria / Key decisions / 트러블슈팅 (회고 시 추가) / `docs/checks/` 회고 링크
+- **라벨 규칙**: 모든 sub-phase Issue 에 `phase-{N}` + `sub-phase` 필수, 작업 성격에 따라 `enhancement` / `refactor` / `bug` / `chore` / `documentation` 추가
+- **언어**: Issue/Milestone 제목과 본문은 모두 **영어** (커밋 메시지와 동일 기준 — 글로벌/일본 커리어용)
+
+실행 절차의 상세는 → `WORKFLOW.md` 의 *"Phase 시작 절차"* + *"Sub-phase 시작 절차"*.
 
 ### 일일 리듬
 - **하루 커밋 6~10개 목표**
@@ -94,6 +118,19 @@ feat(apod): integrate NASA APOD daily fetch
 fix(solar): correct Earth orbital period calculation
 refactor(nbody): extract RK4 integrator into utility
 docs(setup): add collaboration charter
+```
+
+### Issue 참조 (sub-phase 단위 작업 시)
+sub-phase 작업 중인 커밋은 Issue 번호 참조 가능:
+```
+feat(solar): add planet hover detection (#14)
+```
+
+sub-phase 의 마지막 커밋은 `Closes #N` 으로 자동 close 트리거:
+```
+test(solar): verify hover panel integration
+
+Closes #14
 ```
 
 ### 커밋 빈도 가이드
@@ -160,6 +197,7 @@ LLM 협업의 가장 큰 두 함정. 이 둘을 의식적으로 방어한다.
 - Claude가 과거 결정을 *"기억하는 척"* 하지 않는다 — 인수인계 문서를 우선 참조
 - 인수인계 문서는 한 페이지를 넘기지 않는다 (압축이 핵심)
 - 사용자가 *"전에 말한 거"* 라고 하면 Claude는 명시적으로 확인 요청 (환각 방지)
+- **GitHub Issue 본문은 *진행 트래커*, 회고 정본은 `docs/checks/`** — 둘이 역할 분리, 중복 X
 
 ---
 
@@ -178,8 +216,11 @@ LLM 협업의 가장 큰 두 함정. 이 둘을 의식적으로 방어한다.
 - 매 작업 결과에 커밋 메시지 동봉 (영어, 한 줄)
 - 천문학 설명에 비유 사용
 - 작업 단위를 *"하루 커밋 6~10개"* 페이스에 맞춰 분할
+- **Phase 시작 시 GitHub Milestone 생성 절차 안내** (§4 GitHub 관리 규칙)
+- **sub-phase 시작 시 Issue 생성 도움** — Plan 확정 후 Issue 본문 초안 제공 (영어)
+- **sub-phase 종료 시 Issue close 절차 안내** — 마지막 커밋의 `Closes #N` 추천
 - **sub-phase 종료 시 push 안내 + 마일스톤 현황 표시 (§4 규칙)**
-- Phase 종료 시 인수인계 문서 작성 도움
+- Phase 종료 시 인수인계 문서 작성 도움 (GitHub Milestone/Issue 상태 포함)
 - Context rot / anxiety 방지 원칙 준수
 - 권이건의 동기 (어릴 적 꿈) 를 잊지 않고, 기술 결정에 그 영혼을 반영
 - 모르는 건 모른다고 말하기 — 환각으로 메우지 않기
@@ -192,6 +233,7 @@ LLM 협업의 가장 큰 두 함정. 이 둘을 의식적으로 방어한다.
 - 매일 NASA APOD 한 장씩 보기
 - 막히면 솔직히 막혔다고 말하기
 - 커밋은 본인 손으로
+- **GitHub Issue 생성 / close 명령 실행은 본인 손으로** (Claude 가 명령어 제공)
 - 새 Phase 시작 시 헌장 + 인수인계 + README 첨부
 
 ---
