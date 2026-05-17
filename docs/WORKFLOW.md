@@ -81,10 +81,19 @@ gh label create "phase-{N}" --color "{hex}" --description "Phase {N} — {이름
 아래 [Plan] 양식 따라 작성. 핵심 질문 / 작업 분할 / 성공 기준 모두 확정.
 
 ### 2. GitHub Issue 생성
-Plan 확정 직후, Claude 가 Issue 본문 초안 (영어) 을 제공. 권이건이 명령 실행:
+
+Plan 확정 직후, Claude 가 Issue 본문 초안 (영어) 을 제공. 권이건이 PowerShell 에서 명령 실행.
+
+**본문 파일은 `scripts/` 폴더에 저장**. 이유:
+- 임시 폴더 (`$env:TEMP`) 가 아닌 *레포 안 영구 보관* — *결정의 흔적* 으로 남음
+- 미래의 Claude / 권이건이 *"이전 sub-phase Issue 본문 어떻게 썼더라"* 참조 가능
+- git 추적 권장 (인계 자료의 일부)
 
 ```powershell
-# 본문 임시 파일 작성 (UTF-8, no BOM)
+# 1) scripts/ 폴더 보장 (없으면 생성)
+New-Item -ItemType Directory -Path scripts -Force | Out-Null
+
+# 2) 본문 작성 (UTF-8 no BOM — em-dash 안 깨짐)
 $body = @'
 ## Plan
 {목표 한 단락}
@@ -99,22 +108,28 @@ $body = @'
 ## Key decisions
 - ...
 
-PRD: `docs/specs/phase-{N}/PRD.md`
-TechSpec: `docs/specs/phase-{N}/TECHSPEC.md`
+## References
+- PRD: `docs/specs/phase-{N}/PRD.md`
+- TechSpec: `docs/specs/phase-{N}/TECHSPEC.md`
+- Previous retrospective: `docs/checks/phase-{N}/sub-{N}-{M-1}.md`
 '@
 
-$bodyFile = "$env:TEMP\issue-body.md"
-[System.IO.File]::WriteAllText($bodyFile, $body, [System.Text.UTF8Encoding]::new($false))
+$bodyFile = "scripts\issue-{N}-{M}-body.md"
+[System.IO.File]::WriteAllText(
+  (Resolve-Path scripts).Path + "\issue-{N}-{M}-body.md",
+  $body,
+  [System.Text.UTF8Encoding]::new($false)
+)
 
-# Issue 생성
+# 3) Issue 생성
 gh issue create `
   --title "{N-M}: {제목}" `
-  --body-file $bodyFile `
+  --body-file scripts\issue-{N}-{M}-body.md `
   --milestone "Phase {N} — {이름}" `
   --label "phase-{N},sub-phase,{성격라벨}"
-
-Remove-Item $bodyFile
 ```
+
+> ⚠️ Milestone 제목의 `—` 는 **em-dash** (en-dash `–` 도 hyphen `-` 도 아님). 잘못 입력하면 `could not resolve to a MilestoneNumber` 에러.
 
 성격 라벨 선택:
 - `enhancement` — 새 기능 추가
@@ -122,6 +137,8 @@ Remove-Item $bodyFile
 - `bug` — 버그 수정
 - `chore` — 빌드/설정/의존성
 - `documentation` — 문서 작업
+
+**왜 PowerShell 인가**: here-string (`@'...'@`) 으로 긴 본문을 *이스케이프 없이* 변수에 통째로 담을 수 있고, UTF-8 no BOM 인코딩을 *명시적으로 강제* 가능. cmd 는 멀티라인 처리가 까다롭고 인코딩 (기본 cp949) 사고가 잦음. *이 프로젝트의 표준은 PowerShell*.
 
 ### 3. Code 단계 진입
 Light 사이클 시작. 각 커밋 메시지에 Issue 번호 참조 가능:
@@ -389,6 +406,19 @@ C: Suspense로 리팩토링 가능 — Phase 1 종료 시 검토
 Claude는 위 신호 중 하나라도 감지하면 *"잠깐, 사이클 어긋났어"* 라고 말한다.
 
 ---
+
+# 🗂️ `scripts/` 폴더의 역할
+
+`scripts/` 는 *Issue 본문 / 일회성 자동화 / 디버그 스니펫* 등을 담는다.
+
+- **추적 O** (권장 기본값) — Issue 본문 파일 (`issue-{N}-{M}-body.md`) 은 git 추적. *결정의 흔적* 으로 남음. 미래의 Claude / 권이건이 컨텍스트 복원 시 참조 가능.
+- *민감 정보 / 진짜 일회성 스크립트* 만 `.gitignore` 에 선택적 추가:
+```gitignore
+  scripts/*.local.*
+  scripts/secret-*
+```
+
+`scripts/` 자체는 *항상 추적* (폴더 존재 보장).
 
 # 📎 헌장과의 연결
 
