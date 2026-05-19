@@ -16,6 +16,7 @@ import {
   useSolarSystemStore,
   TRANSITION_DURATION_MS,
 } from '../../store/solarSystemStore'
+import { BodyLabel } from './BodyLabel'
 
 type SunProps = {
   scale: ScaleConfig
@@ -55,9 +56,13 @@ type SunProps = {
  *
  *   특이점:
  *     - meshBasicMaterial 이라 emissive 호버 피드백 없음 (조명 무시 → emissive 도 의미 X).
- *       Light 3 의 라벨이 *유일한* 호버 시각 피드백. cursor 와 함께.
  *     - <pointLight> 자식은 *mesh 의 자식이 아니라 group 의 자식* — pointer 이벤트
  *       대상은 sphere mesh 만. 조명에 핸들러 안 붙음.
+ *
+ * ─── sub-phase 2-5 [Light 3] 변경 (호버 라벨) ─────────
+ *   BodyLabel 을 group 의 자식으로 추가. conditional render (isHovered).
+ *   이름은 `SUN.name.en` (영어).
+ *   태양은 자전축 group 없음 — 외부 group 의 직접 자식.
  */
 export function Sun({ scale }: SunProps) {
   const meshRef = useRef<THREE.Mesh>(null)
@@ -66,7 +71,7 @@ export function Sun({ scale }: SunProps) {
 
   const radius = computeVisualRadius(SUN.realRadius_km, scale)
 
-  // Planet 과 동일 패턴 — Sun.tsx 주석 참조
+  // Planet 과 동일 패턴 — Planet.tsx 주석 참조
   useEffect(() => {
     if (!isHovered) return
     document.body.style.cursor = 'pointer'
@@ -127,6 +132,7 @@ export function Sun({ scale }: SunProps) {
         distance={0}
         decay={0}
       />
+      {isHovered && <BodyLabel name={SUN.name.en} radius={radius} />}
     </group>
   )
 }

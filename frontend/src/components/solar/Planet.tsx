@@ -24,6 +24,7 @@ import {
   TRANSITION_DURATION_MS,
 } from '../../store/solarSystemStore'
 import { Ring } from './Ring'
+import { BodyLabel } from './BodyLabel'
 
 type PlanetProps = {
   data: PlanetData
@@ -42,6 +43,7 @@ type PlanetProps = {
  *     [중간 group] rotation = 자전축 기울기 (z축 기준). 정적
  *       [mesh, meshRef] rotation.y = 자전. 매 프레임 갱신
  *       [Ring] 자전축 기울기는 받고, 자체 store 구독으로 독립 회전
+ *     [BodyLabel] isHovered 시만 (sub-2-5 [Light 3]) — 자전축 group *밖* 자식
  *
  * ─── sub-phase 2-3 [Light 3] 변경 ──────────────────
  *   1. 공전 추가. 2. += → = 절대 할당. 3. direction 변수 제거.
@@ -64,15 +66,17 @@ type PlanetProps = {
  *
  *   - **isHovered 는 로컬 state**: 호버는 *행성 자기 일*. cross-component
  *     공유 필요 없음. store 진입의 유일한 기준 (*여러 컴포넌트가 알아야 하는가*)
- *     에 안 맞음. Light 3 의 호버 라벨도 같은 컴포넌트 안이므로 prop 불필요.
+ *     에 안 맞음.
  *   - **e.stopPropagation()**: R3F raycaster 는 가장 가까운 mesh 부터 fire,
- *     stopPropagation 으로 뒤 mesh 차단. 작은 행성 클릭 시 뒤 큰 행성도 같이
- *     hit 되는 사고 방지.
+ *     stopPropagation 으로 뒤 mesh 차단.
  *   - **cursor 변경은 useEffect 단일 책임**: 핸들러에서 직접 DOM 만지면
- *     컴포넌트 unmount / 페이지 이동 시 cursor stuck 위험. useEffect 의
- *     cleanup 으로 *isHovered 변화 / 컴포넌트 unmount* 둘 다 안전 처리.
+ *     컴포넌트 unmount / 페이지 이동 시 cursor stuck 위험.
  *   - **클릭 = store.selectBody(data.id)**: PlanetId 가 BodyId 합집합의 부분.
- *     useFrame 안 패턴 일관성으로 getState() 사용.
+ *
+ * ─── sub-phase 2-5 [Light 3] 변경 (호버 라벨) ─────────
+ *   BodyLabel 을 *외부 group 의 자식* 으로 추가. conditional render (isHovered).
+ *   자전축 group *밖* — 라벨이 기울거나 회전하지 않고 *공전만* 따라감.
+ *   이름은 `data.name.en` (영어, 글로벌 톤 일관성).
  */
 export function Planet({ data, initialAngle, scale }: PlanetProps) {
   const groupRef = useRef<THREE.Group>(null)
@@ -182,6 +186,7 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
           <Ring data={data.ring} scale={scale} parent={ringParent} />
         )}
       </group>
+      {isHovered && <BodyLabel name={data.name.en} radius={radius} />}
     </group>
   )
 }
