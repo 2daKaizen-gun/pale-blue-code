@@ -26,21 +26,33 @@ const DEFAULT_AMBIENT = 0.3
  * Scene — R3F Canvas 루트 + leva 전역 패널.
  *
  * leva 패널은 sub-phase 2-7 까지 유지 (dev only).
- * 더 만져보고 더 좋은 값을 찾으면 위 상수 + DEFAULT_SCALE 갱신.
  *
  * ─── sub-phase 2-3 [Light 3] 변경 ──────────────────
- *   1. <TimeAdvancer /> 를 Canvas 의 첫 자식으로 추가 — 다른 useFrame 보다 먼저 실행
- *   2. leva 의 'Time (dev)' 섹션 추가 — timeSpeed 직접 조작 가능 (개발자 도구)
- *   3. <OrbitPath /> 추가 — 각 행성 자기 궤도 라인
- *   4. ControlPanel (사용자 도구) 은 sub-2-3 의 [Light 4-7] 에서 SolarPage 에 추가됨
+ *   <TimeAdvancer /> 첫 자식, leva 'Time (dev)', <OrbitPath />.
  *
  * ─── sub-phase 2-3 [Light 8] 변경 ──────────────────
- *   <Starfield /> 추가 — sub-2-6 에서 당겨옴.
+ *   <Starfield /> 추가.
  *
  * ─── sub-phase 2-5 [Light 5] 변경 (카메라 추적) ─────
- *   <CameraController /> 추가 — TimeAdvancer 다음, 다른 천체 useFrame 보다 *먼저*.
- *   simulationDays 가 최신 갱신된 뒤 카메라가 *그 시각의 행성 위치* 로 추적해야
- *   Planet 의 useFrame 과 *같은 위치* 도출. 위치 어긋남 방지.
+ *   <CameraController /> 추가 — TimeAdvancer 직후, Planet/Sun useFrame *전*.
+ *   같은 시각의 simulationDays 로 위치 도출 → 어긋남 X.
+ *
+ * ─── sub-phase 2-5 [Light 6] 변경 (사용자 카메라 충돌 해소) ─
+ *   OrbitControls 의 `onStart` 콜백 = 사용자 마우스/터치 시작 시 호출.
+ *   여기서 `deselectBody()` 호출 → selectedBodyId=null → CameraController 손 떼기.
+ *
+ *   결의 의미: *사용자 의도가 카메라 추적 의도보다 우선*. 추적 중 사용자가
+ *   직접 카메라 만지면, 자동 추적 코드가 *물러난다*. 한 카메라에 두 주인 없음.
+ *
+ *   사용자 흐름:
+ *     1. 행성 클릭 → CameraController 추적 시작
+ *     2. 추적 중 마우스 만지면 onStart 발화 → deselect → CameraController 즉시 손 떼기
+ *     3. 사용자 자유 카메라 가능 (라벨도 사라짐 — 호버 안 한 상태면)
+ *
+ *   onStart vs onChange 의 선택:
+ *     - onChange = OrbitControls 가 카메라를 바꿀 때마다. CameraController 가 update()
+ *       하는 것도 OrbitControls 입장에서 'change' → 무한 루프.
+ *     - onStart = *사용자 입력 시작* 시만. 코드 호출은 미발화. ✅
  */
 export function Scene() {
   const tunedScale = useControls('Scale', {
@@ -79,7 +91,6 @@ export function Scene() {
     },
   })
 
-  // 개발자 도구: timeSpeed 직접 조작. 사용자 ControlPanel 과 별개의 경로.
   const tunedTime = useControls('Time (dev)', {
     speed: {
       value: 1,
@@ -93,7 +104,6 @@ export function Scene() {
     },
   })
 
-  // leva 의 speed 변경 → store 반영. setState 직접 호출 (개발자 도구라 타입 우회 허용)
   useEffect(() => {
     useSolarSystemStore.setState({ timeSpeed: tunedTime.speed })
   }, [tunedTime.speed])
@@ -107,21 +117,17 @@ export function Scene() {
 
       <Canvas
         camera={{
-          position: [0, 60, 150], // distanceScale=20 기준, 해왕성까지 한 화면
+          position: [0, 60, 150],
           fov: 50,
           near: 0.1,
           far: 1000,
         }}
         style={{ background: 'var(--color-cosmos-bg, #000)' }}
       >
-        {/* 인프라 — 다른 useFrame 보다 먼저 실행되어 simulationDays 갱신 */}
         <TimeAdvancer />
 
-        {/* 카메라 추적 — TimeAdvancer 직후, Planet/Sun useFrame *전*.
-            행성 위치와 카메라가 *같은 시각의 simulationDays* 로 계산되어야 어긋남 X. */}
         <CameraController scale={scale} />
 
-        {/* 배경 — sphere 형태 별 분포. 카메라 어디 가도 모든 방향에 별 */}
         <Starfield />
 
         <ambientLight intensity={ambient} />
@@ -151,6 +157,7 @@ export function Scene() {
           dampingFactor={0.05}
           minDistance={10}
           maxDistance={300}
+          onStart={() => useSolarSystemStore.getState().deselectBody()}
         />
       </Canvas>
     </>
