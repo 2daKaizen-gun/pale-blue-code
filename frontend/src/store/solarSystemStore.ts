@@ -6,7 +6,7 @@ import type { PlanetId } from '../data/planets'
 /**
  * Pale Blue Code — Phase 2: Solar System
  *
- * 시간 + 진실 토글 + 선택 store. Canvas 안(useFrame) 과 밖(ControlPanel) 의 공유 메모리.
+ * 시간 + 진실 토글 + 선택 + 카메라 store. Canvas 안(useFrame) 과 밖(ControlPanel) 의 공유 메모리.
  *
  * ─── 시간 매핑 ───────────────────────────────────────
  *   1 real second × timeSpeed = N simulation days
@@ -15,9 +15,6 @@ import type { PlanetId } from '../data/planets'
  *     timeSpeed = 100   → 지구 1년 ≈ 3.65초, 내행성 공전 관찰
  *     timeSpeed = 10000 → 해왕성 1바퀴 6초, 외행성까지 한 화면
  *
- *   sub-2-3 [Light 8.5] 갱신: 100,000× 제거 (인간 눈에 의미 없음) + 0.1× 추가
- *   (느린 자전 관찰). 빠름과 느림 양쪽으로 학습 가치.
- *
  * ─── 정지의 의미 ─────────────────────────────────────
  *   timeSpeed === 0 → 정지 상태
  *   prevSpeed       → 정지 직전 활성 속도 (재개 시 복귀)
@@ -25,28 +22,28 @@ import type { PlanetId } from '../data/planets'
  * ─── 진실 토글 패러다임 (sub-2-4) ──────────────────────
  *   *store 에 progress 를 저장하지 않는다.* mode + changedAt 2쌍만 보관.
  *   매 프레임 컴포넌트가 (performance.now() - changedAt) / 1500 으로 progress 도출.
- *
- *   왜:
- *     - 매 프레임 setState 0 → sub-2-3 의 *useFrame 안 리렌더 0* 보장 유지
- *     - 정지/리셋이 보간 중에도 자연 작동 (sub-2-3 *증분→절대* 패러다임 확장)
- *     - 중복 토글 자동 방어: changedAt 만 새로 세팅 → 진행 중 보간이 새 시점에서 재시작
- *     - 프리셋의 *동시성* 확보: 두 changedAt 에 동일 timestamp → 양쪽 progress 동기
- *
  *   초기값 -Infinity: 페이지 진입 시 *이미 visual 도달 상태* 의미 (progress = 1).
  *
- * ─── 선택 패러다임 (sub-2-5) ───────────────────────────
+ * ─── 선택 + 카메라 패러다임 (sub-2-5) ───────────────────
  *   selectedBodyId 는 *이산적 의도* 만 store 에 보관. 카메라 위치/target 은
  *   매 프레임 갱신되는 *연속값* 이므로 store 에 두지 않는다 (리렌더 폭탄 방지).
  *   CameraController 가 selectedBodyId 변화를 effect 로 감지해 자체 보간 시작 +
  *   매 프레임 useFrame 안에서 천체 현재 위치 추적.
  *
  *   *Body* 추상: 카메라가 추적할 수 있는 모든 천체 = 8개 행성 + 태양 (+ 미래의 달).
- *   PlanetId 에 'sun' 끼우는 건 코드 거짓말 — 'sun' 은 행성이 아님. 합집합으로 분리.
  *
- *   sub-2-4 의 *mode + changedAt 만 보관, progress 는 derived* 와 같은 결.
- *   다만 selection 은 *값이 즉시 바뀌고 카메라가 따라잡는* 구조라 changedAt 불필요:
- *   토글은 *값 자체가 점진적으로 변하는 (시각↔실제)* 것이라 changedAt 가 store 책임,
- *   selection 은 *목표 객체만 store, 도달 과정 timestamp 는 컴포넌트 책임*.
+ *   [Light 7] *cameraResetRequestedAt* — home 보간의 *trigger timestamp*:
+ *     - performance.now() = home 보간 *시작* (보간 진입)
+ *     - -Infinity         = 카메라 자동 제어 *양도* (사용자 OrbitControls 자유)
+ *
+ *   세 가지 카메라 모드의 store 표현:
+ *     [추적]       selectedBodyId != null, cameraResetRequestedAt 무관
+ *     [home 보간]  selectedBodyId == null, cameraResetRequestedAt = (최근 timestamp)
+ *     [사용자 자유] selectedBodyId == null, cameraResetRequestedAt = -Infinity
+ *
+ *   CameraController 의 두 useEffect 가 *두 trigger* 를 독립 감지. 작성 순서로
+ *   *나중 effect 가 이긴다* — [🎥] 누름이 selectedBodyId=null + cameraResetRequestedAt=now
+ *   둘 다 set 하지만 *home 보간 effect* 가 마지막이라 *home 보간* 으로 귀결.
  *
  * ─── useFrame 안 사용 패턴 ─────────────────────────
  *   useFrame 안에서는 *반드시* `useSolarSystemStore.getState()` 호출.
@@ -64,99 +61,92 @@ export const TRANSITION_DURATION_MS = 1500
  * 카메라가 추적할 수 있는 천체의 합집합 (sub-2-5).
  *
  * 현재: 8개 행성 + 태양. 미래: 'moon' 추가 (sub-2-6 또는 그 이후).
- *
- * 이 타입을 *store 안* 에 둔 이유: BodyId 는 *상호작용 도메인* (카메라 추적 대상)
- * 의 enum 이라, 데이터 값 (`data/planets.ts`, `data/sun.ts`) 의 합집합이 아닌
- * *선택* 도메인의 합집합. 선택을 다루는 store 가 책임 가짐.
  */
 export type BodyId = PlanetId | 'sun'
 
 interface SolarSystemStore {
   // ─── 시간 (sub-2-3) ──────────────────────────────
-  /** 누적 시뮬레이션 시간 (단위: days). 0 = 페이지 진입 시점. */
   simulationDays: number
-
-  /** 현재 시간 속도. 0 = 정지, 그 외 = days per real second. */
   timeSpeed: number
-
-  /** 정지 직전 활성 속도. 재개 시 복귀 대상. */
   prevSpeed: SpeedOption
 
   // ─── 진실 토글 (sub-2-4) ─────────────────────────
-  /** 거리 토글의 *현재 목표* 모드. */
   scaleMode: ScaleMode
-
-  /** scaleMode 가 마지막으로 변경된 시각 (performance.now() ms). */
   scaleModeChangedAt: number
-
-  /** 자전 토글의 *현재 목표* 모드. */
   rotationMode: RotationMode
-
-  /** rotationMode 가 마지막으로 변경된 시각 (performance.now() ms). */
   rotationModeChangedAt: number
 
-  // ─── 선택 (sub-2-5) ──────────────────────────────
+  // ─── 선택 + 카메라 (sub-2-5) ─────────────────────
   /**
-   * 현재 선택된 천체 ID (카메라 추적 대상). null = 자유 카메라.
+   * 현재 선택된 천체 ID (카메라 추적 대상). null = 추적 X.
    *
-   * *cross-component* 공유 — CameraController, ControlPanel, 미래의 호버 라벨이
-   * 모두 구독. hover 상태는 Planet/Sun 컴포넌트 *로컬* useState (천체 자기 일).
-   * store 진입의 유일한 기준: *여러 컴포넌트가 알아야 하는가*.
+   * *cross-component* 공유 — CameraController, Planet/Sun (selected 라벨 표시).
    */
   selectedBodyId: BodyId | null
 
-  // ─── 액션 ────────────────────────────────────────
-  /** 활성 속도로 변경. 정지 중이었어도 자동 재생. */
-  setTimeSpeed: (speed: SpeedOption) => void
+  /**
+   * 카메라 home 보간 trigger timestamp (sub-2-5 [Light 7]).
+   *   - performance.now() (양수) = home 보간 *시작 시점*. CameraController 가
+   *     effect 로 감지해 *현재 카메라 위치 → home* 1.5초 보간.
+   *   - -Infinity = 카메라 자동 제어 *양도*. CameraController 손 떼기. 사용자가
+   *     OrbitControls 만질 때.
+   *   - 초기값 -Infinity = 페이지 진입 시 사용자 자유.
+   *
+   * sub-2-4 의 *mode + changedAt* 결을 이음 — *언제 변화 의도가 발생했는가* 만
+   * 보관, 보간 progress 는 매 프레임 derived.
+   */
+  cameraResetRequestedAt: number
 
-  /** 정지 ↔ 재개 토글. */
+  // ─── 액션 ────────────────────────────────────────
+  setTimeSpeed: (speed: SpeedOption) => void
   togglePause: () => void
 
-  /** 천체 선택 (행성 또는 태양). CameraController 가 보간 시작 (sub-2-5). */
+  /** 천체 선택 (행성 또는 태양). CameraController 가 보간 시작. */
   selectBody: (id: BodyId) => void
 
   /**
-   * 선택 해제. CameraController 가 카메라 초기 위치로 보간 (sub-2-5).
-   * [🎥 카메라 리셋] 버튼이 호출하는 *유일한 액션* — 카메라 자체는 store 에
-   * 없고, selection 변화를 본 CameraController 가 알아서 복귀.
+   * 카메라를 home 으로 보간 + 선택 해제. [🎥 카메라 리셋] 버튼이 호출.
+   *
+   * selectedBodyId 도 함께 null 로 — *home 으로 가는데 추적 ID 가 남아 있으면 어색*.
+   * 의미: *카메라를 처음 시점으로*. 시간/모드는 그대로.
    */
-  deselectBody: () => void
+  resetCameraView: () => void
 
   /**
-   * 모든 상태 처음으로 — 시간 + 진실 모드 + 선택 셋 다.
+   * 카메라 자동 제어 양도. 사용자가 OrbitControls 만질 때 호출.
+   *
+   * selectedBodyId=null (추적 정지) + cameraResetRequestedAt=-Infinity (home 보간도 정지).
+   * → CameraController 의 두 effect 모두 *손 떼기* 로 귀결. 사용자 자유.
+   */
+  yieldCameraControl: () => void
+
+  /**
+   * 모든 상태 처음으로 — 시간 + 진실 모드 + 선택 + 카메라 넷 다.
    *   simulationDays=0, timeSpeed=1, prevSpeed=1,
-   *   scaleMode='visual', rotationMode='visual', 양쪽 changedAt=-Infinity,
-   *   selectedBodyId=null (카메라도 자동 복귀).
+   *   scaleMode/rotationMode='visual', 양쪽 changedAt=-Infinity,
+   *   selectedBodyId=null,
+   *   cameraResetRequestedAt=performance.now() (home 보간 시작).
    *
    * 호출 위치:
    *   - 사용자 [↺] 버튼 / R 키
    *   - ControlPanel mount 시 useEffect (F5 / HMR 후 깨끗한 시작점)
+   *
+   * 카메라 부분 (Light 7):
+   *   - 시간/모드의 changedAt 은 -Infinity (이미 도달 상태) 인 반면,
+   *     cameraResetRequestedAt 은 *지금 보간 시작*. 두 의미가 다른 이유:
+   *     시간/모드는 *값 자체가 즉시 처음*, 카메라는 *위치가 부드럽게 처음으로 가는 길*.
+   *   - 페이지 진입 직후엔 카메라가 이미 home → from=to → 0 보간 (변화 없음). OK.
+   *   - HMR 후엔 카메라가 이전 위치일 수 있음 → home 으로 부드럽게 복귀. OK.
+   *
    * sub-2-4 의 *통합 reset* 결 + sub-2-5 의 *카메라 리셋 분리* 결을 함께 지킴:
-   *   - selection 해제는 통합 reset 에 포함 (모든 것 처음)
-   *   - 그래도 [🎥] 버튼은 별도 — selection 만 해제 (시간/모드 유지) 케이스 분리
+   *   - selection + 카메라 home 보간은 통합 reset 에 포함 (모든 것 처음)
+   *   - 그래도 [🎥] 버튼은 별도 — 카메라만 home (시간/모드 유지) 케이스 분리
    */
   reset: () => void
 
-  /**
-   * 매 프레임 <TimeAdvancer /> 에서 호출.
-   * 정지 상태면 no-op. 활성이면 simulationDays 누적.
-   */
   advanceTime: (deltaSeconds: number) => void
-
-  /** 거리 토글. mode 반전 + changedAt 갱신. */
   toggleScaleMode: () => void
-
-  /** 자전 토글. mode 반전 + changedAt 갱신. */
   toggleRotationMode: () => void
-
-  /**
-   * 전체 진실 프리셋.
-   *   - 둘 다 real 이면 → 둘 다 visual (탈출 경로)
-   *   - 아니면         → 둘 다 real
-   *   양쪽 changedAt 에 *동일 timestamp* 세팅 → 두 보간 정확 동기.
-   *
-   *   *PRD §3 의 영혼: 교육적 거짓말이 진실로 동시에 무너지는 순간.*
-   */
   toggleAllTruth: () => void
 }
 
@@ -166,11 +156,12 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
   prevSpeed: DEFAULT_SPEED,
 
   scaleMode: 'visual',
-  scaleModeChangedAt: -Infinity, // 이미 도달 상태 = progress 1
+  scaleModeChangedAt: -Infinity,
   rotationMode: 'visual',
   rotationModeChangedAt: -Infinity,
 
   selectedBodyId: null,
+  cameraResetRequestedAt: -Infinity, // 페이지 진입 시 사용자 자유
 
   setTimeSpeed: (speed) => {
     set({ timeSpeed: speed, prevSpeed: speed })
@@ -189,8 +180,18 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
     set({ selectedBodyId: id })
   },
 
-  deselectBody: () => {
-    set({ selectedBodyId: null })
+  resetCameraView: () => {
+    set({
+      selectedBodyId: null,
+      cameraResetRequestedAt: performance.now(),
+    })
+  },
+
+  yieldCameraControl: () => {
+    set({
+      selectedBodyId: null,
+      cameraResetRequestedAt: -Infinity,
+    })
   },
 
   reset: () => {
@@ -203,6 +204,7 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
       rotationMode: 'visual',
       rotationModeChangedAt: -Infinity,
       selectedBodyId: null,
+      cameraResetRequestedAt: performance.now(),
     })
   },
 

@@ -9,6 +9,7 @@ import { CameraController } from './CameraController'
 import { OrbitPath } from './OrbitPath'
 import { Starfield } from './Starfield'
 import { PLANETS } from '../../data/planets'
+import { CAMERA_HOME_POSITION } from '../../data/camera'
 import { DEFAULT_SCALE } from '../../lib/scale'
 import { useSolarSystemStore } from '../../store/solarSystemStore'
 
@@ -16,7 +17,8 @@ import { useSolarSystemStore } from '../../store/solarSystemStore'
  * sub-phase 2-2 [Light 9] 손튜닝 결과:
  *   - DEFAULT_AMBIENT: 0.15 → 0.3 (행성 밤 면 식별 가능)
  *   - 카메라 position: [0, 30, 70] → [0, 60, 150]
- *     (distanceScale=20 적용 후 해왕성 거리 109 까지 한 화면에)
+ *     ([Light 7] 갱신: `data/camera.ts` 의 CAMERA_HOME_POSITION 으로 추출 — Scene
+ *      초기값과 CameraController home 보간 목표가 *같은 상수* 가리킴)
  */
 const DEFAULT_AMBIENT = 0.3
 
@@ -27,32 +29,19 @@ const DEFAULT_AMBIENT = 0.3
  *
  * leva 패널은 sub-phase 2-7 까지 유지 (dev only).
  *
- * ─── sub-phase 2-3 [Light 3] 변경 ──────────────────
- *   <TimeAdvancer /> 첫 자식, leva 'Time (dev)', <OrbitPath />.
- *
- * ─── sub-phase 2-3 [Light 8] 변경 ──────────────────
- *   <Starfield /> 추가.
- *
  * ─── sub-phase 2-5 [Light 5] 변경 (카메라 추적) ─────
  *   <CameraController /> 추가 — TimeAdvancer 직후, Planet/Sun useFrame *전*.
- *   같은 시각의 simulationDays 로 위치 도출 → 어긋남 X.
  *
  * ─── sub-phase 2-5 [Light 6] 변경 (사용자 카메라 충돌 해소) ─
- *   OrbitControls 의 `onStart` 콜백 = 사용자 마우스/터치 시작 시 호출.
- *   여기서 `deselectBody()` 호출 → selectedBodyId=null → CameraController 손 떼기.
+ *   OrbitControls onStart → deselectBody (이때).
  *
- *   결의 의미: *사용자 의도가 카메라 추적 의도보다 우선*. 추적 중 사용자가
- *   직접 카메라 만지면, 자동 추적 코드가 *물러난다*. 한 카메라에 두 주인 없음.
+ * ─── sub-phase 2-5 [Light 7] 변경 (카메라 home 통합) ──
+ *   onStart 호출을 yieldCameraControl 로 *교체*. 의미 확장:
+ *     - Light 6: 단순히 selection 해제
+ *     - Light 7: selection 해제 + 카메라 자동 제어 양도 (home 보간 중이어도 정지)
  *
- *   사용자 흐름:
- *     1. 행성 클릭 → CameraController 추적 시작
- *     2. 추적 중 마우스 만지면 onStart 발화 → deselect → CameraController 즉시 손 떼기
- *     3. 사용자 자유 카메라 가능 (라벨도 사라짐 — 호버 안 한 상태면)
- *
- *   onStart vs onChange 의 선택:
- *     - onChange = OrbitControls 가 카메라를 바꿀 때마다. CameraController 가 update()
- *       하는 것도 OrbitControls 입장에서 'change' → 무한 루프.
- *     - onStart = *사용자 입력 시작* 시만. 코드 호출은 미발화. ✅
+ *   home 위치를 `data/camera.ts` 의 CAMERA_HOME_POSITION 상수로 — Scene 초기값과
+ *   CameraController home 보간 목표가 *같은 source*. 단일 진실.
  */
 export function Scene() {
   const tunedScale = useControls('Scale', {
@@ -117,7 +106,7 @@ export function Scene() {
 
       <Canvas
         camera={{
-          position: [0, 60, 150],
+          position: [...CAMERA_HOME_POSITION], // 단일 source — data/camera.ts
           fov: 50,
           near: 0.1,
           far: 1000,
@@ -157,7 +146,9 @@ export function Scene() {
           dampingFactor={0.05}
           minDistance={10}
           maxDistance={300}
-          onStart={() => useSolarSystemStore.getState().deselectBody()}
+          onStart={() =>
+            useSolarSystemStore.getState().yieldCameraControl()
+          }
         />
       </Canvas>
     </>

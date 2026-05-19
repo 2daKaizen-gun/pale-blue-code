@@ -8,34 +8,33 @@ import {
 /**
  * Pale Blue Code — Phase 2: Solar System
  *
- * ControlPanel — 사용자가 시간 + 진실 모드를 조작하는 도구. Canvas 밖, 화면 하단 고정.
+ * ControlPanel — 사용자가 시간 + 진실 모드 + 카메라를 조작하는 도구. Canvas 밖, 화면 하단 고정.
  *
- * ─── 레이아웃 (sub-2-4 갱신) ─────────────────────────
- *   [정지] | [속도 4개] | [거리] [자전] [전체 진실] | [리셋]
- *      시간 그룹                    진실 토글 그룹      reset
+ * ─── 레이아웃 ────────────────────────────────────
+ *   [정지] | [속도 4개] | [거리] [자전] [전체 진실] | [↺] [🎥]
+ *      시간 그룹                    진실 토글 그룹      리셋 그룹
  *
  *   *시간* 은 일시적 (스페이스 한 번이면 복원), *모드* 는 영구적 (다음 토글까지 유지).
- *   다른 의미라 시각적으로 분리 (구분선).
+ *   *리셋* 은 두 종류 — ↺ 통합 (시간+모드+선택+카메라), 🎥 카메라만.
  *
  * ─── 키보드 단축키 ─────────────────────────────────
  *   Space: 정지/재생
  *   1/2/3/4: 0.1× / 1× / 100× / 10,000×
- *   R: 리셋
+ *   R: 통합 리셋
  *   *<input>/<textarea> 포커스 중에는 무시*
  *
- *   모드 토글 단축키 (D=거리/T=자전/A=전체) 는 sub-2-5 또는 sub-2-6 별도.
+ *   모드 토글 단축키 (D/T/A) + 카메라 리셋 단축키 (C) 는 sub-2-6 보류.
  *
  * ─── 진실 토글 UX (sub-2-4) ────────────────────────
  *   각 토글 활성 (mode='real') 시 bg-white/20 — 사용자가 *지금 진실 모드* 임을 시각 인지.
- *   비활성 (mode='visual') 은 기본 상태 (어두운 우주 배경).
- *   *전체 진실* 은 양쪽 모드 모두 'real' 일 때만 활성 표시 (= 둘 다 진실 상태).
  *
- * ─── 모바일 속도 제한 ──────────────────────────────
- *   현재 SPEED_OPTIONS 최대값이 10,000× 라 실효 제한 없음.
- *   인프라는 sub-2-7 모바일 최적화 위해 유지.
+ * ─── 리셋의 두 종류 (sub-2-5 [Light 7]) ─────────────
+ *   [↺] 통합 리셋: 시간 + 모드 + 선택 + 카메라 home 보간 모두 처음으로.
+ *   [🎥] 카메라 리셋: 카메라만 home (시간/모드 유지). 선택은 같이 해제 — *home 가는데
+ *        추적 ID 남아 있으면 어색*.
  *
- * ─── 리셋의 책임 범위 ──────────────────────────────
- *   *시간만* 리셋. 모드/카메라는 별도. 카메라 리셋은 sub-2-5.
+ *   두 버튼이 *같은 그룹* — 시각적으로 옆에. 단축선 없이 작은 gap 으로 약간 분리.
+ *   PRD §4 5번 항목 + TechSpec §2 아키텍처 도식 일관.
  */
 
 const MOBILE_MAX_SPEED = 10_000
@@ -45,7 +44,6 @@ function formatSpeed(speed: SpeedOption): string {
   return `${speed.toLocaleString('en-US')}×`
 }
 
-// ─── useSyncExternalStore: 외부 source (matchMedia) 와 정확 동기화 ──
 function subscribeCoarsePointer(callback: () => void): () => void {
   const mq = window.matchMedia(COARSE_POINTER_QUERY)
   mq.addEventListener('change', callback)
@@ -86,19 +84,20 @@ export function ControlPanel() {
   const isRotationReal = rotationMode === 'real'
   const isAllTruth = isScaleReal && isRotationReal
 
+  // ── 카메라 리셋 (sub-2-5 [Light 7]) ──────────────
+  const resetCameraView = useSolarSystemStore((s) => s.resetCameraView)
+
   const isTouch = useIsTouchDevice()
   const availableSpeeds: readonly SpeedOption[] = isTouch
     ? SPEED_OPTIONS.filter((s) => s <= MOBILE_MAX_SPEED)
     : SPEED_OPTIONS
 
   // ─── 페이지 진입 시 모든 상태 초기화 (F5 / HMR 어느 쪽이든) ────
-  // F5: 메모리 비워 어차피 초기값이지만, 방어적 명시.
-  // HMR: zustand 상태가 module reload 후에도 유지되는데, 이걸 끊음.
   useEffect(() => {
     useSolarSystemStore.getState().reset()
   }, [])
 
-  // ─── 키보드 단축키 (시간만 — 모드 단축키는 sub-2-5/6) ─────
+  // ─── 키보드 단축키 (시간만 — 모드 / 카메라 단축키는 sub-2-6) ─
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement
@@ -177,12 +176,8 @@ export function ControlPanel() {
 
         <div className="h-6 w-px bg-white/10" aria-hidden />
 
-        {/* ── 진실 토글 (Light 8 + 9) ────────────────── */}
-        <div
-          role="group"
-          aria-label="진실 토글"
-          className="flex gap-1"
-        >
+        {/* ── 진실 토글 ────────────────── */}
+        <div role="group" aria-label="진실 토글" className="flex gap-1">
           <button
             type="button"
             onClick={toggleScaleMode}
@@ -240,15 +235,26 @@ export function ControlPanel() {
 
         <div className="h-6 w-px bg-white/10" aria-hidden />
 
-        {/* ── 리셋 ── R ── 시간 + 모드 전부 처음으로 (카메라는 sub-2-5) ── */}
-        <button
-          type="button"
-          onClick={reset}
-          aria-label="전체 리셋 (R)"
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-lg text-white/80 transition hover:bg-white/10"
-        >
-          ↺
-        </button>
+        {/* ── 리셋 그룹 ── 통합 (↺) + 카메라만 (🎥) ── */}
+        <div role="group" aria-label="리셋" className="flex gap-1">
+          <button
+            type="button"
+            onClick={reset}
+            aria-label="전체 리셋 (R) — 시간 + 모드 + 카메라"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-lg text-white/80 transition hover:bg-white/10"
+          >
+            ↺
+          </button>
+
+          <button
+            type="button"
+            onClick={resetCameraView}
+            aria-label="카메라 리셋 — 자유 카메라로 복귀"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-base text-white/80 transition hover:bg-white/10"
+          >
+            🎥
+          </button>
+        </div>
       </div>
     </div>
   )
