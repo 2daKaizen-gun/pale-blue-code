@@ -43,7 +43,7 @@ type PlanetProps = {
  *     [중간 group] rotation = 자전축 기울기 (z축 기준). 정적
  *       [mesh, meshRef] rotation.y = 자전. 매 프레임 갱신
  *       [Ring] 자전축 기울기는 받고, 자체 store 구독으로 독립 회전
- *     [BodyLabel] isHovered 시만 (sub-2-5 [Light 3]) — 자전축 group *밖* 자식
+ *     [BodyLabel] hovered 또는 selected 시 — 자전축 group *밖* 자식
  *
  * ─── sub-phase 2-3 [Light 3] 변경 ──────────────────
  *   1. 공전 추가. 2. += → = 절대 할당. 3. direction 변수 제거.
@@ -55,30 +55,34 @@ type PlanetProps = {
  *   매 프레임 두 보간이 *독립적으로* 흐른다 (서로 다른 changedAt):
  *     거리: scaleMode + scaleModeChangedAt → exp 0.5↔1.0 lerp
  *     자전: rotationMode + rotationModeChangedAt → period visual↔real lerp
- *   *전체 진실 프리셋* 은 두 changedAt 동기화로 동시 보간 자동 보장.
  *
- *   Ring 에는 *정적 parent 객체* (data 의 두 필드) 만 전달. Ring 이 자체로
- *   store 구독해 자전 보간 — 매 프레임 prop 변경 0, re-render 0.
- *   `radius` 와 AXIAL_TILT_RAD 는 정적 유지 — radius 토글은 sub-2-4 범위 외.
+ *   Ring 에는 *정적 parent 객체* 만 전달. Ring 이 자체로 store 구독해 자전 보간.
  *
  * ─── sub-phase 2-5 [Light 2] 변경 (인터랙션) ─────────
- *   pointer 핸들러 3개 (over/out/click) 를 mesh 에 부착. 태양도 같은 패턴 (Sun.tsx).
+ *   pointer 핸들러 3개 + isHovered 로컬 state + cursor effect.
+ *   클릭 = `store.selectBody(data.id)`.
  *
- *   - **isHovered 는 로컬 state**: 호버는 *행성 자기 일*.
- *   - **e.stopPropagation()**: 작은 행성 클릭 시 뒤 큰 행성도 같이 hit 차단.
- *   - **cursor 변경은 useEffect 단일 책임**: unmount 시 stuck 자동 방어.
- *   - **클릭 = store.selectBody(data.id)**: PlanetId 가 BodyId 합집합의 부분.
+ * ─── sub-phase 2-5 [Light 3/4] 변경 (호버/선택 라벨) ──
+ *   BodyLabel 의 *두 단계* 표시:
+ *     - 호버만 (호버 ✓, 선택 ✗)        → 이름만 (살짝 미리보기)
+ *     - 선택됨 (selectedBodyId === id)  → 이름 + tagline (깊이 들어감)
+ *     - 호버 + 선택 동시                → 선택 우선 (이름 + tagline)
+ *     - 선택 해제 + 호버 해제            → 라벨 없음
  *
- * ─── sub-phase 2-5 [Light 3/4] 변경 (호버 라벨) ───────
- *   BodyLabel 을 *외부 group 의 자식* 으로 추가. conditional render (isHovered).
- *   [Light 3]: 영어 이름 (`data.name.en`)
- *   [Light 4]: 영어 한 줄 시그니처 (`data.taglineEn`) 도 함께 전달
+ *   이유: 호버 시 한 번에 *이름 + 한 줄 사실* 다 띄우면 *난잡*. 호버 = 빠른 인식,
+ *   클릭 = 의도적 탐험. 두 단계 UX 패턴 (Google Maps, GitHub 등에서 자연).
+ *
+ *   *isSelected* selector — `selectedBodyId === data.id` boolean 비교라 다른 천체
+ *   선택 시 결과 false 그대로 → re-render 없음. zustand 의 자연 패턴.
  */
 export function Planet({ data, initialAngle, scale }: PlanetProps) {
   const groupRef = useRef<THREE.Group>(null)
   const meshRef = useRef<THREE.Mesh>(null)
   const texture = useTexture(data.texture)
   const [isHovered, setIsHovered] = useState(false)
+  const isSelected = useSolarSystemStore(
+    (s) => s.selectedBodyId === data.id,
+  )
 
   const radius = computeVisualRadius(data.realRadius_km, scale)
   const AXIAL_TILT_RAD = (data.axialTilt_deg * Math.PI) / 180
@@ -134,7 +138,6 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
     groupRef.current.position.z = Math.sin(orbitAngle) * distance
 
     // ── 자전 보간 (Light 6b) ─────────────────────────
-    // 합성: real → interpolated → effective → angle
     const rotationProgress = easeInOutCubic(
       computeTransitionProgress(
         now,
@@ -156,6 +159,9 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
       effectiveRotationPeriod,
     )
   })
+
+  const showLabel = isHovered || isSelected
+  const showTagline = isSelected
 
   return (
     <group ref={groupRef}>
@@ -182,10 +188,10 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
           <Ring data={data.ring} scale={scale} parent={ringParent} />
         )}
       </group>
-      {isHovered && (
+      {showLabel && (
         <BodyLabel
           name={data.name.en}
-          tagline={data.taglineEn}
+          tagline={showTagline ? data.taglineEn : undefined}
           radius={radius}
         />
       )}

@@ -30,44 +30,43 @@ type SunProps = {
  * Planet 과의 차이:
  *   1. meshBasicMaterial — 자체 발광 (조명 계산 건너뛰기)
  *   2. <pointLight> 자식 — 태양 위치에서 사방으로 빛 발산
- *   3. 자전축 기울기 없음 (시각화 의미 적음) → axial-flip 보정 *생략*
- *   4. 거리 = 0 (자기가 원점) → 거리 토글 영향 없음, distance 보간도 불필요
+ *   3. 자전축 기울기 없음 → axial-flip 보정 *생략*
+ *   4. 거리 = 0 (자기가 원점) → 거리 토글 영향 없음, distance 보간 불필요
  *
  * ─── sub-phase 2-3 [Light 3] 변경 ──────────────────
  *   SECONDS_PER_REVOLUTION 상수 제거. simulationDays 기반 computeRotationAngle.
- *   += → = 절대 할당. 정지/리셋 시 자동으로 그 시점 각도 유지.
  *
  * ─── sub-phase 2-4 [Light 7] 변경 (자전 보간) ──────
  *   `SUN.rotationPeriod_hours` 정적 사용 → 매 프레임 보간된 period 적용.
  *
- *   합성: real → getInterpolatedRotationPeriod → computeRotationAngle
- *   (Planet/Ring 보다 한 단계 짧음 — axial-flip 보정 없음)
- *
  *   태양 자전 주기: 25.38일 (적도 기준 609.12h).
- *     visual 압축: sqrt(609.12/24) × 24 ≈ 121h (5일).
- *     real 모드 토글 시 *태양도 5배 느려진다* — *모든 천체* 가 케플러 비례 따른다는 일관성.
+ *   real 모드 토글 시 *태양도 5배 느려진다* — *모든 천체* 가 케플러 비례 따른다는 일관성.
  *
- *   실제 태양은 *위도마다 다른 차등 자전* (적도 25일, 극지 35일) 이지만 시각화는
- *   단일 속도. 가스 덩어리라 적도가 가장 빠름.
+ *   실제 태양은 *위도마다 다른 차등 자전* 이지만 시각화는 단일 속도.
  *
  * ─── sub-phase 2-5 [Light 2] 변경 (인터랙션) ─────────
- *   Planet 과 같은 패턴: pointer 핸들러 3개 + isHovered 로컬 state + cursor effect.
- *   클릭 시 `selectBody('sun')` — BodyId 합집합의 'sun' 변형 (PlanetId 아님).
+ *   Planet 과 같은 패턴: pointer 핸들러 3개 + isHovered + cursor effect.
+ *   클릭 = `selectBody('sun')`. BodyId 합집합의 'sun' 변형.
  *
  *   특이점:
  *     - meshBasicMaterial 이라 emissive 호버 피드백 없음.
- *     - <pointLight> 자식은 *mesh 의 자식이 아니라 group 의 자식* — pointer 이벤트
- *       대상은 sphere mesh 만.
+ *     - <pointLight> 는 group 의 자식 — pointer 이벤트 대상은 sphere mesh 만.
  *
- * ─── sub-phase 2-5 [Light 3/4] 변경 (호버 라벨) ───────
- *   BodyLabel 을 group 의 자식으로 추가. conditional render (isHovered).
- *   [Light 3]: 영어 이름 (`SUN.name.en`)
- *   [Light 4]: 영어 한 줄 시그니처 (`SUN.taglineEn`) 도 함께 전달
+ * ─── sub-phase 2-5 [Light 3/4] 변경 (호버/선택 라벨) ──
+ *   BodyLabel 의 *두 단계* 표시 (Planet 과 동일 패턴):
+ *     - 호버만 → 이름만
+ *     - 선택됨 → 이름 + tagline
+ *     - 둘 다 해제 → 라벨 없음
+ *
+ *   isSelected selector — `selectedBodyId === 'sun'` 으로 자기 선택 여부만 구독.
  */
 export function Sun({ scale }: SunProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   const texture = useTexture(SUN.texture)
   const [isHovered, setIsHovered] = useState(false)
+  const isSelected = useSolarSystemStore(
+    (s) => s.selectedBodyId === 'sun',
+  )
 
   const radius = computeVisualRadius(SUN.realRadius_km, scale)
 
@@ -106,6 +105,9 @@ export function Sun({ scale }: SunProps) {
     )
   })
 
+  const showLabel = isHovered || isSelected
+  const showTagline = isSelected
+
   return (
     <group position={[0, 0, 0]}>
       <mesh
@@ -132,10 +134,10 @@ export function Sun({ scale }: SunProps) {
         distance={0}
         decay={0}
       />
-      {isHovered && (
+      {showLabel && (
         <BodyLabel
           name={SUN.name.en}
-          tagline={SUN.taglineEn}
+          tagline={showTagline ? SUN.taglineEn : undefined}
           radius={radius}
         />
       )}
