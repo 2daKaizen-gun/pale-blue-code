@@ -60,7 +60,7 @@ type PlanetProps = {
  *   `radius` 와 AXIAL_TILT_RAD 는 정적 유지 — radius 토글은 sub-2-4 범위 외.
  *
  * ─── sub-phase 2-5 [Light 2] 변경 (인터랙션) ─────────
- *   pointer 핸들러 3개 (over/out/click) 를 mesh 에 부착.
+ *   pointer 핸들러 3개 (over/out/click) 를 mesh 에 부착. 태양도 같은 패턴 (Sun.tsx).
  *
  *   - **isHovered 는 로컬 state**: 호버는 *행성 자기 일*. cross-component
  *     공유 필요 없음. store 진입의 유일한 기준 (*여러 컴포넌트가 알아야 하는가*)
@@ -71,9 +71,8 @@ type PlanetProps = {
  *   - **cursor 변경은 useEffect 단일 책임**: 핸들러에서 직접 DOM 만지면
  *     컴포넌트 unmount / 페이지 이동 시 cursor stuck 위험. useEffect 의
  *     cleanup 으로 *isHovered 변화 / 컴포넌트 unmount* 둘 다 안전 처리.
- *   - **클릭 = store.selectPlanet(data.id)**: useFrame 안 패턴 일관성으로
- *     getState() 사용. 셀렉터 구독은 매 프레임 X 인 이벤트 콜백에서 안전하지만
- *     코드 통일이 더 중요.
+ *   - **클릭 = store.selectBody(data.id)**: PlanetId 가 BodyId 합집합의 부분.
+ *     useFrame 안 패턴 일관성으로 getState() 사용.
  */
 export function Planet({ data, initialAngle, scale }: PlanetProps) {
   const groupRef = useRef<THREE.Group>(null)
@@ -173,7 +172,7 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
           }}
           onClick={(e) => {
             e.stopPropagation()
-            useSolarSystemStore.getState().selectPlanet(data.id)
+            useSolarSystemStore.getState().selectBody(data.id)
           }}
         >
           <sphereGeometry args={[radius, 32, 32]} />

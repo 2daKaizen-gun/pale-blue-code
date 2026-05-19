@@ -35,10 +35,13 @@ import type { PlanetId } from '../data/planets'
  *   초기값 -Infinity: 페이지 진입 시 *이미 visual 도달 상태* 의미 (progress = 1).
  *
  * ─── 선택 패러다임 (sub-2-5) ───────────────────────────
- *   selectedPlanetId 는 *이산적 의도* 만 store 에 보관. 카메라 위치/target 은
+ *   selectedBodyId 는 *이산적 의도* 만 store 에 보관. 카메라 위치/target 은
  *   매 프레임 갱신되는 *연속값* 이므로 store 에 두지 않는다 (리렌더 폭탄 방지).
- *   CameraController 가 selectedPlanetId 변화를 effect 로 감지해 자체 보간 시작 +
- *   매 프레임 useFrame 안에서 행성 현재 위치 추적.
+ *   CameraController 가 selectedBodyId 변화를 effect 로 감지해 자체 보간 시작 +
+ *   매 프레임 useFrame 안에서 천체 현재 위치 추적.
+ *
+ *   *Body* 추상: 카메라가 추적할 수 있는 모든 천체 = 8개 행성 + 태양 (+ 미래의 달).
+ *   PlanetId 에 'sun' 끼우는 건 코드 거짓말 — 'sun' 은 행성이 아님. 합집합으로 분리.
  *
  *   sub-2-4 의 *mode + changedAt 만 보관, progress 는 derived* 와 같은 결.
  *   다만 selection 은 *값이 즉시 바뀌고 카메라가 따라잡는* 구조라 changedAt 불필요:
@@ -56,6 +59,17 @@ export const DEFAULT_SPEED: SpeedOption = 1
 
 /** sub-2-4 보간 총 시간 (ms). easeInOutCubic 1.5초. */
 export const TRANSITION_DURATION_MS = 1500
+
+/**
+ * 카메라가 추적할 수 있는 천체의 합집합 (sub-2-5).
+ *
+ * 현재: 8개 행성 + 태양. 미래: 'moon' 추가 (sub-2-6 또는 그 이후).
+ *
+ * 이 타입을 *store 안* 에 둔 이유: BodyId 는 *상호작용 도메인* (카메라 추적 대상)
+ * 의 enum 이라, 데이터 값 (`data/planets.ts`, `data/sun.ts`) 의 합집합이 아닌
+ * *선택* 도메인의 합집합. 선택을 다루는 store 가 책임 가짐.
+ */
+export type BodyId = PlanetId | 'sun'
 
 interface SolarSystemStore {
   // ─── 시간 (sub-2-3) ──────────────────────────────
@@ -83,13 +97,13 @@ interface SolarSystemStore {
 
   // ─── 선택 (sub-2-5) ──────────────────────────────
   /**
-   * 현재 선택된 행성 ID (카메라 추적 대상). null = 자유 카메라.
+   * 현재 선택된 천체 ID (카메라 추적 대상). null = 자유 카메라.
    *
    * *cross-component* 공유 — CameraController, ControlPanel, 미래의 호버 라벨이
-   * 모두 구독. hover 상태는 Planet 컴포넌트 *로컬* useState (행성 자기 일).
+   * 모두 구독. hover 상태는 Planet/Sun 컴포넌트 *로컬* useState (천체 자기 일).
    * store 진입의 유일한 기준: *여러 컴포넌트가 알아야 하는가*.
    */
-  selectedPlanetId: PlanetId | null
+  selectedBodyId: BodyId | null
 
   // ─── 액션 ────────────────────────────────────────
   /** 활성 속도로 변경. 정지 중이었어도 자동 재생. */
@@ -98,21 +112,21 @@ interface SolarSystemStore {
   /** 정지 ↔ 재개 토글. */
   togglePause: () => void
 
-  /** 행성 선택. CameraController 가 보간 시작 (sub-2-5). */
-  selectPlanet: (id: PlanetId) => void
+  /** 천체 선택 (행성 또는 태양). CameraController 가 보간 시작 (sub-2-5). */
+  selectBody: (id: BodyId) => void
 
   /**
    * 선택 해제. CameraController 가 카메라 초기 위치로 보간 (sub-2-5).
    * [🎥 카메라 리셋] 버튼이 호출하는 *유일한 액션* — 카메라 자체는 store 에
    * 없고, selection 변화를 본 CameraController 가 알아서 복귀.
    */
-  deselectPlanet: () => void
+  deselectBody: () => void
 
   /**
    * 모든 상태 처음으로 — 시간 + 진실 모드 + 선택 셋 다.
    *   simulationDays=0, timeSpeed=1, prevSpeed=1,
    *   scaleMode='visual', rotationMode='visual', 양쪽 changedAt=-Infinity,
-   *   selectedPlanetId=null (카메라도 자동 복귀).
+   *   selectedBodyId=null (카메라도 자동 복귀).
    *
    * 호출 위치:
    *   - 사용자 [↺] 버튼 / R 키
@@ -156,7 +170,7 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
   rotationMode: 'visual',
   rotationModeChangedAt: -Infinity,
 
-  selectedPlanetId: null,
+  selectedBodyId: null,
 
   setTimeSpeed: (speed) => {
     set({ timeSpeed: speed, prevSpeed: speed })
@@ -171,12 +185,12 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
     }
   },
 
-  selectPlanet: (id) => {
-    set({ selectedPlanetId: id })
+  selectBody: (id) => {
+    set({ selectedBodyId: id })
   },
 
-  deselectPlanet: () => {
-    set({ selectedPlanetId: null })
+  deselectBody: () => {
+    set({ selectedBodyId: null })
   },
 
   reset: () => {
@@ -188,7 +202,7 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
       scaleModeChangedAt: -Infinity,
       rotationMode: 'visual',
       rotationModeChangedAt: -Infinity,
-      selectedPlanetId: null,
+      selectedBodyId: null,
     })
   },
 

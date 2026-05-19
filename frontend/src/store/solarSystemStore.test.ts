@@ -4,7 +4,8 @@
  * 신규 파일. sub-2-3 까지는 store 테스트가 없었지만, sub-2-4 의 *프리셋 동시성*
  * 은 *육안 검증이 어려운 정량 기준* (두 changedAt 일치) 이라 단위 테스트 가치.
  *
- * sub-2-5: selection 액션 추가 + reset 통합에 selectedPlanetId 포함 회귀 방어.
+ * sub-2-5: selection 액션 추가 + reset 통합에 selectedBodyId 포함 회귀 방어.
+ *   BodyId = PlanetId | 'sun' 합집합 — 행성/태양 둘 다 선택 가능 검증.
  *
  * 토글/선택 동작 자체는 컴포넌트 통합 검증으로 충분 — 여기선 *동시성 + 패러다임 자체* 만.
  */
@@ -75,26 +76,32 @@ describe('toggleAllTruth — 동시성 보장', () => {
   })
 })
 
-describe('selectPlanet / deselectPlanet (sub-2-5)', () => {
+describe('selectBody / deselectBody (sub-2-5)', () => {
   beforeEach(() => {
-    useSolarSystemStore.setState({ selectedPlanetId: null })
+    useSolarSystemStore.setState({ selectedBodyId: null })
   })
 
-  it('selectPlanet 호출 시 ID 저장', () => {
-    useSolarSystemStore.getState().selectPlanet('earth')
-    expect(useSolarSystemStore.getState().selectedPlanetId).toBe('earth')
+  it('selectBody 행성 호출 시 ID 저장', () => {
+    useSolarSystemStore.getState().selectBody('earth')
+    expect(useSolarSystemStore.getState().selectedBodyId).toBe('earth')
   })
 
-  it('selectPlanet 중복 호출 시 목표만 갱신 (마지막 win)', () => {
-    useSolarSystemStore.getState().selectPlanet('earth')
-    useSolarSystemStore.getState().selectPlanet('mars')
-    expect(useSolarSystemStore.getState().selectedPlanetId).toBe('mars')
+  it('selectBody 태양 호출 시 ID 저장 (BodyId 합집합 검증)', () => {
+    useSolarSystemStore.getState().selectBody('sun')
+    expect(useSolarSystemStore.getState().selectedBodyId).toBe('sun')
   })
 
-  it('deselectPlanet 호출 시 null', () => {
-    useSolarSystemStore.setState({ selectedPlanetId: 'jupiter' })
-    useSolarSystemStore.getState().deselectPlanet()
-    expect(useSolarSystemStore.getState().selectedPlanetId).toBeNull()
+  it('selectBody 중복 호출 시 목표만 갱신 (마지막 win)', () => {
+    useSolarSystemStore.getState().selectBody('earth')
+    useSolarSystemStore.getState().selectBody('sun')
+    useSolarSystemStore.getState().selectBody('mars')
+    expect(useSolarSystemStore.getState().selectedBodyId).toBe('mars')
+  })
+
+  it('deselectBody 호출 시 null', () => {
+    useSolarSystemStore.setState({ selectedBodyId: 'jupiter' })
+    useSolarSystemStore.getState().deselectBody()
+    expect(useSolarSystemStore.getState().selectedBodyId).toBeNull()
   })
 })
 
@@ -108,7 +115,7 @@ describe('reset — 모든 것 처음으로 (시간 + 모드 + 선택)', () => {
       scaleModeChangedAt: 12345,
       rotationMode: 'real',
       rotationModeChangedAt: 67890,
-      selectedPlanetId: 'jupiter',
+      selectedBodyId: 'sun',
     })
     useSolarSystemStore.getState().reset()
     const s = useSolarSystemStore.getState()
@@ -119,6 +126,6 @@ describe('reset — 모든 것 처음으로 (시간 + 모드 + 선택)', () => {
     expect(s.rotationMode).toBe('visual')
     expect(s.scaleModeChangedAt).toBe(-Infinity)
     expect(s.rotationModeChangedAt).toBe(-Infinity)
-    expect(s.selectedPlanetId).toBeNull()
+    expect(s.selectedBodyId).toBeNull()
   })
 })

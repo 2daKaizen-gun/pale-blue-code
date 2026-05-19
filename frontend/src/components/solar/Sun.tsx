@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
@@ -48,12 +48,32 @@ type SunProps = {
  *
  *   실제 태양은 *위도마다 다른 차등 자전* (적도 25일, 극지 35일) 이지만 시각화는
  *   단일 속도. 가스 덩어리라 적도가 가장 빠름.
+ *
+ * ─── sub-phase 2-5 [Light 2] 변경 (인터랙션) ─────────
+ *   Planet 과 같은 패턴: pointer 핸들러 3개 + isHovered 로컬 state + cursor effect.
+ *   클릭 시 `selectBody('sun')` — BodyId 합집합의 'sun' 변형 (PlanetId 아님).
+ *
+ *   특이점:
+ *     - meshBasicMaterial 이라 emissive 호버 피드백 없음 (조명 무시 → emissive 도 의미 X).
+ *       Light 3 의 라벨이 *유일한* 호버 시각 피드백. cursor 와 함께.
+ *     - <pointLight> 자식은 *mesh 의 자식이 아니라 group 의 자식* — pointer 이벤트
+ *       대상은 sphere mesh 만. 조명에 핸들러 안 붙음.
  */
 export function Sun({ scale }: SunProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   const texture = useTexture(SUN.texture)
+  const [isHovered, setIsHovered] = useState(false)
 
   const radius = computeVisualRadius(SUN.realRadius_km, scale)
+
+  // Planet 과 동일 패턴 — Sun.tsx 주석 참조
+  useEffect(() => {
+    if (!isHovered) return
+    document.body.style.cursor = 'pointer'
+    return () => {
+      document.body.style.cursor = 'auto'
+    }
+  }, [isHovered])
 
   useFrame(() => {
     if (!meshRef.current) return
@@ -83,7 +103,21 @@ export function Sun({ scale }: SunProps) {
 
   return (
     <group position={[0, 0, 0]}>
-      <mesh ref={meshRef}>
+      <mesh
+        ref={meshRef}
+        onPointerOver={(e) => {
+          e.stopPropagation()
+          setIsHovered(true)
+        }}
+        onPointerOut={(e) => {
+          e.stopPropagation()
+          setIsHovered(false)
+        }}
+        onClick={(e) => {
+          e.stopPropagation()
+          useSolarSystemStore.getState().selectBody('sun')
+        }}
+      >
         <sphereGeometry args={[radius, 48, 48]} />
         <meshBasicMaterial map={texture} />
       </mesh>
