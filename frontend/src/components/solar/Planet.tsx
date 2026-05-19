@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
@@ -58,11 +58,28 @@ type PlanetProps = {
  *   Ring 에는 *정적 parent 객체* (data 의 두 필드) 만 전달. Ring 이 자체로
  *   store 구독해 자전 보간 — 매 프레임 prop 변경 0, re-render 0.
  *   `radius` 와 AXIAL_TILT_RAD 는 정적 유지 — radius 토글은 sub-2-4 범위 외.
+ *
+ * ─── sub-phase 2-5 [Light 2] 변경 (인터랙션) ─────────
+ *   pointer 핸들러 3개 (over/out/click) 를 mesh 에 부착.
+ *
+ *   - **isHovered 는 로컬 state**: 호버는 *행성 자기 일*. cross-component
+ *     공유 필요 없음. store 진입의 유일한 기준 (*여러 컴포넌트가 알아야 하는가*)
+ *     에 안 맞음. Light 3 의 호버 라벨도 같은 컴포넌트 안이므로 prop 불필요.
+ *   - **e.stopPropagation()**: R3F raycaster 는 가장 가까운 mesh 부터 fire,
+ *     stopPropagation 으로 뒤 mesh 차단. 작은 행성 클릭 시 뒤 큰 행성도 같이
+ *     hit 되는 사고 방지.
+ *   - **cursor 변경은 useEffect 단일 책임**: 핸들러에서 직접 DOM 만지면
+ *     컴포넌트 unmount / 페이지 이동 시 cursor stuck 위험. useEffect 의
+ *     cleanup 으로 *isHovered 변화 / 컴포넌트 unmount* 둘 다 안전 처리.
+ *   - **클릭 = store.selectPlanet(data.id)**: useFrame 안 패턴 일관성으로
+ *     getState() 사용. 셀렉터 구독은 매 프레임 X 인 이벤트 콜백에서 안전하지만
+ *     코드 통일이 더 중요.
  */
 export function Planet({ data, initialAngle, scale }: PlanetProps) {
   const groupRef = useRef<THREE.Group>(null)
   const meshRef = useRef<THREE.Mesh>(null)
   const texture = useTexture(data.texture)
+  const [isHovered, setIsHovered] = useState(false)
 
   const radius = computeVisualRadius(data.realRadius_km, scale)
   const AXIAL_TILT_RAD = (data.axialTilt_deg * Math.PI) / 180
@@ -72,6 +89,16 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
     rotationPeriod_hours: data.rotationPeriod_hours,
     axialTilt_deg: data.axialTilt_deg,
   }
+
+  // cursor 변경의 단일 책임. isHovered=true 진입 시 pointer, 떠날 때 (false 변화
+  // 또는 unmount) cleanup 으로 auto 복원. 페이지 이동 시 stuck 자동 방어.
+  useEffect(() => {
+    if (!isHovered) return
+    document.body.style.cursor = 'pointer'
+    return () => {
+      document.body.style.cursor = 'auto'
+    }
+  }, [isHovered])
 
   useFrame(() => {
     if (!groupRef.current || !meshRef.current) return
@@ -134,7 +161,21 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
   return (
     <group ref={groupRef}>
       <group rotation={[0, 0, AXIAL_TILT_RAD]}>
-        <mesh ref={meshRef}>
+        <mesh
+          ref={meshRef}
+          onPointerOver={(e) => {
+            e.stopPropagation()
+            setIsHovered(true)
+          }}
+          onPointerOut={(e) => {
+            e.stopPropagation()
+            setIsHovered(false)
+          }}
+          onClick={(e) => {
+            e.stopPropagation()
+            useSolarSystemStore.getState().selectPlanet(data.id)
+          }}
+        >
           <sphereGeometry args={[radius, 32, 32]} />
           <meshStandardMaterial map={texture} />
         </mesh>
