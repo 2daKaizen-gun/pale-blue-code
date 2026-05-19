@@ -55,14 +55,14 @@ type SunProps = {
  *   클릭 시 `selectBody('sun')` — BodyId 합집합의 'sun' 변형 (PlanetId 아님).
  *
  *   특이점:
- *     - meshBasicMaterial 이라 emissive 호버 피드백 없음 (조명 무시 → emissive 도 의미 X).
+ *     - meshBasicMaterial 이라 emissive 호버 피드백 없음.
  *     - <pointLight> 자식은 *mesh 의 자식이 아니라 group 의 자식* — pointer 이벤트
- *       대상은 sphere mesh 만. 조명에 핸들러 안 붙음.
+ *       대상은 sphere mesh 만.
  *
- * ─── sub-phase 2-5 [Light 3] 변경 (호버 라벨) ─────────
+ * ─── sub-phase 2-5 [Light 3/4] 변경 (호버 라벨) ───────
  *   BodyLabel 을 group 의 자식으로 추가. conditional render (isHovered).
- *   이름은 `SUN.name.en` (영어).
- *   태양은 자전축 group 없음 — 외부 group 의 직접 자식.
+ *   [Light 3]: 영어 이름 (`SUN.name.en`)
+ *   [Light 4]: 영어 한 줄 시그니처 (`SUN.taglineEn`) 도 함께 전달
  */
 export function Sun({ scale }: SunProps) {
   const meshRef = useRef<THREE.Mesh>(null)
@@ -132,7 +132,13 @@ export function Sun({ scale }: SunProps) {
         distance={0}
         decay={0}
       />
-      {isHovered && <BodyLabel name={SUN.name.en} radius={radius} />}
+      {isHovered && (
+        <BodyLabel
+          name={SUN.name.en}
+          tagline={SUN.taglineEn}
+          radius={radius}
+        />
+      )}
     </group>
   )
 }

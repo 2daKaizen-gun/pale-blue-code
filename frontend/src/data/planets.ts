@@ -39,6 +39,13 @@ export type PlanetData = {
   id: PlanetId
   name: { ko: string; en: string }
 
+  /**
+   * 호버 라벨용 영어 한 줄 시그니처 (sub-2-5 [Light 4]).
+   * 8 단어 이내, *시적 + 사실 균형*. description 의 압축이 아니라 *별개 명함*.
+   * 일본 커리어 + 글로벌 톤 일관성 → 영어 전용 (`taglineEn` 명명으로 의도 명시).
+   */
+  taglineEn: string
+
   realRadius_km: number
   realDistance_km: number
   orbitalPeriod_days: number
@@ -55,6 +62,7 @@ export const PLANETS: readonly PlanetData[] = [
   {
     id: 'mercury',
     name: { ko: '수성', en: 'Mercury' },
+    taglineEn: 'Closest to the sun, scorched and silent',
     realRadius_km: 2_439.7,
     realDistance_km: 57_900_000,
     orbitalPeriod_days: 88,
@@ -67,6 +75,7 @@ export const PLANETS: readonly PlanetData[] = [
   {
     id: 'venus',
     name: { ko: '금성', en: 'Venus' },
+    taglineEn: 'Hottest world, hidden by sulfuric clouds',
     realRadius_km: 6_051.8,
     realDistance_km: 108_200_000,
     orbitalPeriod_days: 224.7,
@@ -79,6 +88,7 @@ export const PLANETS: readonly PlanetData[] = [
   {
     id: 'earth',
     name: { ko: '지구', en: 'Earth' },
+    taglineEn: 'The pale blue dot — our only home',
     realRadius_km: 6_371,
     realDistance_km: 149_600_000,
     orbitalPeriod_days: 365.25,
@@ -91,6 +101,7 @@ export const PLANETS: readonly PlanetData[] = [
   {
     id: 'mars',
     name: { ko: '화성', en: 'Mars' },
+    taglineEn: 'The red planet, painted by iron rust',
     realRadius_km: 3_389.5,
     realDistance_km: 227_900_000,
     orbitalPeriod_days: 687,
@@ -103,6 +114,7 @@ export const PLANETS: readonly PlanetData[] = [
   {
     id: 'jupiter',
     name: { ko: '목성', en: 'Jupiter' },
+    taglineEn: 'Bigger than all the rest combined',
     realRadius_km: 69_911,
     realDistance_km: 778_600_000,
     orbitalPeriod_days: 4_331,
@@ -115,6 +127,7 @@ export const PLANETS: readonly PlanetData[] = [
   {
     id: 'saturn',
     name: { ko: '토성', en: 'Saturn' },
+    taglineEn: 'Ringed giant, lighter than water',
     realRadius_km: 58_232,
     realDistance_km: 1_433_500_000,
     orbitalPeriod_days: 10_747,
@@ -133,6 +146,7 @@ export const PLANETS: readonly PlanetData[] = [
   {
     id: 'uranus',
     name: { ko: '천왕성', en: 'Uranus' },
+    taglineEn: 'Tilted sideways, rolling through orbit',
     realRadius_km: 25_362,
     realDistance_km: 2_872_500_000,
     orbitalPeriod_days: 30_589,
@@ -152,6 +166,7 @@ export const PLANETS: readonly PlanetData[] = [
   {
     id: 'neptune',
     name: { ko: '해왕성', en: 'Neptune' },
+    taglineEn: 'Predicted by math before ever seen',
     realRadius_km: 24_622,
     realDistance_km: 4_495_100_000,
     orbitalPeriod_days: 59_800,

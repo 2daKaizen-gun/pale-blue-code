@@ -15,6 +15,12 @@
 export type SunData = {
   name: { ko: string; en: string }
 
+  /**
+   * 호버 라벨용 영어 한 줄 시그니처 (sub-2-5 [Light 4]).
+   * PlanetData.taglineEn 과 동일 결.
+   */
+  taglineEn: string
+
   // 실제 값
   realRadius_km: number             // 지구의 약 109배 — 시각 압축 후에도 가장 큰 천체
   rotationPeriod_hours: number      // 적도 기준 (위도마다 다른 *차등 회전*)
@@ -31,6 +37,7 @@ export type SunData = {
 
 export const SUN: SunData = {
   name: { ko: '태양', en: 'Sun' },
+  taglineEn: 'The center of everything',
   realRadius_km: 695_700,
   rotationPeriod_hours: 609.12,
   surfaceTemperature_K: 5778,
