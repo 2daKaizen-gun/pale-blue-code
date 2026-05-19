@@ -1,11 +1,12 @@
 import { create } from 'zustand'
 import type { ScaleMode } from '../lib/scale'
 import type { RotationMode } from '../lib/time'
+import type { PlanetId } from '../data/planets'
 
 /**
  * Pale Blue Code — Phase 2: Solar System
  *
- * 시간 + 진실 토글 store. Canvas 안(useFrame) 과 밖(ControlPanel) 의 공유 메모리.
+ * 시간 + 진실 토글 + 선택 store. Canvas 안(useFrame) 과 밖(ControlPanel) 의 공유 메모리.
  *
  * ─── 시간 매핑 ───────────────────────────────────────
  *   1 real second × timeSpeed = N simulation days
@@ -32,6 +33,17 @@ import type { RotationMode } from '../lib/time'
  *     - 프리셋의 *동시성* 확보: 두 changedAt 에 동일 timestamp → 양쪽 progress 동기
  *
  *   초기값 -Infinity: 페이지 진입 시 *이미 visual 도달 상태* 의미 (progress = 1).
+ *
+ * ─── 선택 패러다임 (sub-2-5) ───────────────────────────
+ *   selectedPlanetId 는 *이산적 의도* 만 store 에 보관. 카메라 위치/target 은
+ *   매 프레임 갱신되는 *연속값* 이므로 store 에 두지 않는다 (리렌더 폭탄 방지).
+ *   CameraController 가 selectedPlanetId 변화를 effect 로 감지해 자체 보간 시작 +
+ *   매 프레임 useFrame 안에서 행성 현재 위치 추적.
+ *
+ *   sub-2-4 의 *mode + changedAt 만 보관, progress 는 derived* 와 같은 결.
+ *   다만 selection 은 *값이 즉시 바뀌고 카메라가 따라잡는* 구조라 changedAt 불필요:
+ *   토글은 *값 자체가 점진적으로 변하는 (시각↔실제)* 것이라 changedAt 가 store 책임,
+ *   selection 은 *목표 객체만 store, 도달 과정 timestamp 는 컴포넌트 책임*.
  *
  * ─── useFrame 안 사용 패턴 ─────────────────────────
  *   useFrame 안에서는 *반드시* `useSolarSystemStore.getState()` 호출.
@@ -69,6 +81,16 @@ interface SolarSystemStore {
   /** rotationMode 가 마지막으로 변경된 시각 (performance.now() ms). */
   rotationModeChangedAt: number
 
+  // ─── 선택 (sub-2-5) ──────────────────────────────
+  /**
+   * 현재 선택된 행성 ID (카메라 추적 대상). null = 자유 카메라.
+   *
+   * *cross-component* 공유 — CameraController, ControlPanel, 미래의 호버 라벨이
+   * 모두 구독. hover 상태는 Planet 컴포넌트 *로컬* useState (행성 자기 일).
+   * store 진입의 유일한 기준: *여러 컴포넌트가 알아야 하는가*.
+   */
+  selectedPlanetId: PlanetId | null
+
   // ─── 액션 ────────────────────────────────────────
   /** 활성 속도로 변경. 정지 중이었어도 자동 재생. */
   setTimeSpeed: (speed: SpeedOption) => void
@@ -76,15 +98,28 @@ interface SolarSystemStore {
   /** 정지 ↔ 재개 토글. */
   togglePause: () => void
 
+  /** 행성 선택. CameraController 가 보간 시작 (sub-2-5). */
+  selectPlanet: (id: PlanetId) => void
+
   /**
-   * 모든 상태 처음으로 — 시간 + 진실 모드 둘 다.
+   * 선택 해제. CameraController 가 카메라 초기 위치로 보간 (sub-2-5).
+   * [🎥 카메라 리셋] 버튼이 호출하는 *유일한 액션* — 카메라 자체는 store 에
+   * 없고, selection 변화를 본 CameraController 가 알아서 복귀.
+   */
+  deselectPlanet: () => void
+
+  /**
+   * 모든 상태 처음으로 — 시간 + 진실 모드 + 선택 셋 다.
    *   simulationDays=0, timeSpeed=1, prevSpeed=1,
-   *   scaleMode='visual', rotationMode='visual', 양쪽 changedAt=-Infinity.
+   *   scaleMode='visual', rotationMode='visual', 양쪽 changedAt=-Infinity,
+   *   selectedPlanetId=null (카메라도 자동 복귀).
    *
    * 호출 위치:
    *   - 사용자 [↺] 버튼 / R 키
    *   - ControlPanel mount 시 useEffect (F5 / HMR 후 깨끗한 시작점)
-   * 카메라 리셋은 sub-2-5 별도.
+   * sub-2-4 의 *통합 reset* 결 + sub-2-5 의 *카메라 리셋 분리* 결을 함께 지킴:
+   *   - selection 해제는 통합 reset 에 포함 (모든 것 처음)
+   *   - 그래도 [🎥] 버튼은 별도 — selection 만 해제 (시간/모드 유지) 케이스 분리
    */
   reset: () => void
 
@@ -121,6 +156,8 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
   rotationMode: 'visual',
   rotationModeChangedAt: -Infinity,
 
+  selectedPlanetId: null,
+
   setTimeSpeed: (speed) => {
     set({ timeSpeed: speed, prevSpeed: speed })
   },
@@ -134,6 +171,14 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
     }
   },
 
+  selectPlanet: (id) => {
+    set({ selectedPlanetId: id })
+  },
+
+  deselectPlanet: () => {
+    set({ selectedPlanetId: null })
+  },
+
   reset: () => {
     set({
       simulationDays: 0,
@@ -143,6 +188,7 @@ export const useSolarSystemStore = create<SolarSystemStore>((set, get) => ({
       scaleModeChangedAt: -Infinity,
       rotationMode: 'visual',
       rotationModeChangedAt: -Infinity,
+      selectedPlanetId: null,
     })
   },
 

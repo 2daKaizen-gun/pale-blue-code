@@ -4,7 +4,9 @@
  * 신규 파일. sub-2-3 까지는 store 테스트가 없었지만, sub-2-4 의 *프리셋 동시성*
  * 은 *육안 검증이 어려운 정량 기준* (두 changedAt 일치) 이라 단위 테스트 가치.
  *
- * 토글 동작 자체는 컴포넌트 통합 검증으로 충분 — 여기선 *동시성 + 패러다임 자체* 만.
+ * sub-2-5: selection 액션 추가 + reset 통합에 selectedPlanetId 포함 회귀 방어.
+ *
+ * 토글/선택 동작 자체는 컴포넌트 통합 검증으로 충분 — 여기선 *동시성 + 패러다임 자체* 만.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
@@ -73,8 +75,31 @@ describe('toggleAllTruth — 동시성 보장', () => {
   })
 })
 
-describe('reset — 모든 것 처음으로 (시간 + 모드)', () => {
-  it('진실 모드 + 큰 simulationDays + 큰 speed → 모두 초기값', () => {
+describe('selectPlanet / deselectPlanet (sub-2-5)', () => {
+  beforeEach(() => {
+    useSolarSystemStore.setState({ selectedPlanetId: null })
+  })
+
+  it('selectPlanet 호출 시 ID 저장', () => {
+    useSolarSystemStore.getState().selectPlanet('earth')
+    expect(useSolarSystemStore.getState().selectedPlanetId).toBe('earth')
+  })
+
+  it('selectPlanet 중복 호출 시 목표만 갱신 (마지막 win)', () => {
+    useSolarSystemStore.getState().selectPlanet('earth')
+    useSolarSystemStore.getState().selectPlanet('mars')
+    expect(useSolarSystemStore.getState().selectedPlanetId).toBe('mars')
+  })
+
+  it('deselectPlanet 호출 시 null', () => {
+    useSolarSystemStore.setState({ selectedPlanetId: 'jupiter' })
+    useSolarSystemStore.getState().deselectPlanet()
+    expect(useSolarSystemStore.getState().selectedPlanetId).toBeNull()
+  })
+})
+
+describe('reset — 모든 것 처음으로 (시간 + 모드 + 선택)', () => {
+  it('진실 모드 + 큰 simulationDays + 큰 speed + 선택 → 모두 초기값', () => {
     useSolarSystemStore.setState({
       simulationDays: 9999,
       timeSpeed: 10_000,
@@ -83,6 +108,7 @@ describe('reset — 모든 것 처음으로 (시간 + 모드)', () => {
       scaleModeChangedAt: 12345,
       rotationMode: 'real',
       rotationModeChangedAt: 67890,
+      selectedPlanetId: 'jupiter',
     })
     useSolarSystemStore.getState().reset()
     const s = useSolarSystemStore.getState()
@@ -93,5 +119,6 @@ describe('reset — 모든 것 처음으로 (시간 + 모드)', () => {
     expect(s.rotationMode).toBe('visual')
     expect(s.scaleModeChangedAt).toBe(-Infinity)
     expect(s.rotationModeChangedAt).toBe(-Infinity)
+    expect(s.selectedPlanetId).toBeNull()
   })
 })
