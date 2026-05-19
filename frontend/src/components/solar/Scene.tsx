@@ -5,6 +5,7 @@ import { Leva, useControls } from 'leva'
 import { Planet } from './Planet'
 import { Sun } from './Sun'
 import { TimeAdvancer } from './TimeAdvancer'
+import { CameraController } from './CameraController'
 import { OrbitPath } from './OrbitPath'
 import { Starfield } from './Starfield'
 import { PLANETS } from '../../data/planets'
@@ -34,8 +35,12 @@ const DEFAULT_AMBIENT = 0.3
  *   4. ControlPanel (사용자 도구) 은 sub-2-3 의 [Light 4-7] 에서 SolarPage 에 추가됨
  *
  * ─── sub-phase 2-3 [Light 8] 변경 ──────────────────
- *   <Starfield /> 추가 — sub-2-6 에서 당겨옴. drei <Stars> 한 줄이라 sub-phase 작업으로
- *   끄집어내는 게 오히려 과한 격식.
+ *   <Starfield /> 추가 — sub-2-6 에서 당겨옴.
+ *
+ * ─── sub-phase 2-5 [Light 5] 변경 (카메라 추적) ─────
+ *   <CameraController /> 추가 — TimeAdvancer 다음, 다른 천체 useFrame 보다 *먼저*.
+ *   simulationDays 가 최신 갱신된 뒤 카메라가 *그 시각의 행성 위치* 로 추적해야
+ *   Planet 의 useFrame 과 *같은 위치* 도출. 위치 어긋남 방지.
  */
 export function Scene() {
   const tunedScale = useControls('Scale', {
@@ -111,6 +116,10 @@ export function Scene() {
       >
         {/* 인프라 — 다른 useFrame 보다 먼저 실행되어 simulationDays 갱신 */}
         <TimeAdvancer />
+
+        {/* 카메라 추적 — TimeAdvancer 직후, Planet/Sun useFrame *전*.
+            행성 위치와 카메라가 *같은 시각의 simulationDays* 로 계산되어야 어긋남 X. */}
+        <CameraController scale={scale} />
 
         {/* 배경 — sphere 형태 별 분포. 카메라 어디 가도 모든 방향에 별 */}
         <Starfield />
