@@ -19,10 +19,7 @@ type BodyLabelProps = {
  *
  * BodyLabel — 천체 호버 시 표시되는 영어 이름 라벨 (sub-2-5 [Light 3]).
  *
- * Planet/Sun 양쪽에서 재사용. 컴포넌트 분리의 이유:
- *   - 행성/태양/미래의 달이 *같은 명함 모양* 공유
- *   - 변경 시 한 곳에서 (호버 라벨 디자인 정제, 한 줄 사실 추가 등)
- *   - *천체의 짧은 명함* 이라는 단일 책임
+ * Planet/Sun 양쪽에서 재사용. *천체의 짧은 명함* 이라는 단일 책임.
  *
  * ─── 부모 컴포넌트의 부착 위치 ────────────────────────
  *   Planet/Sun 의 *외부 group* 자식 (= 공전 위치만 적용된 group).
@@ -33,15 +30,22 @@ type BodyLabelProps = {
  * ─── drei `<Html>` 동작 ──────────────────────────────
  *   - `center`: transform-origin 을 중앙으로 → position 의 위치가 라벨 중앙
  *   - `transform={false}` (기본): DOM overlay 모드 — *카메라 거리 무관하게
- *     항상 같은 크기*. 호버 라벨의 *읽기 좋음* 우선. 3D 평면 스케일 (transform=true)
- *     이면 멀어질수록 작아져 못 읽음.
- *   - `position={[0, radius * 1.5, 0]}`: 천체 정 위. 가려짐 회피의 가장 단순한 형태.
- *   - `style.pointerEvents='none'`: 라벨 자체는 클릭 안 됨 → 천체 클릭이 자연스럽게.
+ *     항상 같은 크기*. 호버 라벨의 *읽기 좋음* 우선.
+ *   - `position={[0, radius * 1.5, 0]}`: 천체 정 위. 가려짐 회피.
+ *   - `style.pointerEvents='none'`: 라벨이 클릭 막지 않음 → 천체 클릭 자연.
  *
- * ─── 미래 작업 ────────────────────────────────────────
- *   - Light 4: 한 줄 영어 사실 추가 (`description` 의 영어 버전 데이터 필드)
- *   - Light 4: Tailwind 클래스 → 디자인 토큰 (`cosmos-bg`, `cosmos-nebula` 등)
- *   - 추후: `occlude` prop 으로 라벨이 *행성 뒤* 일 때 자동 숨김 (필요 시)
+ * ─── 스타일: 박스 없이 글자 + text-shadow 글로우 ──────
+ *   초기 골격에서는 어두운 박스를 깔았지만, *우주 배경 (별, 행성 텍스처) 가림*
+ *   이 문제. 박스를 빼고 *글자 자체에 검은 글로우 (text-shadow)* 로 가독성 확보.
+ *
+ *   결정의 결:
+ *     - 박스 제거 = *별 한 점도 가리지 않음*. Phase 2 의 영혼인 *살아있는 우주*
+ *       에 라벨이 *덧붙는* 느낌이 아니라 *깃드는* 느낌.
+ *     - text-shadow 다층 = 어떤 배경 위에서도 글자가 떠 보임:
+ *         - 밝은 배경 (태양 표면) → 검은 외곽이 글자 분리
+ *         - 어두운 배경 (우주 빈 공간) → 약간의 글로우가 글자 강조
+ *     - inline style 사용 = Tailwind v3 기본에 text-shadow 유틸 없음. Tailwind v4
+ *       마이그레이션 시점에 `text-shadow-md` 같은 유틸로 옮길 수 있음.
  */
 export function BodyLabel({ name, radius }: BodyLabelProps) {
   return (
@@ -53,7 +57,17 @@ export function BodyLabel({ name, radius }: BodyLabelProps) {
         userSelect: 'none',
       }}
     >
-      <div className="bg-black/70 text-white px-3 py-1 rounded-md whitespace-nowrap text-sm font-medium border border-white/20 backdrop-blur-sm">
+      <div
+        style={{
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: 600,
+          letterSpacing: '0.03em',
+          whiteSpace: 'nowrap',
+          textShadow:
+            '0 0 4px rgba(0,0,0,0.95), 0 0 10px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.9)',
+        }}
+      >
         {name}
       </div>
     </Html>
