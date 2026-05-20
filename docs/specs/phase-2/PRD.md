@@ -21,6 +21,10 @@
 분리* 는 sub-2-4 의 *reset 통합* 과 다른 결 — 카메라는 *탐험 도구* 의
 성격이라 시간/모드와 *의도 단위가 다름*. 두 결정의 *일관된 모순 X,
 의식적 차이*.
+>
+> *2026-05-20 갱신*: sub-2-5 Code/Test/Check 완료. §4 5번 모든 요소 도입:
+호버=이름, 선택=이름+tagline, 카메라 추적, [🎥] home 보간, [↺] 통합에 카메라 포함,
+사용자 OrbitControls = yieldCameraControl. 회고: `docs/checks/phase-2/sub-2-5.md`.
 
 ---
 

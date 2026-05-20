@@ -42,6 +42,12 @@
 §2 아키텍처 도식의 `[↺ 통합 리셋] [카메라 리셋]` 분리 베이스라인 그대로
 유지 (수정 없음). §7 sub-2-5 한 줄은 *구현 완료 후* 구체화 (다른 sub-phase
 와 동일 패턴 — Plan 단계엔 제목만, 종료 시 결정 결과 반영).
+>
+> **2026-05-20 갱신 (9차)**: sub-2-5 종료. §1 결정 표의 3행 모두 구현 완료.
+신규 자산: `data/camera.ts` (CAMERA_HOME_POSITION/_TARGET 상수, 단일 source),
+`components/solar/CameraController.tsx`, `components/solar/BodyLabel.tsx`.
+store 신규 액션: `selectBody`, `resetCameraView`, `yieldCameraControl` +
+신규 필드 `selectedBodyId`, `cameraResetRequestedAt`.
 
 ---
 
