@@ -48,7 +48,6 @@
 `components/solar/CameraController.tsx`, `components/solar/BodyLabel.tsx`.
 store 신규 액션: `selectBody`, `resetCameraView`, `yieldCameraControl` +
 신규 필드 `selectedBodyId`, `cameraResetRequestedAt`.
-
 ---
 
 ## 1. 핵심 기술 결정
