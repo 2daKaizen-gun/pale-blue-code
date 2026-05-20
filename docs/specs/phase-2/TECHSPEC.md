@@ -48,6 +48,12 @@
 `components/solar/CameraController.tsx`, `components/solar/BodyLabel.tsx`.
 store 신규 액션: `selectBody`, `resetCameraView`, `yieldCameraControl` +
 신규 필드 `selectedBodyId`, `cameraResetRequestedAt`.
+>
+> **2026-05-21 갱신 (10차)**: sub-2-6 Plan 진입 전 *문서 ↔ 코드 동기화* (§9 Context Rot 점검). 실제 `store/solarSystemStore.ts` + `data/planets.ts` 와 대조해 §2 / §3 / §7 의 어긋남 정정:
+>   1. **§2 + §3 store**: `selectedPlanet: PlanetId | null` → `selectedBodyId: BodyId | null`, `cameraTarget` → `cameraResetRequestedAt`. `BodyId` 타입 + `selectBody` / `resetCameraView` / `yieldCameraControl` 액션 + `prevSpeed` 반영. (9차 헤더엔 적혔으나 §3 본문 코드 블록은 *sub-2-4 스냅샷* 그대로였음.) 블록 라벨 *sub-2-4 → sub-2-5 완료 시점*.
+>   2. **§3 PlanetData**: `taglineEn` 필드 추가 — sub-2-5 [Light 4] 에서 실제 코드에 들어갔으나 문서 누락.
+>   3. **§3 moon / MoonData**: 현재 코드엔 *둘 다 없음*. 4차 갱신의 "MoonData 시각 필드 갱신은 2-6" 표현이 *MoonData 가 이미 존재* 하는 듯한 오해를 줌 → *moon 필드 + MoonData 타입 전체가 sub-2-6 신규 추가* 로 정정. 구조 확정은 2-6 Plan.
+>   4. **§7**: sub-2-5 `⬜ → ✅` (이미 종료). sub-2-6 한 줄에 *키보드 단축키* 명시 — ControlPanel.tsx 가 D/T/A/C 를 *"sub-2-6 보류"* 로 이미 예약. 범위 = 달 + 키보드 + UI 정제.
 ---
 
 ## 1. 핵심 기술 결정
@@ -117,12 +123,13 @@ store 신규 액션: `selectBody`, `resetCameraView`, `yieldCameraControl` +
               │  Zustand Store       │
               │  - simulationDays    │
               │  - timeSpeed         │
+              │  - prevSpeed         │
               │  - scaleMode         │  ← sub-2-4
               │  - scaleModeChangedAt│  ← sub-2-4 (7차: progress 대신)
               │  - rotationMode      │
               │  - rotationModeChangedAt│
-              │  - selectedPlanet    │
-              │  - cameraTarget      │
+              │  - selectedBodyId    │  ← sub-2-5 (selectedPlanet 대체)
+              │  - cameraResetRequestedAt│ ← sub-2-5 (cameraTarget 아님: trigger ts)
               └──────────────────────┘
                        ↕
               ┌──────────────────┐
@@ -177,6 +184,9 @@ export type PlanetData = {
   id: PlanetId
   name: { ko: string; en: string }
 
+  // 호버/선택 라벨용 영어 한 줄 (sub-2-5 [Light 4]) — description 압축 아닌 별개 명함
+  taglineEn: string
+
   // 실제 값 (NASA 단위 그대로)
   realRadius_km: number
   realDistance_km: number       // 평균 궤도 반경 (태양 중심)
@@ -191,24 +201,26 @@ export type PlanetData = {
   // 고리 (토성/천왕성)
   ring?: RingData
 
-  // 위성 (지구만 보유, sub-phase 2-6 에서 시각 필드 갱신 예정)
-  moon?: MoonData
+  // ⚠️ moon?: MoonData — sub-2-6 신규 추가 예정 (현재 코드엔 없음). 구조는 2-6 Plan 확정.
 }
 
-export type MoonData = {
-  realRadius_km: number
-  realDistance_km: number       // 모행성 중심부터의 거리
-  orbitalPeriod_days: number
-  texture: string
-  // 시각 필드 (visualRadius/visualDistance) 는 sub-phase 2-6 에서 결정.
-}
+// MoonData 타입은 sub-2-6 에서 신규 정의. 아래는 *초안* (Plan 에서 확정):
+//   export type MoonData = {
+//     realRadius_km: number
+//     realDistance_km: number      // 지구(모행성) 중심부터 — *태양 기준 아님*
+//     orbitalPeriod_days: number
+//     rotationPeriod_hours: number // 조석 고정: 공전 주기와 동일
+//     texture: string
+//   }
+//   시각 거리는 *부모(지구) 상대 스케일* — lib/scale 의 태양(ONE_AU) 기준 함수 그대로는 부적합.
 ```
 
-### Store 인터페이스 (sub-2-4 완료 시점)
+### Store 인터페이스 (sub-2-5 완료 시점)
 
 ```typescript
 type ScaleMode = 'visual' | 'real'         // 거리 토글 — sub-2-4
 type RotationMode = 'visual' | 'real'      // 자전 토글 — sub-2-4
+export type BodyId = PlanetId | 'sun'      // 카메라 추적 대상 — sub-2-5 (미래: 'moon')
 
 interface SolarSystemStore {
   // 시간 (sub-2-3)
@@ -222,13 +234,17 @@ interface SolarSystemStore {
   rotationMode: RotationMode
   rotationModeChangedAt: number
 
-  // 선택 (sub-2-5 예약)
-  selectedPlanet: PlanetId | null
+  // 선택 + 카메라 (sub-2-5)
+  selectedBodyId: BodyId | null        // selectedPlanet 대체 — 'sun' 포함, 미래 'moon'
+  cameraResetRequestedAt: number       // home 보간 trigger ts. -Infinity = 자동제어 양도
 
   // 액션
   setTimeSpeed: (speed: SpeedOption) => void
   togglePause: () => void
-  reset: () => void                    // *모든 것* 처음으로 (시간 + 진실 모드)
+  selectBody: (id: BodyId) => void     // sub-2-5 — 천체 선택 → 카메라 추적
+  resetCameraView: () => void          // sub-2-5 [🎥] — 카메라만 home (시간/모드 유지)
+  yieldCameraControl: () => void       // sub-2-5 — OrbitControls 양도 (사용자 자유)
+  reset: () => void                    // *모든 것* 처음으로 (시간 + 모드 + 선택 + 카메라)
   advanceTime: (deltaSeconds: number) => void
   toggleScaleMode: () => void
   toggleRotationMode: () => void
@@ -534,8 +550,8 @@ frontend/src/
 - **2-2**: 8개 행성 + 태양 데이터 모델 + 정적 배치 (시각 모드) + 비례 압축 + 고리 ✅
 - **2-3**: 공전 애니메이션 + 시간 컨트롤 (Zustand 도입) + 궤도 라인 + axial-flip 보정 + starfield ✅
 - **2-4**: **진실 토글 (거리 + 자전 각각) + 전체 진실 프리셋 + 1.5초 보간 + reset 통합** ✅
-- **2-5**: 행성 호버/클릭 + 카메라 줌인 + 정보 패널 + 카메라 리셋 ⬜
-- **2-6**: 달 + 컨트롤 패널 UI 마무리 ⬜
+- **2-5**: 행성 호버/클릭 + 카메라 줌인 + 정보 패널 + 카메라 리셋 ✅
+- **2-6**: 달 + 키보드 단축키 (D/T/A/C) + 컨트롤 패널 UI 정제 ⬜
 - **2-7**: 모바일 최적화 + 성능 측정 + Lighthouse + Phase 종료 ⬜
 
 총 7 sub-phase ≈ 7~10일 (Phase 1 페이스 기준). sub-2-3 / sub-2-4 가 핵심 인터랙션 단위.
