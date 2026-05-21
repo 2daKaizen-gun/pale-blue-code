@@ -24,6 +24,7 @@ import {
   TRANSITION_DURATION_MS,
 } from '../../store/solarSystemStore'
 import { Ring } from './Ring'
+import { Moon } from './Moon'
 import { BodyLabel } from './BodyLabel'
 
 type PlanetProps = {
@@ -188,6 +189,13 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
           <Ring data={data.ring} scale={scale} parent={ringParent} />
         )}
       </group>
+      {data.moon && (
+        <Moon
+          data={data.moon}
+          parentRealRadius_km={data.realRadius_km}
+          scale={scale}
+        />
+      )}
       {showLabel && (
         <BodyLabel
           name={data.name.en}
