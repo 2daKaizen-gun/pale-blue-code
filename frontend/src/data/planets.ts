@@ -35,6 +35,26 @@ export type RingData =
       outerRadius_km: number
     }
 
+/**
+ * 위성 데이터 — 현재 지구의 달 하나뿐 (TechSpec §5: 다른 위성 제외).
+ *
+ * 행성과 달리 거리 기준이 *모행성 중심* (태양 아님) → 시각 변환은
+ * lib/scale 의 computeMoonVisualDistance (부모 상대 스케일) 가 별도 담당.
+ * 여기 data 는 real 값만.
+ *
+ * 라벨 (sub-2-6) 용 name + taglineEn 포함 — 달도 클릭 가능한 Body 라 자체 명함.
+ */
+export type MoonData = {
+  name: { ko: string; en: string }
+  taglineEn: string
+
+  realRadius_km: number
+  realDistance_km: number       // 지구(모행성) 중심부터 — *태양 기준 아님*
+  orbitalPeriod_days: number    // 항성월(sidereal) 27.32일 — 고정 별 기준
+  rotationPeriod_hours: number  // 조석 고정 → 공전 주기와 동일 (655.7h)
+  texture: string
+}
+
 export type PlanetData = {
   id: PlanetId
   name: { ko: string; en: string }
@@ -56,6 +76,9 @@ export type PlanetData = {
   description: string
 
   ring?: RingData
+
+  // 위성 (지구만 보유)
+  moon?: MoonData
 }
 
 export const PLANETS: readonly PlanetData[] = [
@@ -97,6 +120,15 @@ export const PLANETS: readonly PlanetData[] = [
     texture: '/textures/planets/earth.jpg',
     description:
       '우리가 아는 한, 생명이 존재하는 유일한 곳. 보이저 1호가 60억 km 밖에서 찍었을 때 단 한 픽셀의 푸른 점이었다.',
+    moon: {
+      name: { ko: '달', en: 'Moon' },
+      taglineEn: 'Tidally locked, forever one face toward us',
+      realRadius_km: 1_737.4,
+      realDistance_km: 384_400,
+      orbitalPeriod_days: 27.32,
+      rotationPeriod_hours: 655.7, // = 27.32d × 24, 조석 고정
+      texture: '/textures/planets/moon.jpg',
+    },
   },
   {
     id: 'mars',
