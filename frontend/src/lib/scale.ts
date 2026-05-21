@@ -46,6 +46,10 @@ const REAL_DISTANCE_EXPONENT = 1.0
 const VISUAL_DISTANCE_SCALE = 20
 const REAL_DISTANCE_SCALE = 80
 
+/** 달 offset (부모 반지름 기준) — exponent 압축 + scale. L5 에서 leva 손튜닝 가능. */
+const MOON_DISTANCE_EXPONENT = 0.5
+const MOON_DISTANCE_SCALE = 0.5
+
 export const DEFAULT_SCALE: ScaleConfig = {
   radiusExponent: 0.5,
   radiusScale: 1.0,
@@ -67,6 +71,42 @@ export const computeVisualDistance = (
 ): number => {
   const distanceAU = realDistance_km / ONE_AU_KM
   return Math.pow(distanceAU, config.distanceExponent) * config.distanceScale
+}
+
+/**
+ * 달(위성)의 *부모 행성 중심 기준* 시각 거리.
+ *
+ * 행성 거리(computeVisualDistance)는 *태양 기준* (ONE_AU) 이라 달의 실제 거리
+ * 384,400km 를 그대로 넣으면 지구 반지름 수준 값이 나와 *지구에 박힘*.
+ * 그래서 달은 *부모(지구) 반지름 대비 비율* 로 따로 계산한다.
+ *
+ * 실제 비: 384,400 / 6,371 ≈ 60.3배. 그대로 그리면 별개 행성처럼 멀어지므로
+ * exponent 로 압축 (행성 거리 압축과 같은 결). 기본값 → 약 3.9× 부모 반지름.
+ *
+ *   visualMoonDistance = parentVisualRadius
+ *                      × (moonRealDistance / parentRealRadius) ^ MOON_DISTANCE_EXPONENT
+ *                      × MOON_DISTANCE_SCALE
+ *
+ * 거리 토글(distance)의 영향은 *받지 않는다* — 부모 반지름 기준이라 모드 무관 일정.
+ * 거리 토글 시 "지구가 점이 되며 달도 같이 사라짐" 은 부모 group 이 통째로
+ * 멀어지면서 (computeVisualDistance) 자연 발생.
+ *
+ * @param moonRealDistance_km - 달~부모 중심 실제 거리
+ * @param parentRealRadius_km - 부모 행성 실제 반지름 (지구 6,371)
+ * @param config - radiusScale/Exponent 만 사용 (부모 시각 반지름 계산용)
+ */
+export const computeMoonVisualDistance = (
+  moonRealDistance_km: number,
+  parentRealRadius_km: number,
+  config: ScaleConfig,
+): number => {
+  const parentVisualRadius = computeVisualRadius(parentRealRadius_km, config)
+  const ratio = moonRealDistance_km / parentRealRadius_km
+  return (
+    parentVisualRadius *
+    Math.pow(ratio, MOON_DISTANCE_EXPONENT) *
+    MOON_DISTANCE_SCALE
+  )
 }
 
 /**
