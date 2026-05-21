@@ -20,6 +20,7 @@
 | `mercury.jpg` | `2k_mercury.jpg` | 수성 |
 | `venus.jpg` | `2k_venus_surface.jpg` | 금성 (표면 텍스처) |
 | `earth.jpg` | `2k_earth_daymap.jpg` | 지구 (sub-phase 2-1 부터 사용 중) |
+| `moon,jpg`| `2k_moon.jpg` | 달 (sub-phase 2-6) |
 | `mars.jpg` | `2k_mars.jpg` | 화성 |
 | `jupiter.jpg` | `2k_jupiter.jpg` | 목성 |
 | `saturn.jpg` | `2k_saturn.jpg` | 토성 본체 |
