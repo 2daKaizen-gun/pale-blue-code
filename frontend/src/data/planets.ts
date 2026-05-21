@@ -212,3 +212,17 @@ export const PLANETS: readonly PlanetData[] = [
 
 export const findPlanetById = (id: PlanetId): PlanetData | undefined =>
   PLANETS.find((p) => p.id === id)
+
+/**
+ * 행성의 공전 시작 각도 (xz 평면, 라디안).
+ *
+ * 8개 행성을 원 궤도에 *균등 분산* — 초기 화면에서 한 점에 겹치지 않게.
+ * Scene (렌더) 과 CameraController (추적) 가 *반드시 같은 값* 을 써야 카메라가
+ * 행성에 정확히 앵커됨 → 단일 source. (sub-2-6 L3: 중복 계산 제거.)
+ *
+ * 달은 행성이 아니라 여기 미포함 — 달 offset 은 지구 각도 + 자체 공전 (L7).
+ */
+export const getInitialAngle = (id: PlanetId): number => {
+  const index = PLANETS.findIndex((p) => p.id === id)
+  return (index / PLANETS.length) * Math.PI * 2
+}

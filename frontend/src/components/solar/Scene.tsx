@@ -8,7 +8,7 @@ import { TimeAdvancer } from './TimeAdvancer'
 import { CameraController } from './CameraController'
 import { OrbitPath } from './OrbitPath'
 import { Starfield } from './Starfield'
-import { PLANETS } from '../../data/planets'
+import { PLANETS, getInitialAngle } from '../../data/planets'
 import { CAMERA_HOME_POSITION } from '../../data/camera'
 import { DEFAULT_SCALE } from '../../lib/scale'
 import { useSolarSystemStore } from '../../store/solarSystemStore'
@@ -123,8 +123,8 @@ export function Scene() {
 
         <Sun scale={scale} />
 
-        {PLANETS.map((planet, index) => {
-          const initialAngle = (index / PLANETS.length) * Math.PI * 2
+        {PLANETS.map((planet) => {
+          const initialAngle = getInitialAngle(planet.id)
           return (
             <group key={planet.id}>
               <OrbitPath

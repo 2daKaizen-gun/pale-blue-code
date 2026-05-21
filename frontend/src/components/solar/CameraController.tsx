@@ -6,7 +6,7 @@ import {
   TRANSITION_DURATION_MS,
   type BodyId,
 } from '../../store/solarSystemStore'
-import { PLANETS, findPlanetById } from '../../data/planets'
+import { findPlanetById, getInitialAngle } from '../../data/planets'
 import { SUN } from '../../data/sun'
 import { CAMERA_HOME_POSITION, CAMERA_HOME_TARGET } from '../../data/camera'
 import {
@@ -171,8 +171,7 @@ export function CameraController({ scale }: CameraControllerProps) {
       } else {
         const planet = findPlanetById(bodyId)
         if (!planet) return
-        const index = PLANETS.findIndex((p) => p.id === planet.id)
-        const initialAngle = (index / PLANETS.length) * Math.PI * 2
+        const initialAngle = getInitialAngle(planet.id)
         const orbitAngle = computeOrbitAngle(
           simulationDays,
           planet.orbitalPeriod_days,
