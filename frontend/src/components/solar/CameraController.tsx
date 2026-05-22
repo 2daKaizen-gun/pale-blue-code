@@ -6,16 +6,12 @@ import {
   TRANSITION_DURATION_MS,
   type BodyId,
 } from '../../store/solarSystemStore'
-import { findPlanetById, getInitialAngle } from '../../data/planets'
-import { SUN } from '../../data/sun'
 import { CAMERA_HOME_POSITION, CAMERA_HOME_TARGET } from '../../data/camera'
 import {
   type ScaleConfig,
-  computeVisualRadius,
-  computeVisualDistance,
   getInterpolatedScaleConfig,
 } from '../../lib/scale'
-import { computeOrbitAngle } from '../../lib/time'
+import { getBodyWorldPosition } from '../../lib/bodyPosition'
 import {
   computeTransitionProgress,
   easeInOutCubic,
@@ -162,38 +158,20 @@ export function CameraController({ scale }: CameraControllerProps) {
       targetPosition.set(...CAMERA_HOME_TARGET)
       targetCameraPosition.set(...CAMERA_HOME_POSITION)
     } else {
-      const { bodyId } = transition.target
-      let radius: number
-
-      if (bodyId === 'sun') {
-        targetPosition.set(0, 0, 0)
-        radius = computeVisualRadius(SUN.realRadius_km, currentScaleConfig)
-      } else {
-        const planet = findPlanetById(bodyId)
-        if (!planet) return
-        const initialAngle = getInitialAngle(planet.id)
-        const orbitAngle = computeOrbitAngle(
-          simulationDays,
-          planet.orbitalPeriod_days,
-          initialAngle,
-        )
-        const distance = computeVisualDistance(
-          planet.realDistance_km,
-          currentScaleConfig,
-        )
-        targetPosition.set(
-          Math.cos(orbitAngle) * distance,
-          0,
-          Math.sin(orbitAngle) * distance,
-        )
-        radius = computeVisualRadius(planet.realRadius_km, currentScaleConfig)
-      }
+      // 천체 위치 + 반지름 해석을 단일 resolver 로 위임 (Moon 렌더와 같은 source).
+      const body = getBodyWorldPosition(
+        transition.target.bodyId,
+        simulationDays,
+        currentScaleConfig,
+      )
+      if (!body) return
+      targetPosition.set(body.x, body.y, body.z)
 
       // 고정 방향 offset — 다이아고날 + 약간 위 (월드 좌표 기준)
       targetCameraPosition.set(
-        targetPosition.x + radius * 5,
-        targetPosition.y + radius * 3,
-        targetPosition.z + radius * 5,
+        body.x + body.radius * 5,
+        body.y + body.radius * 3,
+        body.z + body.radius * 5,
       )
     }
 
