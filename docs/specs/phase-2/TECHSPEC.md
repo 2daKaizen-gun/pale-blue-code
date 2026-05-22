@@ -54,6 +54,12 @@ store 신규 액션: `selectBody`, `resetCameraView`, `yieldCameraControl` +
 >   2. **§3 PlanetData**: `taglineEn` 필드 추가 — sub-2-5 [Light 4] 에서 실제 코드에 들어갔으나 문서 누락.
 >   3. **§3 moon / MoonData**: 현재 코드엔 *둘 다 없음*. 4차 갱신의 "MoonData 시각 필드 갱신은 2-6" 표현이 *MoonData 가 이미 존재* 하는 듯한 오해를 줌 → *moon 필드 + MoonData 타입 전체가 sub-2-6 신규 추가* 로 정정. 구조 확정은 2-6 Plan.
 >   4. **§7**: sub-2-5 `⬜ → ✅` (이미 종료). sub-2-6 한 줄에 *키보드 단축키* 명시 — ControlPanel.tsx 가 D/T/A/C 를 *"sub-2-6 보류"* 로 이미 예약. 범위 = 달 + 키보드 + UI 정제.
+>
+> **2026-05-22 갱신 (11차)**: sub-2-6 완료 — 코드↔문서 재동기화.
+>   1. **§3 moon/MoonData**: 10차의 "예정/없음" → *실제 구현됨* (name/taglineEn 포함, 클릭 가능 Body). 신규 함수: `computeMoonVisualDistance`·`computeMoonVisualRadius` (lib/scale), `getBodyWorldPosition`·`getMoonLocalOffset` (신규 `lib/bodyPosition.ts` — 카메라 추적과 천체 렌더의 *단일 위치 source*).
+>   2. **§3 store BodyId**: `| 'moon'` 합류 (클릭 추적 대상).
+>   3. **§7**: 2-6 ✅. **Phase 2 기능 전부 완료** — 남은 2-7 은 모바일/성능/Lighthouse/Phase 종료.
+>   4. 트러블슈팅: 달 궤도가 시각 모드 행성 간격보다 커서 금성/화성과 충돌 → 부모 상대 스케일로 압축(3.9→1.48) + 회귀 테스트로 고정. 상세 `docs/checks/phase-2/sub-2-6.md`.
 ---
 
 ## 1. 핵심 기술 결정
@@ -201,18 +207,21 @@ export type PlanetData = {
   // 고리 (토성/천왕성)
   ring?: RingData
 
-  // ⚠️ moon?: MoonData — sub-2-6 신규 추가 예정 (현재 코드엔 없음). 구조는 2-6 Plan 확정.
+  // 위성 (지구만 보유, sub-2-6 구현 완료)
+  moon?: MoonData
 }
 
-// MoonData 타입은 sub-2-6 에서 신규 정의. 아래는 *초안* (Plan 에서 확정):
-//   export type MoonData = {
-//     realRadius_km: number
-//     realDistance_km: number      // 지구(모행성) 중심부터 — *태양 기준 아님*
-//     orbitalPeriod_days: number
-//     rotationPeriod_hours: number // 조석 고정: 공전 주기와 동일
-//     texture: string
-//   }
-//   시각 거리는 *부모(지구) 상대 스케일* — lib/scale 의 태양(ONE_AU) 기준 함수 그대로는 부적합.
+export type MoonData = {
+  name: { ko: string; en: string }
+  taglineEn: string            // 달도 클릭 가능한 Body → 자체 명함
+  realRadius_km: number
+  realDistance_km: number      // 지구(모행성) 중심부터 — *태양 기준 아님*
+  orbitalPeriod_days: number   // 항성월 27.32일
+  rotationPeriod_hours: number // 조석 고정 → 공전 주기와 동일 (655.7h)
+  texture: string
+}
+// 시각 거리/반지름: lib/scale 의 computeMoonVisualDistance / computeMoonVisualRadius (부모 상대).
+// 위치 합성: lib/bodyPosition.ts 의 getBodyWorldPosition / getMoonLocalOffset (렌더·카메라 단일 source).
 ```
 
 ### Store 인터페이스 (sub-2-5 완료 시점)
@@ -220,7 +229,7 @@ export type PlanetData = {
 ```typescript
 type ScaleMode = 'visual' | 'real'         // 거리 토글 — sub-2-4
 type RotationMode = 'visual' | 'real'      // 자전 토글 — sub-2-4
-export type BodyId = PlanetId | 'sun'      // 카메라 추적 대상 — sub-2-5 (미래: 'moon')
+export type BodyId = PlanetId | 'sun' | 'moon'  // 카메라 추적 대상 — sub-2-5 + 달 sub-2-6
 
 interface SolarSystemStore {
   // 시간 (sub-2-3)
@@ -551,7 +560,7 @@ frontend/src/
 - **2-3**: 공전 애니메이션 + 시간 컨트롤 (Zustand 도입) + 궤도 라인 + axial-flip 보정 + starfield ✅
 - **2-4**: **진실 토글 (거리 + 자전 각각) + 전체 진실 프리셋 + 1.5초 보간 + reset 통합** ✅
 - **2-5**: 행성 호버/클릭 + 카메라 줌인 + 정보 패널 + 카메라 리셋 ✅
-- **2-6**: 달 + 키보드 단축키 (D/T/A/C) + 컨트롤 패널 UI 정제 ⬜
+- **2-6**: 달 + 키보드 단축키 (D/T/A/C) + 컨트롤 패널 UI 정제 ✅
 - **2-7**: 모바일 최적화 + 성능 측정 + Lighthouse + Phase 종료 ⬜
 
 총 7 sub-phase ≈ 7~10일 (Phase 1 페이스 기준). sub-2-3 / sub-2-4 가 핵심 인터랙션 단위.
