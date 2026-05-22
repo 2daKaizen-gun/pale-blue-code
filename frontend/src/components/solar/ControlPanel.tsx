@@ -4,6 +4,7 @@ import {
   SPEED_OPTIONS,
   type SpeedOption,
 } from '../../store/solarSystemStore'
+import { ToggleButton, IconButton } from './ControlButtons'
 
 /**
  * Pale Blue Code — Phase 2: Solar System
@@ -14,27 +15,13 @@ import {
  *   [정지] | [속도 4개] | [거리] [자전] [전체 진실] | [↺] [🎥]
  *      시간 그룹                    진실 토글 그룹      리셋 그룹
  *
- *   *시간* 은 일시적 (스페이스 한 번이면 복원), *모드* 는 영구적 (다음 토글까지 유지).
- *   *리셋* 은 두 종류 — ↺ 통합 (시간+모드+선택+카메라), 🎥 카메라만.
- *
  * ─── 키보드 단축키 ─────────────────────────────────
- *   Space: 정지/재생
- *   1/2/3/4: 0.1× / 1× / 100× / 10,000×
- *   R: 통합 리셋
+ *   Space: 정지/재생   1/2/3/4: 0.1× / 1× / 100× / 10,000×   R: 통합 리셋
+ *   D/T/A: 거리 / 자전 / 전체 진실 토글.  C: 카메라 리셋.
  *   *<input>/<textarea> 포커스 중에는 무시*
  *
- *   D/T/A: 거리 / 자전 / 전체 진실 토글.  C: 카메라 리셋.
- *
- * ─── 진실 토글 UX (sub-2-4) ────────────────────────
- *   각 토글 활성 (mode='real') 시 bg-white/20 — 사용자가 *지금 진실 모드* 임을 시각 인지.
- *
- * ─── 리셋의 두 종류 (sub-2-5 [Light 7]) ─────────────
- *   [↺] 통합 리셋: 시간 + 모드 + 선택 + 카메라 home 보간 모두 처음으로.
- *   [🎥] 카메라 리셋: 카메라만 home (시간/모드 유지). 선택은 같이 해제 — *home 가는데
- *        추적 ID 남아 있으면 어색*.
- *
- *   두 버튼이 *같은 그룹* — 시각적으로 옆에. 단축선 없이 작은 gap 으로 약간 분리.
- *   PRD §4 5번 항목 + TechSpec §2 아키텍처 도식 일관.
+ * ─── 버튼 컴포넌트 (sub-2-6 L9) ────────────────────
+ *   반복되던 버튼 스타일을 ToggleButton / IconButton 으로 추출 (ControlButtons.tsx).
  */
 
 const MOBILE_MAX_SPEED = 10_000
@@ -97,7 +84,7 @@ export function ControlPanel() {
     useSolarSystemStore.getState().reset()
   }, [])
 
-  // ─── 키보드 단축키 (시간만 — 모드 / 카메라 단축키는 sub-2-6) ─
+  // ─── 키보드 단축키 ───────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement
@@ -142,126 +129,74 @@ export function ControlPanel() {
   return (
     <div className="fixed bottom-6 left-1/2 z-10 -translate-x-1/2">
       <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 shadow-2xl backdrop-blur-md">
-        {/* ── 정지 / 재생 ── Space ── */}
-        <button
-          type="button"
+        {/* 정지 / 재생 (Space) */}
+        <IconButton
+          icon={isPaused ? '▶' : '⏸'}
           onClick={togglePause}
-          aria-label={isPaused ? '재생 (Space)' : '정지 (Space)'}
-          aria-pressed={isPaused}
-          className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg transition ${
-            isPaused
-              ? 'bg-white/20 text-white'
-              : 'text-white/80 hover:bg-white/10'
-          }`}
-        >
-          {isPaused ? '▶' : '⏸'}
-        </button>
+          ariaLabel={isPaused ? '재생 (Space)' : '정지 (Space)'}
+          active={isPaused}
+        />
 
         <div className="h-6 w-px bg-white/10" aria-hidden />
 
-        {/* ── 속도 선택 ── 1/2/3/4 ── 정지 중 클릭 시 자동 재생 ── */}
+        {/* 속도 1/2/3/4 */}
         <div role="group" aria-label="시간 속도" className="flex gap-1">
-          {availableSpeeds.map((speed, idx) => {
-            const isActive = currentSpeed === speed
-            return (
-              <button
-                key={speed}
-                type="button"
-                onClick={() => setTimeSpeed(speed)}
-                aria-label={`속도 ${formatSpeed(speed)} (${idx + 1})`}
-                aria-pressed={isActive}
-                className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
-                  isActive
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/80 hover:bg-white/10'
-                }`}
-              >
-                {formatSpeed(speed)}
-              </button>
-            )
-          })}
+          {availableSpeeds.map((speed, idx) => (
+            <ToggleButton
+              key={speed}
+              label={formatSpeed(speed)}
+              active={currentSpeed === speed}
+              onClick={() => setTimeSpeed(speed)}
+              ariaLabel={`속도 ${formatSpeed(speed)} (${idx + 1})`}
+            />
+          ))}
         </div>
 
         <div className="h-6 w-px bg-white/10" aria-hidden />
 
-        {/* ── 진실 토글 ────────────────── */}
+        {/* 진실 토글 D / T / A */}
         <div role="group" aria-label="진실 토글" className="flex gap-1">
-          <button
-            type="button"
+          <ToggleButton
+            label="거리"
+            active={isScaleReal}
             onClick={toggleScaleMode}
-            aria-label={`${
-              isScaleReal
-                ? '거리 시각 모드로 (현재 진실)'
-                : '거리 진실 모드로 (현재 시각)'
+            ariaLabel={`${
+              isScaleReal ? '거리 시각 모드로 (현재 진실)' : '거리 진실 모드로 (현재 시각)'
             } (단축키 D)`}
-            aria-pressed={isScaleReal}
-            className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
-              isScaleReal
-                ? 'bg-white/20 text-white'
-                : 'text-white/80 hover:bg-white/10'
-            }`}
-          >
-            거리
-          </button>
-
-          <button
-            type="button"
+          />
+          <ToggleButton
+            label="자전"
+            active={isRotationReal}
             onClick={toggleRotationMode}
-            aria-label={`${
-              isRotationReal
-                ? '자전 시각 모드로 (현재 진실)'
-                : '자전 진실 모드로 (현재 시각)'
+            ariaLabel={`${
+              isRotationReal ? '자전 시각 모드로 (현재 진실)' : '자전 진실 모드로 (현재 시각)'
             } (단축키 T)`}
-            aria-pressed={isRotationReal}
-            className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
-              isRotationReal
-                ? 'bg-white/20 text-white'
-                : 'text-white/80 hover:bg-white/10'
-            }`}
-          >
-            자전
-          </button>
-
-          <button
-            type="button"
+          />
+          <ToggleButton
+            label="전체 진실"
+            active={isAllTruth}
             onClick={toggleAllTruth}
-            aria-label={`${
-              isAllTruth
-                ? '전체 시각 모드로 (현재 둘 다 진실)'
-                : '전체 진실 모드 (거리 + 자전 동시)'
+            ariaLabel={`${
+              isAllTruth ? '전체 시각 모드로 (현재 둘 다 진실)' : '전체 진실 모드 (거리 + 자전 동시)'
             } (단축키 A)`}
-            aria-pressed={isAllTruth}
-            className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
-              isAllTruth
-                ? 'bg-white/20 text-white'
-                : 'text-white/80 hover:bg-white/10'
-            }`}
-          >
-            전체 진실
-          </button>
+          />
         </div>
 
         <div className="h-6 w-px bg-white/10" aria-hidden />
 
-        {/* ── 리셋 그룹 ── 통합 (↺) + 카메라만 (🎥) ── */}
+        {/* 리셋 — 통합(↺) + 카메라만(🎥) */}
         <div role="group" aria-label="리셋" className="flex gap-1">
-          <button
-            type="button"
+          <IconButton
+            icon="↺"
             onClick={reset}
-            aria-label="전체 리셋 (R) — 시간 + 모드 + 카메라"
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-lg text-white/80 transition hover:bg-white/10"
-          >
-            ↺
-          </button>
-
-          <button
-            type="button"
+            ariaLabel="전체 리셋 (R) — 시간 + 모드 + 카메라"
+          />
+          <IconButton
+            icon="🎥"
+            size="base"
             onClick={resetCameraView}
-            aria-label="카메라 리셋 (C) — 자유 카메라로 복귀"
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-base text-white/80 transition hover:bg-white/10"
-          >
-            🎥
-          </button>
+            ariaLabel="카메라 리셋 (C) — 자유 카메라로 복귀"
+          />
         </div>
       </div>
     </div>
