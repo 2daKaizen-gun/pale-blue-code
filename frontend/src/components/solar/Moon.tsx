@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import type { MoonData } from '../../data/planets'
 import {
   type ScaleConfig,
-  computeVisualRadius,
+  computeMoonVisualRadius,
   computeMoonVisualDistance,
 } from '../../lib/scale'
 import { computeOrbitAngle } from '../../lib/time'
@@ -46,7 +46,11 @@ const MOON_INITIAL_ANGLE = Math.PI / 4
 export function Moon({ data, parentRealRadius_km, scale }: MoonProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   const texture = useTexture(data.texture)
-  const radius = computeVisualRadius(data.realRadius_km, scale)
+  const radius = computeMoonVisualRadius(
+    data.realRadius_km,
+    parentRealRadius_km,
+    scale,
+  )
 
   useFrame(() => {
     if (!meshRef.current) return

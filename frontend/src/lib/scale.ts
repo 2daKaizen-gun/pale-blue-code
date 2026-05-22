@@ -46,9 +46,15 @@ const REAL_DISTANCE_EXPONENT = 1.0
 const VISUAL_DISTANCE_SCALE = 20
 const REAL_DISTANCE_SCALE = 80
 
-/** 달 offset (부모 반지름 기준) — exponent 압축 + scale. L5 에서 leva 손튜닝 가능. */
+/**
+ * 달 offset (부모 반지름 기준) — exponent 압축 + scale.
+ *
+ * ⚠️ 시각 모드에선 행성들이 빽빽하다 (지구↔금성 간격 ≈ 2.99, 지구 반지름 1.0).
+ * 달 궤도가 이 간격보다 크면 금성/화성과 *충돌* → SCALE 을 작게 잡아 궤도 ≈ 1.48
+ * (금성 간격 안에 안전히 들어감). bug fix (sub-2-6): 3.9 → 1.48. 회귀 테스트로 고정.
+ */
 const MOON_DISTANCE_EXPONENT = 0.5
-const MOON_DISTANCE_SCALE = 0.5
+const MOON_DISTANCE_SCALE = 0.19
 
 export const DEFAULT_SCALE: ScaleConfig = {
   radiusExponent: 0.5,
@@ -81,7 +87,8 @@ export const computeVisualDistance = (
  * 그래서 달은 *부모(지구) 반지름 대비 비율* 로 따로 계산한다.
  *
  * 실제 비: 384,400 / 6,371 ≈ 60.3배. 그대로 그리면 별개 행성처럼 멀어지므로
- * exponent 로 압축 (행성 거리 압축과 같은 결). 기본값 → 약 3.9× 부모 반지름.
+ * exponent 로 압축 (행성 거리 압축과 같은 결). 기본값 → 약 1.48× 부모 반지름
+ * — 시각 모드 행성 간격(~3) 안에 들어가게. 실제 60배 → 시각 1.48배의 큰 거짓말.
  *
  *   visualMoonDistance = parentVisualRadius
  *                      × (moonRealDistance / parentRealRadius) ^ MOON_DISTANCE_EXPONENT
@@ -107,6 +114,25 @@ export const computeMoonVisualDistance = (
     Math.pow(ratio, MOON_DISTANCE_EXPONENT) *
     MOON_DISTANCE_SCALE
   )
+}
+
+/**
+ * 달(위성)의 *부모 상대* 시각 반지름.
+ *
+ * 행성은 computeVisualRadius 의 sqrt(exponent 0.5) 로 *부풀려* 그린다 — 태양까지의
+ * 광활한 거리 척도 옆에서 안 보이면 곤란하니까. 그런데 달은 *부모(지구) 바로 옆*
+ * 근접 척도에서 보이므로 부풀릴 필요가 없다 → *선형 실제 비율* (지구의 0.273배)
+ * 그대로. 이래야 빽빽한 시각 모드에서 금성과 충돌하지 않을 만큼 작게 들어간다.
+ *
+ *   visualMoonRadius = parentVisualRadius × (moonRealRadius / parentRealRadius)
+ */
+export const computeMoonVisualRadius = (
+  moonRealRadius_km: number,
+  parentRealRadius_km: number,
+  config: ScaleConfig,
+): number => {
+  const parentVisualRadius = computeVisualRadius(parentRealRadius_km, config)
+  return parentVisualRadius * (moonRealRadius_km / parentRealRadius_km)
 }
 
 /**
