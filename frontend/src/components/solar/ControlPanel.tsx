@@ -23,7 +23,7 @@ import {
  *   R: 통합 리셋
  *   *<input>/<textarea> 포커스 중에는 무시*
  *
- *   모드 토글 단축키 (D/T/A) + 카메라 리셋 단축키 (C) 는 sub-2-6 보류.
+ *   D/T/A: 거리 / 자전 / 전체 진실 토글.  C: 카메라 리셋.
  *
  * ─── 진실 토글 UX (sub-2-4) ────────────────────────
  *   각 토글 활성 (mode='real') 시 bg-white/20 — 사용자가 *지금 진실 모드* 임을 시각 인지.
@@ -124,6 +124,14 @@ export function ControlPanel() {
         store.setTimeSpeed(100)
       } else if (e.key === '4') {
         store.setTimeSpeed(10_000)
+      } else if (e.key === 'd' || e.key === 'D') {
+        store.toggleScaleMode()
+      } else if (e.key === 't' || e.key === 'T') {
+        store.toggleRotationMode()
+      } else if (e.key === 'a' || e.key === 'A') {
+        store.toggleAllTruth()
+      } else if (e.key === 'c' || e.key === 'C') {
+        store.resetCameraView()
       }
     }
 
@@ -181,11 +189,11 @@ export function ControlPanel() {
           <button
             type="button"
             onClick={toggleScaleMode}
-            aria-label={
+            aria-label={`${
               isScaleReal
                 ? '거리 시각 모드로 (현재 진실)'
                 : '거리 진실 모드로 (현재 시각)'
-            }
+            } (단축키 D)`}
             aria-pressed={isScaleReal}
             className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
               isScaleReal
@@ -199,11 +207,11 @@ export function ControlPanel() {
           <button
             type="button"
             onClick={toggleRotationMode}
-            aria-label={
+            aria-label={`${
               isRotationReal
                 ? '자전 시각 모드로 (현재 진실)'
                 : '자전 진실 모드로 (현재 시각)'
-            }
+            } (단축키 T)`}
             aria-pressed={isRotationReal}
             className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
               isRotationReal
@@ -217,11 +225,11 @@ export function ControlPanel() {
           <button
             type="button"
             onClick={toggleAllTruth}
-            aria-label={
+            aria-label={`${
               isAllTruth
                 ? '전체 시각 모드로 (현재 둘 다 진실)'
                 : '전체 진실 모드 (거리 + 자전 동시)'
-            }
+            } (단축키 A)`}
             aria-pressed={isAllTruth}
             className={`h-10 rounded-lg px-3 text-sm font-medium transition ${
               isAllTruth
@@ -249,7 +257,7 @@ export function ControlPanel() {
           <button
             type="button"
             onClick={resetCameraView}
-            aria-label="카메라 리셋 — 자유 카메라로 복귀"
+            aria-label="카메라 리셋 (C) — 자유 카메라로 복귀"
             className="flex h-10 w-10 items-center justify-center rounded-lg text-base text-white/80 transition hover:bg-white/10"
           >
             🎥
