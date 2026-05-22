@@ -1,10 +1,12 @@
 import type { BodyId } from '../store/solarSystemStore'
-import { findPlanetById, getInitialAngle } from '../data/planets'
+import { findPlanetById, getInitialAngle, type MoonData } from '../data/planets'
 import { SUN } from '../data/sun'
 import {
   type ScaleConfig,
   computeVisualRadius,
   computeVisualDistance,
+  computeMoonVisualDistance,
+  computeMoonVisualRadius,
 } from './scale'
 import { computeOrbitAngle } from './time'
 
@@ -14,6 +16,41 @@ export type BodyWorldPosition = {
   y: number
   z: number
   radius: number
+}
+
+/** 달 공전 시작 각도 — 지구 기준 임의 위상. */
+const MOON_INITIAL_ANGLE = Math.PI / 4
+
+/** 달의 *지구 local 프레임* 공전 offset (+ 조석 고정용 orbitAngle). */
+export type MoonOrbitOffset = { x: number; z: number; orbitAngle: number }
+
+/**
+ * 달의 지구-중심 local 공전 offset.
+ *
+ * Moon 렌더(지구 group 의 자식 → local 좌표)와 카메라 추적(world 합성)이 *같은
+ * 함수* 를 써서 둘의 달 위치가 어긋날 수 없게 한다. orbitAngle 은 조석 고정 자전에도 재사용.
+ */
+export function getMoonLocalOffset(
+  moon: MoonData,
+  parentRealRadius_km: number,
+  simulationDays: number,
+  config: ScaleConfig,
+): MoonOrbitOffset {
+  const distance = computeMoonVisualDistance(
+    moon.realDistance_km,
+    parentRealRadius_km,
+    config,
+  )
+  const orbitAngle = computeOrbitAngle(
+    simulationDays,
+    moon.orbitalPeriod_days,
+    MOON_INITIAL_ANGLE,
+  )
+  return {
+    x: Math.cos(orbitAngle) * distance,
+    z: Math.sin(orbitAngle) * distance,
+    orbitAngle,
+  }
 }
 
 /**
@@ -43,6 +80,30 @@ export function getBodyWorldPosition(
       y: 0,
       z: 0,
       radius: computeVisualRadius(SUN.realRadius_km, config),
+    }
+  }
+
+  if (bodyId === 'moon') {
+    // 달 world = 지구 world + 달 local offset (Moon 렌더와 동일 offset 함수).
+    const earth = findPlanetById('earth')
+    if (!earth?.moon) return null
+    const earthPos = getBodyWorldPosition('earth', simulationDays, config)
+    if (!earthPos) return null
+    const offset = getMoonLocalOffset(
+      earth.moon,
+      earth.realRadius_km,
+      simulationDays,
+      config,
+    )
+    return {
+      x: earthPos.x + offset.x,
+      y: 0,
+      z: earthPos.z + offset.z,
+      radius: computeMoonVisualRadius(
+        earth.moon.realRadius_km,
+        earth.realRadius_km,
+        config,
+      ),
     }
   }
 

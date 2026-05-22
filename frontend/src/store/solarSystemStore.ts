@@ -58,11 +58,12 @@ export const DEFAULT_SPEED: SpeedOption = 1
 export const TRANSITION_DURATION_MS = 1500
 
 /**
- * 카메라가 추적할 수 있는 천체의 합집합 (sub-2-5).
+ * 카메라가 추적할 수 있는 천체의 합집합.
  *
- * 현재: 8개 행성 + 태양. 미래: 'moon' 추가 (sub-2-6 또는 그 이후).
+ * 8개 행성 + 태양 (sub-2-5) + 달 (sub-2-6). 달은 행성이 아닌 위성이지만
+ * *추적 가능한 천체* 라는 도메인에선 동등 — 그래서 합집합에 합류.
  */
-export type BodyId = PlanetId | 'sun'
+export type BodyId = PlanetId | 'sun' | 'moon'
 
 interface SolarSystemStore {
   // ─── 시간 (sub-2-3) ──────────────────────────────
