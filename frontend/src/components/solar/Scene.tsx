@@ -32,6 +32,12 @@ const DevControls = import.meta.env.DEV
   : null
 
 /**
+ * dpr 캡 — 모듈 상수로 고정. 인라인 [1,2] 는 매 렌더 새 배열이라 R3F 가 매번
+ * dpr 변경으로 인식해 setPixelRatio 를 반복 호출. 안정 참조로 불필요한 재설정 차단.
+ */
+const DPR: [number, number] = [1, 2]
+
+/**
  * Pale Blue Code — Phase 2: Solar System
  *
  * Scene — R3F Canvas 루트.
@@ -60,10 +66,19 @@ const DevControls = import.meta.env.DEV
  *   leva 의 Time(dev) dropdown 은 ControlPanel 로 대체되어 제거.
  *
  * ─── sub-phase 2-7 [L3] 변경 (DPR 캡) ───────────────
- *   Canvas dpr={[1, 2]}. device pixel ratio 를 1~2 로 제한.
+ *   Canvas dpr={DPR} (=[1, 2]). device pixel ratio 를 1~2 로 제한.
  *   고해상도 폰(DPR 3)은 픽셀을 9배(3²) 렌더 — fps 병목 1순위(측정 기반).
  *   2 로 캡하면 최대 4배(2²)로, 시각 차이는 거의 없이(이미 retina) fill-rate 절약.
  *   min 1: 저DPR 화면에서 native 아래로 안 내려감.
+ *
+ * ─── sub-phase 2-7 [L3 fix] WebGL Context Lost 해결 ──
+ *   증상: L6(라우트 Suspense) 도입 후 dev 에서 까만 화면 + 6 FPS + Context Lost.
+ *   원인: Planet/Sun 의 useTexture suspend 가 *Canvas 안에 경계가 없어* AppLayout
+ *   의 라우트 Suspense 까지 전파 → SolarPage/Canvas 언마운트 → 텍스처 dispose →
+ *   리마운트 → 재 suspend → 루프 → WebGL 컨텍스트 한도 초과 → Context Lost.
+ *   해결: 텍스처를 쓰는 Sun + Planets 를 *Canvas 안쪽 <Suspense>* 로 감쌈.
+ *   suspend 가 여기서 잡혀 라우트 경계까지 못 올라감 → Canvas 는 절대 언마운트
+ *   안 됨 → 컨텍스트 1회 생성 후 유지. (R3F 표준 패턴)
  */
 export function Scene() {
   // 시각/조명 파라미터. prod 는 기본값 고정, dev 는 <DevControls>(leva)가 갱신.
@@ -84,7 +99,7 @@ export function Scene() {
       )}
 
       <Canvas
-        dpr={[1, 2]}
+        dpr={DPR}
         camera={{
           position: [...CAMERA_HOME_POSITION], // 단일 source — data/camera.ts
           fov: 50,
@@ -103,24 +118,28 @@ export function Scene() {
 
         <ambientLight intensity={ambient} />
 
-        <Sun scale={scale} />
+        {/* 텍스처 로딩(useTexture)이 여기서 suspend → 라우트 Suspense 까지 안 올라감
+            → Canvas 언마운트/Context Lost 방지 (sub-2-7 [L3 fix]) */}
+        <Suspense fallback={null}>
+          <Sun scale={scale} />
 
-        {PLANETS.map((planet) => {
-          const initialAngle = getInitialAngle(planet.id)
-          return (
-            <group key={planet.id}>
-              <OrbitPath
-                realDistanceKm={planet.realDistance_km}
-                scale={scale}
-              />
-              <Planet
-                data={planet}
-                initialAngle={initialAngle}
-                scale={scale}
-              />
-            </group>
-          )
-        })}
+          {PLANETS.map((planet) => {
+            const initialAngle = getInitialAngle(planet.id)
+            return (
+              <group key={planet.id}>
+                <OrbitPath
+                  realDistanceKm={planet.realDistance_km}
+                  scale={scale}
+                />
+                <Planet
+                  data={planet}
+                  initialAngle={initialAngle}
+                  scale={scale}
+                />
+              </group>
+            )
+          })}
+        </Suspense>
 
         <OrbitControls
           makeDefault
