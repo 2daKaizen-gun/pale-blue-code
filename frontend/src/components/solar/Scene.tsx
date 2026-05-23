@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, Stats } from '@react-three/drei'
 import { Leva, useControls } from 'leva'
 import { Planet } from './Planet'
 import { Sun } from './Sun'
@@ -42,6 +42,11 @@ const DEFAULT_AMBIENT = 0.3
  *
  *   home 위치를 `data/camera.ts` 의 CAMERA_HOME_POSITION 상수로 — Scene 초기값과
  *   CameraController home 보간 목표가 *같은 source*. 단일 진실.
+ *
+ * ─── sub-phase 2-7 [L2] 변경 (성능 계측) ────────────
+ *   <Stats /> (drei) 를 dev 전용으로 추가. 좌상단 패널에 FPS / ms / MB 표시.
+ *   "측정 먼저, 최적화 나중" — L3(DPR)/L4(적응형 품질) 의 손댈 곳을 *숫자가 지시*.
+ *   prod 빌드엔 import.meta.env.DEV 가 false 라 렌더 자체가 안 됨.
  */
 export function Scene() {
   const tunedScale = useControls('Scale', {
@@ -113,6 +118,8 @@ export function Scene() {
         }}
         style={{ background: 'var(--color-cosmos-bg, #000)' }}
       >
+        {import.meta.env.DEV && <Stats />}
+
         <TimeAdvancer />
 
         <CameraController scale={scale} />
