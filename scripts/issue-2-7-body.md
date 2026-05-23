@@ -1,36 +1,33 @@
 ## Plan
-Finish Phase 2's non-functional requirements (PRD §6) and close the phase.
-Measure first (fps + Lighthouse), then optimize from data rather than
-assumptions. Hold desktop 60fps / mobile 30fps+, reach Lighthouse
-Performance 85+ and time-to-interactive < 3s, add mobile touch selection,
-and actually remove leva from the production bundle. Then run the Phase 2
-close ceremony (handoff doc, milestone close, release tag).
+Final sub-phase of Phase 2. PRD §4 features complete; closes out §6
+non-functional work + Phase termination. Measure-first, then optimize from data.
 
-## Lights
-- [ ] L1 - Extract `useIsTouchDevice` into reusable `hooks/useIsTouchDevice.ts` (currently inlined in ControlPanel; foundation for adaptive quality)
-- [ ] L2 - Add dev-only perf stats (drei `<Stats>`) and record Lighthouse/fps baseline
-- [ ] L3 - Cap Canvas `dpr={[1, 2]}` and tune `gl` settings (expected biggest mobile win)
-- [ ] L4 - Adaptive quality: `lib/quality.ts` single source ({ sphereSegments, starCount }), computed once in Scene, passed to Planet/Starfield as props
-- [ ] L5 - Mobile touch: tap a body to select+track (decision B). Prevent drag-to-rotate from mis-firing selection; skip the mouse-only hover-preview path on coarse pointers
-- [ ] L6 - Lazy-load the `/solar` route to defer three.js/R3F off the landing bundle
-- [ ] L7 - Separate leva into a dev-only dynamic import so `useControls` leaves the prod module graph; tidy the Time(dev) dropdown
+## Lights (executed order + status)
+- [x] L1 — Extract useIsTouchDevice into reusable hook
+- [x] L2 — Dev perf Stats + record baseline
+- [x] L6 — Code-split: lazy-load routes (landing JS 403 → 93 KB gzip)
+- [x] L7 — Remove leva from prod bundle (dev-only DevControls, dynamic import)
+- [x] L3 — Cap Canvas dpr to [1, 2] (mobile fill-rate)
+- [x] L3-fix — In-Canvas Suspense to fix WebGL Context Lost (regression from L6 route Suspense)
+- [x] L5 — Tap-to-select on touch devices (Decision B)
+- ~~L4 — Adaptive geometry/star reduction~~ **CUT**: baseline disproved the bottleneck
+
+## Key decisions (as executed)
+- Reordered after L2 baseline: L6 + L7 are the Lighthouse movers; fps was never the bottleneck (desktop 60fps at full quality). L3 dpr = mobile insurance.
+- L4 cut: §6 "32→16 segments" was a hypothesis; measurement showed geometry is trivial. Don't optimize what isn't slow.
+- Baseline (prod build): single 1.40 MB / 403 KB gzip chunk, leva included. After L6+L7: landing 93 KB, /solar 242 KB (gzip).
+- L3 surfaced a Context Lost regression — L6 route Suspense unmounted the Canvas on texture suspend. Fixed with an in-Canvas Suspense. (full story -> docs/checks)
+- Mobile interaction simplified to tap=select (Decision B).
+- Doc sync (Context Rot): package.json actual = zustand 5.0.13, vitest 4.1.6 (TechSpec matrix said 4.5+ / 2.1+).
 
 ## Success criteria
-- [ ] Desktop 60fps, mobile real-device 30fps+ (confirmed via Stats)
-- [ ] Lighthouse Performance 85+
-- [ ] Time-to-interactive < 3s
-- [ ] leva absent from prod bundle (verified in build output)
-- [ ] Mobile tap selects+tracks a body without conflicting with camera gestures
-- [ ] No regressions in toggles / reset / keyboard shortcuts
-
-## Key decisions
-- Measure-first. TechSpec §6's "sphere 32 to 16 segments" is a hypothesis to validate against Stats/Lighthouse, not applied blindly. The likely primary culprit on mobile is device pixel ratio, not polygon count.
-- Mobile interaction = single tap to select (decision B), consciously overriding TechSpec §1 ("short-tap = hover / long-press = click"). Reason: hover preview is a mouse affordance; on a cursor-less touch device a two-stage gesture is unnatural. TechSpec §1 to be updated at Check.
-- Adaptive quality computed once in Scene (single matchMedia subscription via the extracted hook) and passed down as props; the 8 planets do not each subscribe.
-- leva real separation: `useControls` runs unconditionally, so env-flag value-swapping does not tree-shake it out. A dev-only dynamic import is required, not just `<Leva hidden>`.
-- Dependency doc fix: actual package.json has zustand 5.0.13 and vitest 4.1.6 (TechSpec matrix says 4.x / 2.1+). Correct in the Phase 2-to-3 handoff §2 (no behavior impact; doc-only).
+- [ ] Desktop 60fps, mobile 30fps+ (verified at Test)
+- [ ] Lighthouse Performance 85+ (run at Test, post L6/L7)
+- [x] leva absent from prod build (3-way grep confirmed)
+- [ ] Mobile tap selects without fighting camera gestures (verify Test)
+- [ ] No regressions in toggles / reset / keyboard
 
 ## References
-- PRD: `docs/specs/phase-2/PRD.md` (§6 non-functional, §5 quantitative targets)
-- TechSpec: `docs/specs/phase-2/TECHSPEC.md` (§6 risks, §1 hover-panel row)
-- Previous retrospective: `docs/checks/phase-2/sub-2-6.md`
+- PRD: docs/specs/phase-2/PRD.md (sections 5, 6)
+- TechSpec: docs/specs/phase-2/TECHSPEC.md (sections 6, 7)
+- Previous retrospective: docs/checks/phase-2/sub-2-6.md
