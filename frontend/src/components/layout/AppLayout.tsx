@@ -1,11 +1,19 @@
+import { Suspense } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { PHASES } from '../../constants/phases'
+import Spinner from '../ui/Spinner'
 
 // Phase 0, 1은 둘 다 path='/' 이므로 네비에서는 1개만 (Home)
 const navPhases = PHASES.filter((p, i, arr) =>
   arr.findIndex((x) => x.path === p.path) === i
 )
 
+/**
+ * ─── sub-phase 2-7 [L6] 변경 ───────────────────────
+ *   <Outlet /> 을 <Suspense> 로 감쌈. router.tsx 의 lazy 페이지가 로드되는 동안
+ *   Spinner 를 보여줌. 모든 lazy 라우트의 *단일 fallback 경계* — 라우트마다
+ *   Suspense 를 두지 않고 한 곳에서 처리.
+ */
 export default function AppLayout() {
   return (
     <div className="min-h-screen flex bg-cosmos-bg text-cosmos-text font-sans">
@@ -43,7 +51,15 @@ export default function AppLayout() {
 
       {/* 메인 콘텐츠 */}
       <main className="flex-1 p-8">
-        <Outlet />
+        <Suspense
+          fallback={
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <Spinner />
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   )
