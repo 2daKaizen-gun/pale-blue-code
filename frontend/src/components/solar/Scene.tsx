@@ -58,6 +58,12 @@ const DevControls = import.meta.env.DEV
  *   dev 전용 <DevControls> 로 격리하고 동적 import. prod 는 DEFAULT_SCALE /
  *   DEFAULT_AMBIENT 고정값만 사용 → leva 가 prod 번들에서 빠짐.
  *   leva 의 Time(dev) dropdown 은 ControlPanel 로 대체되어 제거.
+ *
+ * ─── sub-phase 2-7 [L3] 변경 (DPR 캡) ───────────────
+ *   Canvas dpr={[1, 2]}. device pixel ratio 를 1~2 로 제한.
+ *   고해상도 폰(DPR 3)은 픽셀을 9배(3²) 렌더 — fps 병목 1순위(측정 기반).
+ *   2 로 캡하면 최대 4배(2²)로, 시각 차이는 거의 없이(이미 retina) fill-rate 절약.
+ *   min 1: 저DPR 화면에서 native 아래로 안 내려감.
  */
 export function Scene() {
   // 시각/조명 파라미터. prod 는 기본값 고정, dev 는 <DevControls>(leva)가 갱신.
@@ -78,6 +84,7 @@ export function Scene() {
       )}
 
       <Canvas
+        dpr={[1, 2]}
         camera={{
           position: [...CAMERA_HOME_POSITION], // 단일 source — data/camera.ts
           fov: 50,
