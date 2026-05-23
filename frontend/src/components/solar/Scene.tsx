@@ -1,7 +1,6 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stats } from '@react-three/drei'
-import { Leva, useControls } from 'leva'
 import { Planet } from './Planet'
 import { Sun } from './Sun'
 import { TimeAdvancer } from './TimeAdvancer'
@@ -10,7 +9,7 @@ import { OrbitPath } from './OrbitPath'
 import { Starfield } from './Starfield'
 import { PLANETS, getInitialAngle } from '../../data/planets'
 import { CAMERA_HOME_POSITION } from '../../data/camera'
-import { DEFAULT_SCALE } from '../../lib/scale'
+import { DEFAULT_SCALE, type ScaleConfig } from '../../lib/scale'
 import { useSolarSystemStore } from '../../store/solarSystemStore'
 
 /**
@@ -23,11 +22,19 @@ import { useSolarSystemStore } from '../../store/solarSystemStore'
 const DEFAULT_AMBIENT = 0.3
 
 /**
+ * leva 튜닝 패널 — DEV 빌드에서만 동적 import.
+ * prod 에선 import.meta.env.DEV 가 false 로 치환되어 이 삼항 분기가 죽고,
+ * `import('./DevControls')` 가 DCE 되어 DevControls + leva 가 prod 모듈
+ * 그래프에서 사라진다. (sub-2-7 [L7])
+ */
+const DevControls = import.meta.env.DEV
+  ? lazy(() => import('./DevControls'))
+  : null
+
+/**
  * Pale Blue Code — Phase 2: Solar System
  *
- * Scene — R3F Canvas 루트 + leva 전역 패널.
- *
- * leva 패널은 sub-phase 2-7 까지 유지 (dev only).
+ * Scene — R3F Canvas 루트.
  *
  * ─── sub-phase 2-5 [Light 5] 변경 (카메라 추적) ─────
  *   <CameraController /> 추가 — TimeAdvancer 직후, Planet/Sun useFrame *전*.
@@ -44,70 +51,31 @@ const DEFAULT_AMBIENT = 0.3
  *   CameraController home 보간 목표가 *같은 source*. 단일 진실.
  *
  * ─── sub-phase 2-7 [L2] 변경 (성능 계측) ────────────
- *   <Stats /> (drei) 를 dev 전용으로 추가. 좌상단 패널에 FPS / ms / MB 표시.
- *   "측정 먼저, 최적화 나중" — L3(DPR)/L4(적응형 품질) 의 손댈 곳을 *숫자가 지시*.
- *   prod 빌드엔 import.meta.env.DEV 가 false 라 렌더 자체가 안 됨.
+ *   <Stats /> (drei) 를 dev 전용으로 추가. prod 엔 DEV 가드로 안 들어감.
+ *
+ * ─── sub-phase 2-7 [L7] 변경 (leva prod 분리) ───────
+ *   leva 직접 import + 무조건 useControls 호출을 제거. Scale/Lighting 튜닝은
+ *   dev 전용 <DevControls> 로 격리하고 동적 import. prod 는 DEFAULT_SCALE /
+ *   DEFAULT_AMBIENT 고정값만 사용 → leva 가 prod 번들에서 빠짐.
+ *   leva 의 Time(dev) dropdown 은 ControlPanel 로 대체되어 제거.
  */
 export function Scene() {
-  const tunedScale = useControls('Scale', {
-    radiusExponent: {
-      value: DEFAULT_SCALE.radiusExponent,
-      min: 0,
-      max: 1,
-      step: 0.05,
-    },
-    radiusScale: {
-      value: DEFAULT_SCALE.radiusScale,
-      min: 0.5,
-      max: 3,
-      step: 0.1,
-    },
-    distanceExponent: {
-      value: DEFAULT_SCALE.distanceExponent,
-      min: 0,
-      max: 1,
-      step: 0.05,
-    },
-    distanceScale: {
-      value: DEFAULT_SCALE.distanceScale,
-      min: 5,
-      max: 30,
-      step: 0.5,
-    },
-  })
-
-  const tunedLighting = useControls('Lighting', {
-    ambient: {
-      value: DEFAULT_AMBIENT,
-      min: 0,
-      max: 1,
-      step: 0.05,
-    },
-  })
-
-  const tunedTime = useControls('Time (dev)', {
-    speed: {
-      value: 1,
-      options: {
-        '정지 (0)': 0,
-        '1x (1 day/sec)': 1,
-        '100x': 100,
-        '10000x': 10000,
-        '100000x': 100000,
-      },
-    },
-  })
-
-  useEffect(() => {
-    useSolarSystemStore.setState({ timeSpeed: tunedTime.speed })
-  }, [tunedTime.speed])
-
-  const scale = import.meta.env.DEV ? tunedScale : DEFAULT_SCALE
-  const ambient = import.meta.env.DEV ? tunedLighting.ambient : DEFAULT_AMBIENT
+  // 시각/조명 파라미터. prod 는 기본값 고정, dev 는 <DevControls>(leva)가 갱신.
+  const [scale, setScale] = useState<ScaleConfig>(DEFAULT_SCALE)
+  const [ambient, setAmbient] = useState(DEFAULT_AMBIENT)
 
   return (
     <>
-      <Leva hidden={!import.meta.env.DEV} />
+      {DevControls && (
+        <Suspense fallback={null}>
+          <DevControls
+            initialScale={DEFAULT_SCALE}
+            initialAmbient={DEFAULT_AMBIENT}
+            onScaleChange={setScale}
+            onAmbientChange={setAmbient}
+          />
+        </Suspense>
+      )}
 
       <Canvas
         camera={{
