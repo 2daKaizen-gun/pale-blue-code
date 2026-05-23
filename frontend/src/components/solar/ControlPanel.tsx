@@ -27,6 +27,11 @@ import { ToggleButton, IconButton } from './ControlButtons'
  * ─── sub-phase 2-7 [L1] 변경 ───────────────────────
  *   인라인 useIsTouchDevice + matchMedia 함수들을 hooks/useIsTouchDevice 로 추출.
  *   여기선 import 해서 속도 상한에만 사용. 동일 판정을 Scene/Planet/Starfield 도 공유(L4).
+ *
+ * ─── sub-phase 2-7 [L8] 변경 (모바일 반응형) ──────────
+ *   버튼 10개가 좁은 폰 폭을 넘쳐 라벨이 글자 단위로 깨지던 문제.
+ *   max-w(뷰포트-1rem) + overflow-x-auto + whitespace-nowrap → 좁으면 가로 스크롤,
+ *   라벨은 항상 한 줄 유지. bottom 도 모바일에선 살짝 내려 썸 영역에 맞춤.
  */
 
 const MOBILE_MAX_SPEED = 10_000
@@ -109,8 +114,8 @@ export function ControlPanel() {
   }, [])
 
   return (
-    <div className="fixed bottom-6 left-1/2 z-10 -translate-x-1/2">
-      <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 shadow-2xl backdrop-blur-md">
+    <div className="fixed bottom-4 md:bottom-6 left-1/2 z-10 -translate-x-1/2 max-w-[calc(100vw-1rem)]">
+      <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap rounded-2xl border border-white/10 bg-black/40 px-4 py-3 shadow-2xl backdrop-blur-md">
         {/* 정지 / 재생 (Space) */}
         <IconButton
           icon={isPaused ? '▶' : '⏸'}
