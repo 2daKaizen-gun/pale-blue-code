@@ -23,6 +23,7 @@ import {
   useSolarSystemStore,
   TRANSITION_DURATION_MS,
 } from '../../store/solarSystemStore'
+import { useIsTouchDevice } from '../../hooks/useIsTouchDevice'
 import { Ring } from './Ring'
 import { Moon } from './Moon'
 import { BodyLabel } from './BodyLabel'
@@ -75,6 +76,16 @@ type PlanetProps = {
  *
  *   *isSelected* selector — `selectedBodyId === data.id` boolean 비교라 다른 천체
  *   선택 시 결과 false 그대로 → re-render 없음. zustand 의 자연 패턴.
+ *
+ * ─── sub-phase 2-7 [L5] 변경 (모바일 탭=선택) ─────────
+ *   터치 기기에선 호버 단계를 건너뛴다. onPointerOver/Out 을 isTouch 로 가드 →
+ *   탭 = onClick = 선택(이름+tagline) + 카메라 추적으로 *바로* 진입.
+ *   이유: 커서 없는 폰에선 호버 미리보기가 무의미하고, 탭 시 합성 pointerover 가
+ *   isHovered 를 stuck 시킬 수 있음. 호버 2단계는 *데스크톱 마우스 전용 affordance*.
+ *   (Decision B — TechSpec §1 의 hover/long-press 2단계를 단순화. 2-7 Plan)
+ *
+ *   *리팩토링 후보*: 이 호버/선택/터치 로직이 Moon 과 동일. useBodyInteraction
+ *   훅으로 추출 가능 — 지금은 L5 범위 밖이라 보류 (회고에 기록).
  */
 export function Planet({ data, initialAngle, scale }: PlanetProps) {
   const groupRef = useRef<THREE.Group>(null)
@@ -84,6 +95,7 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
   const isSelected = useSolarSystemStore(
     (s) => s.selectedBodyId === data.id,
   )
+  const isTouch = useIsTouchDevice()
 
   const radius = computeVisualRadius(data.realRadius_km, scale)
   const AXIAL_TILT_RAD = (data.axialTilt_deg * Math.PI) / 180
@@ -96,6 +108,7 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
 
   // cursor 변경의 단일 책임. isHovered=true 진입 시 pointer, 떠날 때 (false 변화
   // 또는 unmount) cleanup 으로 auto 복원. 페이지 이동 시 stuck 자동 방어.
+  // (터치에선 isHovered 가 항상 false 라 이 effect 가 동작하지 않음)
   useEffect(() => {
     if (!isHovered) return
     document.body.style.cursor = 'pointer'
@@ -171,10 +184,12 @@ export function Planet({ data, initialAngle, scale }: PlanetProps) {
           ref={meshRef}
           onPointerOver={(e) => {
             e.stopPropagation()
+            if (isTouch) return // 터치: 호버 단계 없음 (탭=선택)
             setIsHovered(true)
           }}
           onPointerOut={(e) => {
             e.stopPropagation()
+            if (isTouch) return
             setIsHovered(false)
           }}
           onClick={(e) => {

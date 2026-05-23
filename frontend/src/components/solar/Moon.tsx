@@ -6,6 +6,7 @@ import type { MoonData } from '../../data/planets'
 import { type ScaleConfig, computeMoonVisualRadius } from '../../lib/scale'
 import { getMoonLocalOffset } from '../../lib/bodyPosition'
 import { useSolarSystemStore } from '../../store/solarSystemStore'
+import { useIsTouchDevice } from '../../hooks/useIsTouchDevice'
 import { BodyLabel } from './BodyLabel'
 
 type MoonProps = {
@@ -35,6 +36,10 @@ type MoonProps = {
  *
  * ─── 호버/선택 (Planet 과 동일 두 단계) ───────────────
  *   호버 = 이름만, 선택(클릭) = 이름 + tagline. selectedBodyId === 'moon' 구독.
+ *
+ * ─── sub-phase 2-7 [L5] 변경 (모바일 탭=선택) ─────────
+ *   Planet 과 동일 — 터치 기기에선 호버 단계를 건너뛰고 탭=선택. isTouch 가드.
+ *   (이 로직이 Planet 과 중복 → useBodyInteraction 추출 후보, 회고 기록)
  */
 export function Moon({ data, parentRealRadius_km, scale }: MoonProps) {
   const groupRef = useRef<THREE.Group>(null)
@@ -42,6 +47,7 @@ export function Moon({ data, parentRealRadius_km, scale }: MoonProps) {
   const texture = useTexture(data.texture)
   const [isHovered, setIsHovered] = useState(false)
   const isSelected = useSolarSystemStore((s) => s.selectedBodyId === 'moon')
+  const isTouch = useIsTouchDevice()
 
   const radius = computeMoonVisualRadius(
     data.realRadius_km,
@@ -50,6 +56,7 @@ export function Moon({ data, parentRealRadius_km, scale }: MoonProps) {
   )
 
   // cursor — Planet 과 동일. unmount/leave 시 auto 복원.
+  // (터치에선 isHovered 가 항상 false 라 동작 안 함)
   useEffect(() => {
     if (!isHovered) return
     document.body.style.cursor = 'pointer'
@@ -85,10 +92,12 @@ export function Moon({ data, parentRealRadius_km, scale }: MoonProps) {
         ref={meshRef}
         onPointerOver={(e) => {
           e.stopPropagation()
+          if (isTouch) return // 터치: 호버 단계 없음 (탭=선택)
           setIsHovered(true)
         }}
         onPointerOut={(e) => {
           e.stopPropagation()
+          if (isTouch) return
           setIsHovered(false)
         }}
         onClick={(e) => {
