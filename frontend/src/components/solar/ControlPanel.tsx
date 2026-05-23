@@ -1,9 +1,10 @@
-import { useEffect, useSyncExternalStore } from 'react'
+import { useEffect } from 'react'
 import {
   useSolarSystemStore,
   SPEED_OPTIONS,
   type SpeedOption,
 } from '../../store/solarSystemStore'
+import { useIsTouchDevice } from '../../hooks/useIsTouchDevice'
 import { ToggleButton, IconButton } from './ControlButtons'
 
 /**
@@ -22,35 +23,16 @@ import { ToggleButton, IconButton } from './ControlButtons'
  *
  * ─── 버튼 컴포넌트 (sub-2-6 L9) ────────────────────
  *   반복되던 버튼 스타일을 ToggleButton / IconButton 으로 추출 (ControlButtons.tsx).
+ *
+ * ─── sub-phase 2-7 [L1] 변경 ───────────────────────
+ *   인라인 useIsTouchDevice + matchMedia 함수들을 hooks/useIsTouchDevice 로 추출.
+ *   여기선 import 해서 속도 상한에만 사용. 동일 판정을 Scene/Planet/Starfield 도 공유(L4).
  */
 
 const MOBILE_MAX_SPEED = 10_000
-const COARSE_POINTER_QUERY = '(pointer: coarse)'
 
 function formatSpeed(speed: SpeedOption): string {
   return `${speed.toLocaleString('en-US')}×`
-}
-
-function subscribeCoarsePointer(callback: () => void): () => void {
-  const mq = window.matchMedia(COARSE_POINTER_QUERY)
-  mq.addEventListener('change', callback)
-  return () => mq.removeEventListener('change', callback)
-}
-
-function getCoarsePointerSnapshot(): boolean {
-  return window.matchMedia(COARSE_POINTER_QUERY).matches
-}
-
-function getCoarsePointerServerSnapshot(): boolean {
-  return false
-}
-
-function useIsTouchDevice(): boolean {
-  return useSyncExternalStore(
-    subscribeCoarsePointer,
-    getCoarsePointerSnapshot,
-    getCoarsePointerServerSnapshot,
-  )
 }
 
 export function ControlPanel() {
