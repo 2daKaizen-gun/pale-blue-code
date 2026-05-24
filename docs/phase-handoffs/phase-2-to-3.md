@@ -58,6 +58,8 @@
 - [ ] **모바일 탭=선택 / 제스처 비충돌** 실기기 정밀 확인
 - [ ] **L8 반응형 레이아웃** 갤럭시 최종 확인 (육안 OK 보고만)
 - [ ] **리팩토링**: `useBodyInteraction` 훅 추출 (Planet/Moon 호버·선택·터치 로직 완전 중복) — Issue 미생성, 회고에만 기록
+- [ ] **로드맵 8 vs 9 불일치** (phase-1-to-2 §4-2 부터 이월): `phases.ts` 는 9개 (0~8, Exoplanet 별도 Phase 5, **Hunt=8**) / README + COLLABORATION §1 은 8개 (0~7, Exoplanet 없음, **Hunt=7**). ⚠️ *로드맵 설계 결정* — Exoplanet 을 독립 Phase 로 둘지(문서→9) Data 에 합칠지(앱→8). **Phase 3 첫머리에 권이건과 확정 후 phases.ts / README / COLLABORATION 한 번에 동기화.**
+- [x] **APOD 비이미지 처리** (phase-1-to-2 §4 항목): 해결 — 비이미지는 youtube/vimeo만 임베드, 그 외 링크 폴백 (`fix(apod)`). apod.nasa.gov iframe 거부 버그 제거.
 
 ### Phase 3 시작 시 생성할 Issue 후보
 
