@@ -2,7 +2,7 @@
 
 **완료일**: 2026-05-23
 **소요 기간**: 약 2주 (2026-05-10 ~ 05-23, sub-2-1 ~ 2-7)
-**총 커밋**: (git log --oneline | wc -l 로 확정 — 너가 채워)
+**총 커밋**: 141개 (전체 프로젝트, Phase 0~2 누적 — `git rev-list --count HEAD`)
 **채팅 링크**: (Phase 2 채팅 URL — 너가 채워)
 
 ---
@@ -46,20 +46,25 @@
 ## 4. GitHub 진행 상태
 
 ### Milestone 현황
-- **Phase 2 — Solar System**: (종료 의식에서 close 예정 ✅)
+- **Phase 2 — Solar System**: **closed ✅** (2026-05-25, Release `v0.2.0`)
   - sub-phase Issue: **#10 ~ #16** (2-1 ~ 2-7)
   - #10~#15 closed, **#16(2-7) 은 마지막 커밋 `Closes #16` 으로 close**
   - Milestone URL: `https://github.com/2daKaizen-gun/pale-blue-code/milestones` (Phase 2 = 아마 `/milestone/2` — 번호 확인)
 
-### 인계 시점 미해결 항목 (⚠️ 데스크톱 검증 이월 — sub-2-7 미검증)
-- [ ] **Lighthouse Performance 85+** — 점수 미측정. 번들 입력값은 개선 확인. (`npm run build && preview` → DevTools Lighthouse Mobile)
-- [ ] **모바일 30fps+ 정량** — 육안 "괜찮음" 수준, Stats 수치 미기록
-- [ ] **라우트 왕복 Context Lost 스트레스** (`/solar`↔`/` 반복) 미검증
-- [ ] **모바일 탭=선택 / 제스처 비충돌** 실기기 정밀 확인
-- [ ] **L8 반응형 레이아웃** 갤럭시 최종 확인 (육안 OK 보고만)
-- [ ] **리팩토링**: `useBodyInteraction` 훅 추출 (Planet/Moon 호버·선택·터치 로직 완전 중복) — Issue 미생성, 회고에만 기록
-- [ ] **로드맵 8 vs 9 불일치** (phase-1-to-2 §4-2 부터 이월): `phases.ts` 는 9개 (0~8, Exoplanet 별도 Phase 5, **Hunt=8**) / README + COLLABORATION §1 은 8개 (0~7, Exoplanet 없음, **Hunt=7**). ⚠️ *로드맵 설계 결정* — Exoplanet 을 독립 Phase 로 둘지(문서→9) Data 에 합칠지(앱→8). **Phase 3 첫머리에 권이건과 확정 후 phases.ts / README / COLLABORATION 한 번에 동기화.**
-- [x] **APOD 비이미지 처리** (phase-1-to-2 §4 항목): 해결 — 비이미지는 youtube/vimeo만 임베드, 그 외 링크 폴백 (`fix(apod)`). apod.nasa.gov iframe 거부 버그 제거.
+### 인계 시점 미해결 항목 → Phase 3 첫머리에 정리 완료 (2026-05-25)
+- [x] **Lighthouse Performance 85+** — ✅ **85 달성** (CLS 수정 후). 데스크톱 검증 완료.
+- [x] **모바일 30fps+ 정량** — ✅ 60fps 유지 확인.
+- [x] **라우트 왕복 Context Lost 스트레스** (`/solar`↔`/` 반복) — ✅ 이상 없음.
+- [x] **모바일 탭=선택 / 제스처 비충돌** — ✅ 실기기 확인.
+- [x] **L8 반응형 레이아웃** 갤럭시 — ✅ 확인.
+- [x] **로드맵 8 vs 9 불일치** (phase-1-to-2 §4-2 부터 3-handoff 이월) — ✅ **9개로 확정.** `phases.ts` 정본, README + COLLABORATION 동기화 완료. Exoplanet=5 / Data=6 분리, Hunt=8. *세 번 이월된 스레드 종료.*
+- [x] **APOD 비이미지 처리** — ✅ 해결 (youtube/vimeo만 임베드, 그 외 링크 폴백, `fix(apod)`).
+- [ ] **리팩토링**: `useBodyInteraction` 훅 추출 (Planet/Moon 호버·선택·터치 로직 완전 중복) — *여전히 미해결.* Issue 미생성, Phase 3 백로그.
+
+**Phase 2 종료 후 추가 정리 (Phase 3 전환 중, v0.2.0 포함):**
+- [x] **CLS 수정** (`fix(apod)`): APOD 미디어 자리 예약 → CLS **0.368 → 0.028**, Performance **73 → 85**.
+- [x] **SEO 메타 + robots.txt** (`chore(seo)`): `<title>frontend`(Vite 기본값) 제거, meta description / OG / `robots.txt` 추가.
+- [ ] **`router.tsx` lint 7건** (`react-refresh/only-export-components`) — prod 빌드 무관(dev HMR 경고). Phase 3 백로그 `chore` 후보.
 
 ### Phase 3 시작 시 생성할 Issue 후보
 
