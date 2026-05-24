@@ -1,7 +1,7 @@
 # Phase 2 TechSpec — Solar System
 
 > *작성일: 2026-05-10*
-> *상태: Confirmed*
+> *상태: Confirmed — Phase 2 종료 (sub-2-7 완료, 2026-05-23)*
 > *PRD: ./PRD.md*
 
 > **2026-05-10 갱신 (1차)**: §1 의존성 버전을 *실제 설치본* 으로 정정. Phase 2 sub-phase 2-1 [Light 1] 의존성 설치 시 React 19 환경에 맞춰 R3F v9 / drei v10 으로 페어링. R3F 공식 매트릭스: v8→React 18, v9→React 19.
@@ -71,7 +71,7 @@ store 신규 액션: `selectBody`, `resetCameraView`, `yieldCameraControl` +
 | R3F 헬퍼 | **@react-three/drei 10.7+** | drei v9 (R3F v8용), 직접 구현 | OrbitControls / Stars / Html / Line 등 90% 케이스 커버. v10 = R3F v9 페어 |
 | 카메라 컨트롤 | drei `OrbitControls` | drei `CameraControls`, 커스텀 | 회전/줌/팬/터치 자동, Phase 2 범위에 정확히 맞음 |
 | 행성 클릭 카메라 패턴 | 추적 (공전 중에도 따라감) — custom tween + OrbitControls target 매 프레임 갱신 | 스냅 (클릭 순간 위치로 이동 후 정지) | 추적이 PRD §3 *"지구 클릭 시 달까지 같이 보인다"* 의 영혼 유지. 시간 정지 시 스냅 효과 자동 = 둘 다 만족 |
-| 호버 정보 패널 | drei `<Html>` 3D 라벨 (행성에 부착) | DOM 툴팁 (마우스 추종), 사이드바 고정 | *공간 안에 살아있는 우주* 의 영혼 보존. 모바일은 짧은 탭=hover / 긴 탭=click 분리 (sub-2-7) |
+| 호버 정보 패널 | drei `<Html>` 3D 라벨 (행성에 부착) | DOM 툴팁 (마우스 추종), 사이드바 고정 | *공간 안에 살아있는 우주* 의 영혼 보존. 모바일은 *탭=선택* 으로 단순화 (sub-2-7 L5, Decision B — 호버 미리보기는 데스크톱 마우스 전용 affordance) |
 | 카메라 리셋 | 별도 버튼 [🎥], ↺ 통합 리셋과 분리 | ↺ 통합 (시간+모드+카메라 다) | 카메라는 *탐험 도구* 성격, 단독 되돌림 빈도 높음 → 다른 의도 단위. sub-2-4 의 *통합* 과 *의식적으로 다른 결* |
 | 텍스처 출처 | Solar Textures 2K (CC-BY) | NASA Treks, 절차적 | 라이선스 명확, 용량 적정, 식별 가능한 디테일 |
 | 진실 모드 전환 (거리/자전) | 별도 두 토글 + 프리셋, 1.5초 보간 (easeInOutCubic) | 통합 한 토글, 즉시 점프 | UX 표준, *두 깨달음의 1초* 가 각각 보이게. 프리셋은 두 보간을 동기화 |
@@ -91,8 +91,8 @@ store 신규 액션: `selectBody`, `resetCameraView`, `yieldCameraControl` +
 | @react-three/fiber | 9.6.1 | React 19 짝꿍 |
 | @react-three/drei | 10.7.7 | R3F v9 짝꿍 |
 | three | 0.170.x | R3F v9 권장 범위 |
-| zustand | 4.5+ | 시간/모드 store |
-| vitest | 2.1+ | lib/time, lib/scale, lib/easing 등 순수 함수 TDD |
+| zustand | 5.0.13 | 시간/모드 store (실제 설치본 — 매트릭스의 "4.5+" 는 오기, sub-2-7 정정) |
+| vitest | 4.1.6 | lib/time, lib/scale, lib/easing 등 순수 함수 TDD (실제 설치본 — "2.1+" 는 오기, sub-2-7 정정) |
 
 ---
 
