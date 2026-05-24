@@ -59,7 +59,9 @@ export default function ApodCard({ apod }: Props) {
         <img
           src={apod.url}
           alt={apod.title}
-          className="w-full rounded-lg mb-4 border border-cosmos-border"
+          fetchPriority="high"
+          decoding="async"
+          className="aspect-video w-full rounded-lg mb-4 border border-cosmos-border bg-cosmos-surface object-contain"
         />
       ) : embedUrl ? (
         <iframe
