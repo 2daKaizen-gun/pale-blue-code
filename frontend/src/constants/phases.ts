@@ -36,7 +36,7 @@ export const PHASES: Phase[] = [
     title: 'Solar System',
     subtitle: '태양계',
     question: '우리가 아는 우주는 어떻게 생겼는가?',
-    status: 'in-progress',
+    status: 'done',
   },
   {
     number: 3,
