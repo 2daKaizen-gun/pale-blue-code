@@ -7,10 +7,10 @@
 
 <br/>
 
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
-![Three.js](https://img.shields.io/badge/Three.js-r160-000000?logo=three.js&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![Three.js](https://img.shields.io/badge/Three.js-r170-000000?logo=three.js&logoColor=white)
 ![D3.js](https://img.shields.io/badge/D3.js-7-F9A03C?logo=d3.js&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white)
@@ -75,7 +75,7 @@
 ### Frontend
 | 카테고리 | 기술 |
 |---|---|
-| Framework | React 18, TypeScript 5 |
+| Framework | React 19, TypeScript 6 |
 | Build Tool | Vite |
 | 2D 시각화 | D3.js, Plotly.js |
 | 3D 시각화 | Three.js, React Three Fiber |
