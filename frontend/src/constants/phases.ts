@@ -45,7 +45,7 @@ export const PHASES: Phase[] = [
     title: 'Gravity',
     subtitle: '중력',
     question: '우주는 무엇으로 움직이는가?',
-    status: 'planned',
+    status: 'in-progress',
   },
   {
     number: 4,
