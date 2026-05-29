@@ -1,157 +1,61 @@
-import { lazy, Suspense, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Stats } from '@react-three/drei'
-import { Planet } from './Planet'
-import { Sun } from './Sun'
-import { TimeAdvancer } from './TimeAdvancer'
-import { CameraController } from './CameraController'
-import { OrbitPath } from './OrbitPath'
-import { Starfield } from './Starfield'
-import { PLANETS, getInitialAngle } from '../../data/planets'
-import { CAMERA_HOME_POSITION } from '../../data/camera'
-import { DEFAULT_SCALE, type ScaleConfig } from '../../lib/scale'
-import { useSolarSystemStore } from '../../store/solarSystemStore'
+import { OrbitControls, Stars, Stats } from '@react-three/drei'
 
 /**
- * sub-phase 2-2 [Light 9] 손튜닝 결과:
- *   - DEFAULT_AMBIENT: 0.15 → 0.3 (행성 밤 면 식별 가능)
- *   - 카메라 position: [0, 30, 70] → [0, 60, 150]
- *     ([Light 7] 갱신: `data/camera.ts` 의 CAMERA_HOME_POSITION 으로 추출 — Scene
- *      초기값과 CameraController home 보간 목표가 *같은 상수* 가리킴)
- */
-const DEFAULT_AMBIENT = 0.3
-
-/**
- * leva 튜닝 패널 — DEV 빌드에서만 동적 import.
- * prod 에선 import.meta.env.DEV 가 false 로 치환되어 이 삼항 분기가 죽고,
- * `import('./DevControls')` 가 DCE 되어 DevControls + leva 가 prod 모듈
- * 그래프에서 사라진다. (sub-2-7 [L7])
- */
-const DevControls = import.meta.env.DEV
-  ? lazy(() => import('./DevControls'))
-  : null
-
-/**
- * dpr 캡 — 모듈 상수로 고정. 인라인 [1,2] 는 매 렌더 새 배열이라 R3F 가 매번
- * dpr 변경으로 인식해 setPixelRatio 를 반복 호출. 안정 참조로 불필요한 재설정 차단.
- */
-const DPR: [number, number] = [1, 2]
-
-/**
- * Pale Blue Code — Phase 2: Solar System
+ * Pale Blue Code — Phase 3: Gravity
  *
  * Scene — R3F Canvas 루트.
  *
- * ─── sub-phase 2-5 [Light 5] 변경 (카메라 추적) ─────
- *   <CameraController /> 추가 — TimeAdvancer 직후, Planet/Sun useFrame *전*.
+ * Phase 2 Scene 패턴을 *의식적으로* 미러링 (sub-2-7 결정의 상속):
+ *   - DPR 캡 [1, 2] 모듈 상수 (인라인 배열은 매 렌더 새 참조 →
+ *     setPixelRatio 반복 호출. 안정 참조로 차단)
+ *   - dev 전용 <Stats /> — prod 는 DEV 가드로 제외
+ *   - CSS var 배경 (디자인 토큰 단일 source)
  *
- * ─── sub-phase 2-5 [Light 6] 변경 (사용자 카메라 충돌 해소) ─
- *   OrbitControls onStart → deselectBody (이때).
+ * Phase 2 와 다른 점 (의식적):
+ *   - **텍스처 0** → useTexture suspend 없음 → *안쪽 <Suspense> 불필요*.
+ *     (sub-2-7 [L3 fix] 의 Context Lost 는 텍스처 suspend 가 라우트
+ *     Suspense 까지 올라가서 Canvas 언마운트 → WebGL 컨텍스트 한도 초과
+ *     였음. 3-3 은 절차적 sphere/line 만 쓰니 suspend source 가 0.
+ *     3-4 태양계 프리셋이 텍스처 도입 시 그때 패턴 복원.)
+ *   - leva 없음 (3-5 ε/dt 튜닝 들어오면 DevControls 도입)
+ *   - CameraController 없음 (3-5 선택/추적 도입 시)
+ *   - 라이팅 0 — 별은 meshBasicMaterial 자체발광 (Light 3 결정).
  *
- * ─── sub-phase 2-5 [Light 7] 변경 (카메라 home 통합) ──
- *   onStart 호출을 yieldCameraControl 로 *교체*. 의미 확장:
- *     - Light 6: 단순히 selection 해제
- *     - Light 7: selection 해제 + 카메라 자동 제어 양도 (home 보간 중이어도 정지)
+ * 채워질 구멍 (3-3 안에서):
+ *   - <Bodies /> ← Light 3   (bodiesRef → mesh 위치 매 프레임)
+ *   - <Integrator /> ← Light 4 (useFrame substep, ref 교체)
+ *   - <Trails /> ← Light 6   (ring-buffer 페이드 라인)
  *
- *   home 위치를 `data/camera.ts` 의 CAMERA_HOME_POSITION 상수로 — Scene 초기값과
- *   CameraController home 보간 목표가 *같은 source*. 단일 진실.
- *
- * ─── sub-phase 2-7 [L2] 변경 (성능 계측) ────────────
- *   <Stats /> (drei) 를 dev 전용으로 추가. prod 엔 DEV 가드로 안 들어감.
- *
- * ─── sub-phase 2-7 [L7] 변경 (leva prod 분리) ───────
- *   leva 직접 import + 무조건 useControls 호출을 제거. Scale/Lighting 튜닝은
- *   dev 전용 <DevControls> 로 격리하고 동적 import. prod 는 DEFAULT_SCALE /
- *   DEFAULT_AMBIENT 고정값만 사용 → leva 가 prod 번들에서 빠짐.
- *   leva 의 Time(dev) dropdown 은 ControlPanel 로 대체되어 제거.
- *
- * ─── sub-phase 2-7 [L3] 변경 (DPR 캡) ───────────────
- *   Canvas dpr={DPR} (=[1, 2]). device pixel ratio 를 1~2 로 제한.
- *   고해상도 폰(DPR 3)은 픽셀을 9배(3²) 렌더 — fps 병목 1순위(측정 기반).
- *   2 로 캡하면 최대 4배(2²)로, 시각 차이는 거의 없이(이미 retina) fill-rate 절약.
- *   min 1: 저DPR 화면에서 native 아래로 안 내려감.
- *
- * ─── sub-phase 2-7 [L3 fix] WebGL Context Lost 해결 ──
- *   증상: L6(라우트 Suspense) 도입 후 dev 에서 까만 화면 + 6 FPS + Context Lost.
- *   원인: Planet/Sun 의 useTexture suspend 가 *Canvas 안에 경계가 없어* AppLayout
- *   의 라우트 Suspense 까지 전파 → SolarPage/Canvas 언마운트 → 텍스처 dispose →
- *   리마운트 → 재 suspend → 루프 → WebGL 컨텍스트 한도 초과 → Context Lost.
- *   해결: 텍스처를 쓰는 Sun + Planets 를 *Canvas 안쪽 <Suspense>* 로 감쌈.
- *   suspend 가 여기서 잡혀 라우트 경계까지 못 올라감 → Canvas 는 절대 언마운트
- *   안 됨 → 컨텍스트 1회 생성 후 유지. (R3F 표준 패턴)
+ * 카메라: TWO_BODY 프리셋 (separation=1, body radius=0.05) 기준 인라인 상수.
+ * 3-4 멀티 프리셋 도입 시 *프리셋이 카메라 메타 보유* 또는 동적 조정으로 분기.
  */
+
+const DPR: [number, number] = [1, 2]
+const CAMERA_POSITION: [number, number, number] = [0, 0, 3]
+
 export function Scene() {
-  // 시각/조명 파라미터. prod 는 기본값 고정, dev 는 <DevControls>(leva)가 갱신.
-  const [scale, setScale] = useState<ScaleConfig>(DEFAULT_SCALE)
-  const [ambient, setAmbient] = useState(DEFAULT_AMBIENT)
-
   return (
-    <>
-      {DevControls && (
-        <Suspense fallback={null}>
-          <DevControls
-            initialScale={DEFAULT_SCALE}
-            initialAmbient={DEFAULT_AMBIENT}
-            onScaleChange={setScale}
-            onAmbientChange={setAmbient}
-          />
-        </Suspense>
-      )}
+    <Canvas
+      dpr={DPR}
+      camera={{ position: CAMERA_POSITION, fov: 50, near: 0.01, far: 100 }}
+      style={{ background: 'var(--color-cosmos-bg, #000)' }}
+    >
+      {import.meta.env.DEV && <Stats />}
 
-      <Canvas
-        dpr={DPR}
-        camera={{
-          position: [...CAMERA_HOME_POSITION], // 단일 source — data/camera.ts
-          fov: 50,
-          near: 0.1,
-          far: 1000,
-        }}
-        style={{ background: 'var(--color-cosmos-bg, #000)' }}
-      >
-        {import.meta.env.DEV && <Stats />}
+      <Stars radius={50} depth={50} count={1000} factor={2} fade />
 
-        <TimeAdvancer />
+      {/* <Bodies />     ← Light 3 */}
+      {/* <Integrator /> ← Light 4 */}
+      {/* <Trails />     ← Light 6 */}
 
-        <CameraController scale={scale} />
-
-        <Starfield />
-
-        <ambientLight intensity={ambient} />
-
-        {/* 텍스처 로딩(useTexture)이 여기서 suspend → 라우트 Suspense 까지 안 올라감
-            → Canvas 언마운트/Context Lost 방지 (sub-2-7 [L3 fix]) */}
-        <Suspense fallback={null}>
-          <Sun scale={scale} />
-
-          {PLANETS.map((planet) => {
-            const initialAngle = getInitialAngle(planet.id)
-            return (
-              <group key={planet.id}>
-                <OrbitPath
-                  realDistanceKm={planet.realDistance_km}
-                  scale={scale}
-                />
-                <Planet
-                  data={planet}
-                  initialAngle={initialAngle}
-                  scale={scale}
-                />
-              </group>
-            )
-          })}
-        </Suspense>
-
-        <OrbitControls
-          makeDefault
-          enableDamping
-          dampingFactor={0.05}
-          minDistance={10}
-          maxDistance={300}
-          onStart={() =>
-            useSolarSystemStore.getState().yieldCameraControl()
-          }
-        />
-      </Canvas>
-    </>
+      <OrbitControls
+        makeDefault
+        enableDamping
+        dampingFactor={0.05}
+        minDistance={0.5}
+        maxDistance={20}
+      />
+    </Canvas>
   )
 }
