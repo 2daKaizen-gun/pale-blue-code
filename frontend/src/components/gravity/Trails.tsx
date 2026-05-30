@@ -6,24 +6,25 @@ import {
   Color,
   Line,
   LineBasicMaterial,
-  AdditiveBlending,
 } from 'three'
 import { RingBuffer } from '../../lib/util/ringBuffer'
 import type { SystemState } from '../../lib/physics/types'
 import type { PresetBody } from '../../data/presets'
 
 interface TrailsProps {
-  /** Read-only here — Integrator owns writes; Trails just samples positions. */
   bodiesRef: React.RefObject<SystemState>
-  /** Render metadata (color per body). Index-aligned with `bodiesRef.current`. */
   presetBodies: PresetBody[]
 }
 
-/**
- * Trail length per body. ~2.3 orbits at TWO_BODY pace (T ≈ 4.44 sim-sec
- * × 60 fps = 266 frame/orbit; 600 / 266 ≈ 2.3).
- */
 const TRAIL_CAPACITY = 600
+
+/**
+ * Tiny per-body z-stagger so coplanar trails don't fight for the same
+ * depth slot. 0.001 world-units at camera z=3 → sub-pixel parallax,
+ * visually invisible, but enough for the depth buffer to keep each
+ * trail in its own slice. Body i lives at z = i · STAGGER.
+ */
+const Z_STAGGER = 0.001
 
 interface TrailResource {
   buffer: RingBuffer
@@ -36,37 +37,39 @@ interface TrailResource {
 /**
  * Render per-body trails as fade-out lines.
  *
- * Imperative `THREE.Line` + `<primitive object=...>` instead of the
- * `<line>` JSX intrinsic — the latter collides with SVG's `<line>` in
- * R3F v9 / React 19 typings.
+ * Imperative `THREE.Line` + `<primitive>` instead of the `<line>` JSX
+ * intrinsic (collides with SVG's `<line>` in R3F v9 / React 19).
  *
- * Per-vertex alpha via `vertexColors: true`: each trail vertex carries
- * an RGB color that fades from `body.color` (newest) to black (oldest).
+ * ─── Compositing: per-body z-stagger (sub-3-3 [L6] final) ───
+ *   Two trails on the *same* XY plane → identical depth → submission
+ *   order alone decides per pixel → the body drawn last (here: B,
+ *   teal) opaquely *covers* A (gold) over the whole orbit, even where
+ *   A passed *after* B. Symptom: only the most recent arc of A is
+ *   visible because the rest is under B's line.
  *
- * ─── Compositing: additive blending (sub-3-3 [L6] fix) ───
- *   Two trails on the same XY plane sit at identical depth → without
- *   special blending, three.js draws them in submission order and the
- *   second trail *opaquely covers* the first (the symptom: one body's
- *   color "disappears" wherever both have been). Fixes:
+ *   Tried and rejected:
+ *     (×) Additive blending — sums to white where they cross; star
+ *         identities blur.
+ *     (×) `depthTest: false` alone — still picks one winner per pixel.
  *
- *     (a) `depthTest: false` + `transparent: true` — lines just stack,
- *         later draw wins. Bodies-on-trail order still matters.
- *     (b) `blending: AdditiveBlending` — colors *sum* in the framebuffer.
- *         On a black background this is physically the right model for
- *         starlight (light adds, never subtracts) and where two trails
- *         cross they get *brighter*, not "one wins".
+ *   Fix: stagger the `Line.position.z` per body by `Z_STAGGER` (0.001
+ *   world-units). At camera z=3 this is well below one pixel of
+ *   parallax → visually identical to coplanar — but three.js depth-
+ *   sorts per object and each trail gets its own slice. Geometry
+ *   itself stays XY (the physics is 2D); only the *Line container*
+ *   nudges in z.
  *
- *   We pick (b). `depthWrite: false` so the line doesn't poison the
- *   depth buffer for the sphere bodies (which want correct depth).
+ *   `depthWrite: false` so trails don't poison depth for the spheres
+ *   (which still want correct occlusion when 3-4 brings non-coplanar
+ *   bodies).
  *
  * Per-frame work (allocations: 0):
  *   1. `RingBuffer.push(x, y, z)` the current body position.
  *   2. `forEach` (oldest → newest) writes position + per-vertex color.
  *   3. `drawRange(0, length)` gates the GPU read past the live tail.
  *
- * 🌌 What you see: in the same dt, the body covers more arc when near
- * perihelion (faster) than near aphelion (slower) → trail dots end up
- * *sparser at perihelion, denser at aphelion*. Kepler's 2nd law made
+ * 🌌 What you see: same dt, faster near perihelion → fewer dots there,
+ * slower near aphelion → more dots there. Kepler's 2nd law made
  * visible as dot density. sub-3-2 proved L conservation to 10 digits;
  * Trails draw that proof.
  */
@@ -74,7 +77,7 @@ export function Trails({ bodiesRef, presetBodies }: TrailsProps) {
   const n = presetBodies.length
 
   const resources = useMemo<TrailResource[]>(() => {
-    return presetBodies.map((body) => {
+    return presetBodies.map((body, i) => {
       const geometry = new BufferGeometry()
       geometry.setAttribute(
         'position',
@@ -87,11 +90,10 @@ export function Trails({ bodiesRef, presetBodies }: TrailsProps) {
       geometry.setDrawRange(0, 0)
       const material = new LineBasicMaterial({
         vertexColors: true,
-        transparent: true,
-        blending: AdditiveBlending,
         depthWrite: false, // don't occlude the spheres
       })
       const line = new Line(geometry, material)
+      line.position.z = i * Z_STAGGER // own depth slice
       return {
         buffer: new RingBuffer(TRAIL_CAPACITY),
         geometry,
