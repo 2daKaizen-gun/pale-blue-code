@@ -1,12 +1,17 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stats } from '@react-three/drei'
 import { Bodies } from './Bodies'
+import { Integrator } from './Integrator'
 import type { SystemState } from '../../lib/physics/types'
 import type { PresetBody } from '../../data/presets'
 
 interface SceneProps {
   bodiesRef: React.RefObject<SystemState>
   presetBodies: PresetBody[]
+  /** Physics knobs from the active preset (3-3: TWO_BODY only). */
+  G: number
+  softening: number
+  dt: number
 }
 
 /**
@@ -15,38 +20,30 @@ interface SceneProps {
  * Scene — R3F Canvas 루트.
  *
  * Phase 2 Scene 패턴을 *의식적으로* 미러링 (sub-2-7 결정의 상속):
- *   - DPR 캡 [1, 2] 모듈 상수 (인라인 배열은 매 렌더 새 참조 →
- *     setPixelRatio 반복 호출. 안정 참조로 차단)
+ *   - DPR 캡 [1, 2] 모듈 상수
  *   - dev 전용 <Stats /> — prod 는 DEV 가드로 제외
  *   - CSS var 배경
  *
  * Phase 2 와 다른 점 (의식적):
- *   - **텍스처 0** → useTexture suspend 없음 → 안쪽 <Suspense> 불필요.
- *     (sub-2-7 [L3 fix] 패턴은 3-4 태양계 프리셋이 텍스처 도입 시 복원)
- *   - leva 없음 (3-5 ε/dt 튜닝 들어오면 DevControls 도입)
- *   - CameraController 없음 (3-5 선택/추적 도입 시)
+ *   - 텍스처 0 → useTexture suspend 없음 → 안쪽 <Suspense> 불필요
+ *     (3-4 태양계 프리셋이 텍스처 도입 시 복원)
+ *   - leva 없음 (3-5)
+ *   - CameraController 없음 (3-5)
  *   - 라이팅 0 — 별은 meshBasicMaterial 자체발광
- *   - Stars 없음 — Light 2 bisect 에서 drei v10 매트릭스 깨짐 확인.
- *     3-3 본질 아님. drei docs 재확인 후 복원 (회고 후보).
+ *   - Stars 없음 — drei v10 매트릭스 깨짐 (회고 후보)
  *
  * 채워질 구멍 (3-3 안에서):
- *   - <Bodies /> ← Light 3 ✅  (bodiesRef → mesh 위치 매 프레임)
- *   - <Integrator /> ← Light 4 (useFrame substep, ref 교체)
+ *   - <Bodies /> ← Light 3 ✅
+ *   - <Integrator /> ← Light 4 ✅  (매 프레임 ref 교체 = 별이 움직임)
  *   - <Trails /> ← Light 6 (ring-buffer 페이드 라인)
  *
- * 카메라: TWO_BODY 프리셋 (separation=1, body radius=0.05) 기준 인라인 상수.
- * 3-4 멀티 프리셋 도입 시 *프리셋이 카메라 메타 보유* 또는 동적 조정으로 분기.
- *
- * Props (bodiesRef / presetBodies):
- *   ref 는 GravityPage 가 소유 (Canvas 안/밖 공통 조상). 3-4 에서
- *   ControlPanel 의 프리셋 셀렉터가 Page 의 useEffect 를 통해 ref 를
- *   재초기화 — 같은 ref 를 Scene 이 자식들에게 props 로 내림. 단순.
+ * 카메라: TWO_BODY 기준 인라인 상수. 3-4 멀티 프리셋 시 분기.
  */
 
 const DPR: [number, number] = [1, 2]
 const CAMERA_POSITION: [number, number, number] = [0, 0, 3]
 
-export function Scene({ bodiesRef, presetBodies }: SceneProps) {
+export function Scene({ bodiesRef, presetBodies, G, softening, dt }: SceneProps) {
   return (
     <Canvas
       dpr={DPR}
@@ -55,10 +52,10 @@ export function Scene({ bodiesRef, presetBodies }: SceneProps) {
     >
       {import.meta.env.DEV && <Stats />}
 
+      <Integrator bodiesRef={bodiesRef} G={G} softening={softening} dt={dt} />
       <Bodies bodiesRef={bodiesRef} presetBodies={presetBodies} />
 
-      {/* <Integrator /> ← Light 4 */}
-      {/* <Trails />     ← Light 6 */}
+      {/* <Trails /> ← Light 6 */}
 
       <OrbitControls
         makeDefault
