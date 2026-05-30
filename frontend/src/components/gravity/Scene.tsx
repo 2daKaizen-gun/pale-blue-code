@@ -1,5 +1,13 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stats } from '@react-three/drei'
+import { Bodies } from './Bodies'
+import type { SystemState } from '../../lib/physics/types'
+import type { PresetBody } from '../../data/presets'
+
+interface SceneProps {
+  bodiesRef: React.RefObject<SystemState>
+  presetBodies: PresetBody[]
+}
 
 /**
  * Pale Blue Code — Phase 3: Gravity
@@ -17,25 +25,28 @@ import { OrbitControls, Stats } from '@react-three/drei'
  *     (sub-2-7 [L3 fix] 패턴은 3-4 태양계 프리셋이 텍스처 도입 시 복원)
  *   - leva 없음 (3-5 ε/dt 튜닝 들어오면 DevControls 도입)
  *   - CameraController 없음 (3-5 선택/추적 도입 시)
- *   - 라이팅 0 — 별은 meshBasicMaterial 자체발광 (Light 3 결정)
- *   - **Stars 없음** — Light 2 bisect 디버그에서 drei v10 Stars 가
- *     R3F v9 / three 0.170 매트릭스에서 *조용히* 안 그려짐을 확인.
- *     배경별은 3-3 본질 아니라 Light 2 차단할 이유 없음. drei docs
- *     재확인 후 복원 (리팩토링 후보, sub-3-3 회고에 기록).
+ *   - 라이팅 0 — 별은 meshBasicMaterial 자체발광
+ *   - Stars 없음 — Light 2 bisect 에서 drei v10 매트릭스 깨짐 확인.
+ *     3-3 본질 아님. drei docs 재확인 후 복원 (회고 후보).
  *
  * 채워질 구멍 (3-3 안에서):
- *   - <Bodies /> ← Light 3 (bodiesRef → mesh 위치 매 프레임)
+ *   - <Bodies /> ← Light 3 ✅  (bodiesRef → mesh 위치 매 프레임)
  *   - <Integrator /> ← Light 4 (useFrame substep, ref 교체)
  *   - <Trails /> ← Light 6 (ring-buffer 페이드 라인)
  *
  * 카메라: TWO_BODY 프리셋 (separation=1, body radius=0.05) 기준 인라인 상수.
  * 3-4 멀티 프리셋 도입 시 *프리셋이 카메라 메타 보유* 또는 동적 조정으로 분기.
+ *
+ * Props (bodiesRef / presetBodies):
+ *   ref 는 GravityPage 가 소유 (Canvas 안/밖 공통 조상). 3-4 에서
+ *   ControlPanel 의 프리셋 셀렉터가 Page 의 useEffect 를 통해 ref 를
+ *   재초기화 — 같은 ref 를 Scene 이 자식들에게 props 로 내림. 단순.
  */
 
 const DPR: [number, number] = [1, 2]
 const CAMERA_POSITION: [number, number, number] = [0, 0, 3]
 
-export function Scene() {
+export function Scene({ bodiesRef, presetBodies }: SceneProps) {
   return (
     <Canvas
       dpr={DPR}
@@ -44,7 +55,8 @@ export function Scene() {
     >
       {import.meta.env.DEV && <Stats />}
 
-      {/* <Bodies />     ← Light 3 */}
+      <Bodies bodiesRef={bodiesRef} presetBodies={presetBodies} />
+
       {/* <Integrator /> ← Light 4 */}
       {/* <Trails />     ← Light 6 */}
 
