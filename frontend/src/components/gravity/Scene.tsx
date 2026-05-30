@@ -2,6 +2,7 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stats } from '@react-three/drei'
 import { Bodies } from './Bodies'
 import { Integrator } from './Integrator'
+import { Trails } from './Trails'
 import type { SystemState } from '../../lib/physics/types'
 import type { PresetBody } from '../../data/presets'
 
@@ -32,10 +33,10 @@ interface SceneProps {
  *   - 라이팅 0 — 별은 meshBasicMaterial 자체발광
  *   - Stars 없음 — drei v10 매트릭스 깨짐 (회고 후보)
  *
- * 채워질 구멍 (3-3 안에서):
+ * 채워진 구멍:
  *   - <Bodies /> ← Light 3 ✅
- *   - <Integrator /> ← Light 4 ✅  (매 프레임 ref 교체 = 별이 움직임)
- *   - <Trails /> ← Light 6 (ring-buffer 페이드 라인)
+ *   - <Integrator /> ← Light 4 ✅
+ *   - <Trails /> ← Light 6 ✅  (페이드 라인 = 케플러 2법칙 시각화)
  *
  * 카메라: TWO_BODY 기준 인라인 상수. 3-4 멀티 프리셋 시 분기.
  */
@@ -53,9 +54,8 @@ export function Scene({ bodiesRef, presetBodies, G, softening, dt }: SceneProps)
       {import.meta.env.DEV && <Stats />}
 
       <Integrator bodiesRef={bodiesRef} G={G} softening={softening} dt={dt} />
+      <Trails bodiesRef={bodiesRef} presetBodies={presetBodies} />
       <Bodies bodiesRef={bodiesRef} presetBodies={presetBodies} />
-
-      {/* <Trails /> ← Light 6 */}
 
       <OrbitControls
         makeDefault
