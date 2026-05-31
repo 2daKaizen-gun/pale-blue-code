@@ -25,11 +25,21 @@ export class RingBuffer {
   private head = 0
   /** How many points are currently stored (≤ capacity). */
   private size = 0
+  /**
+   * Fixed capacity in points. Declared as a field + assigned in the
+   * constructor body rather than a `constructor(public readonly ...)`
+   * parameter property: the latter emits `this.capacity = capacity` at
+   * runtime, which `erasableSyntaxOnly` (tsconfig) forbids — TS-only
+   * syntax must be erasable without changing runtime behavior. Public
+   * API is unchanged.
+   */
+  public readonly capacity: number
 
-  constructor(public readonly capacity: number) {
+  constructor(capacity: number) {
     if (!Number.isInteger(capacity) || capacity <= 0) {
       throw new Error(`RingBuffer capacity must be a positive integer, got ${capacity}`)
     }
+    this.capacity = capacity
     this.buf = new Float32Array(capacity * 3)
   }
 
