@@ -23,6 +23,11 @@ export type SunData = {
 
   // 실제 값
   realRadius_km: number             // 지구의 약 109배 — 시각 압축 후에도 가장 큰 천체
+  /**
+   * 실제 질량 (kg). 태양계 전체 질량의 99.86%. Phase 3 N-body 프리셋의
+   * 질량 정규화 기준 (planet.mass_kg / SUN.mass_kg = M_sun 단위 질량).
+   */
+  mass_kg: number
   rotationPeriod_hours: number      // 적도 기준 (위도마다 다른 *차등 회전*)
   surfaceTemperature_K: number      // 광구 온도 (참고용)
 
@@ -39,6 +44,7 @@ export const SUN: SunData = {
   name: { ko: '태양', en: 'Sun' },
   taglineEn: 'The center of everything',
   realRadius_km: 695_700,
+  mass_kg: 1.989e30,
   rotationPeriod_hours: 609.12,
   surfaceTemperature_K: 5778,
   texture: '/textures/planets/sun.jpg',

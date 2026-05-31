@@ -67,6 +67,12 @@ export type PlanetData = {
   taglineEn: string
 
   realRadius_km: number
+  /**
+   * 실제 질량 (kg, NASA Fact Sheet). Phase 2 는 미사용 — Phase 3 N-body
+   * 프리셋(data/presets.ts)이 M_sun 단위로 정규화해 중력 계산에 쓴다.
+   * data 레이어 철학대로 *real 값만* 보관, 정규화는 preset 레이어 책임.
+   */
+  mass_kg: number
   realDistance_km: number
   orbitalPeriod_days: number
   rotationPeriod_hours: number
@@ -87,6 +93,7 @@ export const PLANETS: readonly PlanetData[] = [
     name: { ko: '수성', en: 'Mercury' },
     taglineEn: 'Closest to the sun, scorched and silent',
     realRadius_km: 2_439.7,
+    mass_kg: 3.301e23,
     realDistance_km: 57_900_000,
     orbitalPeriod_days: 88,
     rotationPeriod_hours: 1407.6,
@@ -100,6 +107,7 @@ export const PLANETS: readonly PlanetData[] = [
     name: { ko: '금성', en: 'Venus' },
     taglineEn: 'Hottest world, hidden by sulfuric clouds',
     realRadius_km: 6_051.8,
+    mass_kg: 4.867e24,
     realDistance_km: 108_200_000,
     orbitalPeriod_days: 224.7,
     rotationPeriod_hours: -5832.5,
@@ -113,6 +121,7 @@ export const PLANETS: readonly PlanetData[] = [
     name: { ko: '지구', en: 'Earth' },
     taglineEn: 'The pale blue dot — our only home',
     realRadius_km: 6_371,
+    mass_kg: 5.972e24,
     realDistance_km: 149_600_000,
     orbitalPeriod_days: 365.25,
     rotationPeriod_hours: 23.93,
@@ -135,6 +144,7 @@ export const PLANETS: readonly PlanetData[] = [
     name: { ko: '화성', en: 'Mars' },
     taglineEn: 'The red planet, painted by iron rust',
     realRadius_km: 3_389.5,
+    mass_kg: 6.417e23,
     realDistance_km: 227_900_000,
     orbitalPeriod_days: 687,
     rotationPeriod_hours: 24.62,
@@ -148,6 +158,7 @@ export const PLANETS: readonly PlanetData[] = [
     name: { ko: '목성', en: 'Jupiter' },
     taglineEn: 'Bigger than all the rest combined',
     realRadius_km: 69_911,
+    mass_kg: 1.898e27,
     realDistance_km: 778_600_000,
     orbitalPeriod_days: 4_331,
     rotationPeriod_hours: 9.93,
@@ -161,6 +172,7 @@ export const PLANETS: readonly PlanetData[] = [
     name: { ko: '토성', en: 'Saturn' },
     taglineEn: 'Ringed giant, lighter than water',
     realRadius_km: 58_232,
+    mass_kg: 5.683e26,
     realDistance_km: 1_433_500_000,
     orbitalPeriod_days: 10_747,
     rotationPeriod_hours: 10.66,
@@ -180,6 +192,7 @@ export const PLANETS: readonly PlanetData[] = [
     name: { ko: '천왕성', en: 'Uranus' },
     taglineEn: 'Tilted sideways, rolling through orbit',
     realRadius_km: 25_362,
+    mass_kg: 8.681e25,
     realDistance_km: 2_872_500_000,
     orbitalPeriod_days: 30_589,
     rotationPeriod_hours: -17.24,
@@ -200,6 +213,7 @@ export const PLANETS: readonly PlanetData[] = [
     name: { ko: '해왕성', en: 'Neptune' },
     taglineEn: 'Predicted by math before ever seen',
     realRadius_km: 24_622,
+    mass_kg: 1.024e26,
     realDistance_km: 4_495_100_000,
     orbitalPeriod_days: 59_800,
     rotationPeriod_hours: 16.11,
