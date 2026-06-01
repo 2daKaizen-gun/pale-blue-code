@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Scene } from '../components/gravity/Scene'
 import { PresetSelector } from '../components/gravity/PresetSelector'
+import { ControlPanel } from '../components/gravity/ControlPanel'
 import { getPreset, DEFAULT_PRESET_ID } from '../data/presets'
 import { useGravityStore } from '../store/gravityStore'
 import type { SystemState } from '../lib/physics/types'
@@ -18,6 +19,10 @@ import type { SystemState } from '../lib/physics/types'
  *   타이밍 갭이 사라짐. (GravityPage 는 presetId 변할 때만 리렌더 — 매 프레임 X.)
  *
  *   Vector3.clone() 으로 presets.ts 불변 데이터를 끊어 — 오염 방지.
+ *
+ * ─── 컨트롤 표면 ──────────────────────────────────────
+ *   <PresetSelector/> = 상단 (시스템 선택), <ControlPanel/> = 하단 (적분기
+ *   토글, 3-5; 에너지 readout · 섭동 합류 예정). 둘 다 Canvas 밖 fixed 오버레이.
  */
 export default function GravityPage() {
   const presetId = useGravityStore((s) => s.presetId)
@@ -56,6 +61,7 @@ export default function GravityPage() {
         softening={preset.softening}
         dt={preset.recommendedDt}
       />
+      <ControlPanel />
     </div>
   )
 }
