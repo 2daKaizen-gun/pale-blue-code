@@ -21,8 +21,10 @@ import type { SystemState } from '../lib/physics/types'
  *   Vector3.clone() 으로 presets.ts 불변 데이터를 끊어 — 오염 방지.
  *
  * ─── 컨트롤 표면 ──────────────────────────────────────
- *   <PresetSelector/> = 상단 (시스템 선택), <ControlPanel/> = 하단 (적분기
- *   토글, 3-5; 에너지 readout · 섭동 합류 예정). 둘 다 Canvas 밖 fixed 오버레이.
+ *   <PresetSelector/> = 상단 (시스템 선택). <ControlPanel/> = 하단 (적분기
+ *   토글 + 에너지 readout; 섭동 합류 예정). 둘 다 Canvas 밖 fixed 오버레이.
+ *   ControlPanel 의 readout 은 physics 상태가 필요해 bodiesRef/G/softening/
+ *   presetId 를 props 로 받음 — 렌더 트리 한 곳(GravityPage)이 단일 진실원.
  */
 export default function GravityPage() {
   const presetId = useGravityStore((s) => s.presetId)
@@ -61,7 +63,12 @@ export default function GravityPage() {
         softening={preset.softening}
         dt={preset.recommendedDt}
       />
-      <ControlPanel />
+      <ControlPanel
+        bodiesRef={bodiesRef}
+        G={preset.G}
+        softening={preset.softening}
+        presetId={presetId}
+      />
     </div>
   )
 }

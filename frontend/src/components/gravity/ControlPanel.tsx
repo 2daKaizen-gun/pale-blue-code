@@ -1,4 +1,7 @@
 import { useGravityStore, type IntegratorKind } from '../../store/gravityStore'
+import { EnergyReadout } from './EnergyReadout'
+import type { SystemState } from '../../lib/physics/types'
+import type { PresetId } from '../../data/presets'
 
 /**
  * Pale Blue Code — Phase 3: Gravity
@@ -6,20 +9,22 @@ import { useGravityStore, type IntegratorKind } from '../../store/gravityStore'
  * ControlPanel — Canvas 밖, 화면 *하단* 고정 (상단은 PresetSelector 몫 →
  * 충돌 방지, PresetSelector 주석이 약속한 자리).
  *
- * 3-5 에 신설. 자라나는 패널 — 클러스터를 가로로 담고, 후속 sub-phase 가
- * 옆에 합류한다:
- *   - 3-5 Light 2 : [Euler | RK4] 적분기 토글  ← 지금
- *   - 3-5 Light 5 : 에너지/각운동량 readout (오른쪽 클러스터)
+ * 자라나는 패널 — 클러스터를 가로로 담고, sub-phase 가 옆에 합류한다:
+ *   - 3-5 Light 2 : [Euler | RK4] 적분기 토글 (store)
+ *   - 3-5 Light 5 : 에너지/각운동량 readout (physics ref 샘플)  ← 합류함
  *   - 3-5 Light 7 : 카오스 섭동 슬라이더 (three-body 한정)
  *   - 3-6        : 시간 속도 / paused
  *
- * 스타일은 PresetSelector 미러 (rounded-2xl / border-white/10 / bg-black/40 /
- * backdrop-blur). 접근성 (PRD §6): 네이티브 <button>, 활성 적분기 `aria-pressed`,
- * tab + Enter/Space 조작.
+ * 토글은 store 만 알면 되지만 readout 은 physics 상태(bodiesRef/G/softening)와
+ * 현재 presetId 를 알아야 한다 → GravityPage 가 props 로 내려줌. 패널은 그걸
+ * readout 에 그대로 전달하는 *레이아웃 호스트*.
+ *
+ * 스타일은 PresetSelector 미러. 접근성 (PRD §6): 네이티브 <button>, 활성
+ * 적분기 `aria-pressed`, readout 은 수치 병기.
  *
  * 설계 노트 — Euler 버튼에 경고색을 *의도적으로 안 넣음*. PRD §3 영혼은 처음
  * 본 사람이 "어, 깨졌다" 하고 *발견* 하는 1초. 버튼이 위험을 예고하면 그 충격이
- * 죽는다. 드라마는 화면(나선 발산)과 readout 막대(Light 5)가 진다.
+ * 죽는다. 드라마는 화면(나선 발산)과 readout 막대가 진다.
  */
 
 const INTEGRATORS: { kind: IntegratorKind; label: string; hint: string }[] = [
@@ -35,7 +40,14 @@ const INTEGRATORS: { kind: IntegratorKind; label: string; hint: string }[] = [
   },
 ]
 
-export function ControlPanel() {
+interface ControlPanelProps {
+  bodiesRef: React.RefObject<SystemState>
+  G: number
+  softening: number
+  presetId: PresetId
+}
+
+export function ControlPanel({ bodiesRef, G, softening, presetId }: ControlPanelProps) {
   const integrator = useGravityStore((s) => s.integrator)
   const setIntegrator = useGravityStore((s) => s.setIntegrator)
 
@@ -71,7 +83,16 @@ export function ControlPanel() {
           </div>
         </div>
 
-        {/* 3-5 Light 5: <EnergyReadout /> joins here (right cluster) */}
+        <div className="h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
+
+        {/* Conservation readout — the consequence of the method, made numeric */}
+        <EnergyReadout
+          bodiesRef={bodiesRef}
+          G={G}
+          softening={softening}
+          presetId={presetId}
+        />
+
         {/* 3-5 Light 7: chaos perturbation slider (three-body only) */}
         {/* 3-6: time-speed / paused controls */}
       </div>
