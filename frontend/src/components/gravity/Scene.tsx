@@ -17,6 +17,12 @@ interface SceneProps {
   G: number
   softening: number
   dt: number
+  /**
+   * Chaos seed (three-body). Folded into the Trails key so a nudge starts a
+   * *clean* trajectory instead of overlaying the old path on the new fate.
+   * 0 for every other preset (reset on preset switch) → no extra remounts.
+   */
+  perturbation: number
 }
 
 const DPR: [number, number] = [1, 2]
@@ -50,12 +56,25 @@ function CameraRig({ camera }: { camera: CameraConfig }) {
  *
  * Scene — R3F Canvas 루트. 텍스처 0 → 안쪽 <Suspense> 불필요 (emissive 점).
  *
- * sub-3-4: 멀티 프리셋.
+ * sub-3-4: 멀티 프리셋. sub-3-5: 카오스 재시드.
  *   - 카메라/컨트롤: <CameraRig> 명령형 reframe (remount 안 함 → Context Lost 회피)
- *   - Trails/Bodies: *고유* key 로 remount (버퍼·메시 새로). 형제끼리 key 안 겹침.
+ *   - Trails: key 에 presetId *와* perturbation → 프리셋 전환·넛지 시 ring-buffer
+ *     새로 (옛 궤적 클리어). 고유 prefix 라 형제끼리 key 안 겹침 (3-4 trouble #1).
+ *   - Bodies: key 는 presetId 만 — 넛지는 천체 *개수* 를 안 바꾸니(3개 불변)
+ *     메시 remount 불필요. bodiesRef 재시드는 GravityPage 가 렌더 중 동기로
+ *     맞춰 길이 갭 없음 (3-4 trouble #2).
  *   - Integrator: 키 없음 — accelOf useMemo([G, softening]) 가 알아서 재생성.
  */
-export function Scene({ presetId, bodiesRef, presetBodies, camera, G, softening, dt }: SceneProps) {
+export function Scene({
+  presetId,
+  bodiesRef,
+  presetBodies,
+  camera,
+  G,
+  softening,
+  dt,
+  perturbation,
+}: SceneProps) {
   return (
     <Canvas
       dpr={DPR}
@@ -67,7 +86,11 @@ export function Scene({ presetId, bodiesRef, presetBodies, camera, G, softening,
       <CameraRig camera={camera} />
 
       <Integrator bodiesRef={bodiesRef} G={G} softening={softening} dt={dt} />
-      <Trails key={`trails-${presetId}`} bodiesRef={bodiesRef} presetBodies={presetBodies} />
+      <Trails
+        key={`trails-${presetId}-${perturbation}`}
+        bodiesRef={bodiesRef}
+        presetBodies={presetBodies}
+      />
       <Bodies key={`bodies-${presetId}`} bodiesRef={bodiesRef} presetBodies={presetBodies} />
 
       <OrbitControls
