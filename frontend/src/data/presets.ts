@@ -78,7 +78,14 @@ export const TWO_BODY: Preset = {
   description:
     'A heavy star and a light companion on an elliptical orbit about their common barycenter. The shape of Kepler that emerges from F = G·m₁·m₂ / r².',
   G: G_CONST,
-  recommendedDt: T_ORBIT / 600,
+  // Deliberately coarse (T/120, not the T/600 of the other presets): TWO_BODY
+  // is the Euler-vs-RK4 stage (PRD §3, the soul). At this step size RK4 still
+  // holds the ellipse near-perfectly (ΔE ≈ 6e-6 over 10 orbits, orbit closes
+  // exactly at apoapsis 1.3), while Euler visibly unwinds and leaves the frame
+  // within ~3 orbits (~5 s at 1×) — "flip it and the universe breaks." A finer
+  // dt would *hide* the lesson by making Euler look fine too. The conservation
+  // proofs use their own dt (two-body.test.ts), so this never weakens them.
+  recommendedDt: T_ORBIT / 120,
   softening: 0,
   camera: { position: [0, 0, 3], far: 100, minDistance: 0.5, maxDistance: 20 },
   bodies: [
