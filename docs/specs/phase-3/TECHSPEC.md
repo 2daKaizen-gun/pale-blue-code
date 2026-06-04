@@ -12,6 +12,16 @@
 > *sub-3-3 동기화 메모*: 본 문서가 *예측한 in-place 적분* 은 sub-3-1 실물 확인 결과 *pure
 > 함수 (fresh SystemState 반환)* 로 정착, sub-3-3 에서 *ref-교체* 패턴으로 무리렌더 달성.
 > §1 / §2 / §3 / §4 모두 *실물에 맞춰* 갱신. *문서가 코드를 따라간다* (sub-3-2 §1 교훈).
+>
+> *2026-06-04 동기화 (sub-3-6 Plan 진입)*: §7 sub-phase 분할 갱신.
+> (1) **상태 정정 (Context Rot)** — 3-4 / 3-5 ⬜→✅. 두 sub-phase 완료, sub-3-5 Check
+>     (`docs/checks/phase-3/sub-3-5.md`, Issue #22) 존재하는데 §7 이 미갱신이었음.
+> (2) **카메라 이월 + 분할** — §7 은 CameraController 를 3-5 에 계획했으나 sub-3-5 회고가
+>     *이월* (스펙↔실물 충돌, 실물이 정본). 당초 6 sub-phase 의 3-6 (시간 컨트롤 +
+>     모바일/성능/Lighthouse + Phase 종료) 을 → **3-6 = 시간 컨트롤만**, **신규 3-7 =
+>     CameraController(천체 추적) + 모바일/성능/Lighthouse + Phase 종료** 로 분리.
+>     *한 sub-phase = 한 관심사* (PCTC 결, sub-2-4 의 *한 의도=한 액션* 의 sub-phase판).
+> (3) §2 도식 카메라 주석 "3-5" → "3-7" 정정.
 
 ---
 
@@ -62,7 +72,7 @@
 │  │  │   <Bodies />       ← ref → mesh 위치  │  │  │
 │  │  │   <Trails />       ← ring-buffer 라인 │  │  │
 │  │  │   (Stars   — 3-4 drei 매트릭스 복원후)│  │  │
-│  │  │   (Camera  — 3-5 선택/추적부터)       │  │  │
+│  │  │   (Camera  — 3-7 선택/추적부터)       │  │  │
 │  │  │   <OrbitControls />                  │  │  │
 │  │  └──────────────────────────────────────┘  │  │
 │  └────────────────────────────────────────────┘  │
@@ -284,11 +294,12 @@ frontend/src/
 - **3-1**: N-body 데이터 모델 + 중력 가속도(softening) + **RK4 적분기** — `lib/physics` 순수 함수, *TDD, 화면 없음*. 테스트로 굴린다. ✅
 - **3-2**: **2체 해석해 검증** (에너지·각운동량 보존 + 케플러 `T²∝a³`) + Euler 적분기(대비용) 구현. *이 Phase의 안전망*. ✅
 - **3-3**: N-body 씬 + **궤적(trails)** — Scene 재사용, `bodiesRef` 무리렌더 (*ref-교체*), mesh 직접 write, ring-buffer 9 증명서. *첫 시각화* (비대칭 e=0.3 두 별이 *동심의 다른 타원* 을 그리는 순간). ✅
-- **3-4**: **프리셋 셀렉터** (2체 / 3체 figure-8 / 쌍성 / 태양계) + `planets.ts` mass 확장 + `gravityStore` 도입 + 카메라 메타를 Preset 으로. ⬜
-- **3-5**: **적분기 토글 [Euler|RK4] + 에너지 readout + 카오스 섭동 + CameraController** — *Phase의 영혼*. PRD §3 *그 한 순간*. ⬜
-- **3-6**: 시간 컨트롤 통합(타임스텝↔시각속도 substep 분리, store 배선) + 모바일/성능/Lighthouse + Phase 종료. ⬜
+- **3-4**: **프리셋 셀렉터** (2체 / 3체 figure-8 / 쌍성 / 태양계) + `planets.ts` mass 확장 + `gravityStore` 도입 + 카메라 메타를 Preset 으로. ✅
+- **3-5**: **적분기 토글 [Euler|RK4] + 에너지 readout + 카오스 섭동** — *Phase의 영혼*. PRD §3 *그 한 순간*. ✅ *(CameraController 는 3-7 로 이월 — `docs/checks/phase-3/sub-3-5.md` 참조)*
+- **3-6**: **시간 컨트롤** — 타임스텝↔시각속도 substep 분리 (`TIME_SPEED` 상수 → `store.timeSpeed`, paused=substep 0), `MAX_SUBSTEPS` 캡, ControlPanel 시간 UI + 키보드. *물리 정확도(고정 dt) ⊥ 시각 속도*. ⬜
+- **3-7**: **CameraController(천체 추적)** (3-5 이월, CameraRig 명령형 패턴 위에) + 모바일/성능/Lighthouse + **Phase 종료**. ⬜
 
-총 6 sub-phase ≈ 4~5주 (README 로드맵 추정). **3-1 / 3-2 가 심장** (순수 물리 + 검증), **3-5 가 영혼** (Euler vs RK4).
+총 7 sub-phase (당초 6 → sub-3-5 의 카메라 이월 + 3-6 시간 컨트롤 집중 → 카메라/폴리시/종료를 3-7 로 분리). **3-1 / 3-2 가 심장** (순수 물리 + 검증), **3-5 가 영혼** (Euler vs RK4).
 
 ---
 
