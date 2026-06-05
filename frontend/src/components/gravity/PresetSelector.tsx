@@ -7,6 +7,14 @@ import { useGravityStore } from '../../store/gravityStore'
  * PresetSelector — switch the active N-body system. Canvas 밖, 화면 상단 고정
  * (하단은 3-5/3-6 의 ControlPanel 자리 → 충돌 방지).
  *
+ * sub-3-7 [fix]: `fixed` → `absolute`. `fixed left-1/2` 는 *뷰포트* 정중앙에
+ * 거는데, 데스크톱 사이드바(AppLayout `md:w-48`, 레이아웃 안 flex 자식)가
+ * 왼쪽을 차지하므로 셀렉터가 네비 위로 흘러넘쳤다. GravityPage 의 부모
+ * (`relative h-screen w-full`)가 곧 *콘텐츠 영역* 이므로, `absolute` 로 그
+ * 부모 기준 중앙에 걸면 사이드바 폭을 하드코딩하지 않고도 콘텐츠 중앙에
+ * 정렬된다 — 사이드바 폭이 바뀌어도 자동 적응. 모바일(md 미만)은 사이드바가
+ * 드로어로 숨으므로 콘텐츠 = 전체 폭, 그대로 중앙.
+ *
  * 스타일은 Phase 2 ControlPanel 미러 (rounded-2xl / border-white/10 /
  * bg-black/40 / backdrop-blur / overflow-x-auto). 좁은 폰에선 가로 스크롤,
  * 라벨은 한 줄 유지.
@@ -21,7 +29,7 @@ export function PresetSelector() {
   const selectPreset = useGravityStore((s) => s.selectPreset)
 
   return (
-    <div className="fixed top-4 md:top-6 left-1/2 z-10 -translate-x-1/2 max-w-[calc(100vw-1rem)]">
+    <div className="absolute top-4 md:top-6 left-1/2 z-10 -translate-x-1/2 max-w-[calc(100%-1rem)]">
       <div
         role="group"
         aria-label="System preset"
