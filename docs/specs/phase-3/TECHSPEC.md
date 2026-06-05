@@ -330,9 +330,9 @@ frontend/src/
 - **3-4**: **프리셋 셀렉터** (2체 / 3체 figure-8 / 쌍성 / 태양계) + `planets.ts` mass 확장 + `gravityStore` 도입 + 카메라 메타를 Preset 으로. ✅
 - **3-5**: **적분기 토글 [Euler|RK4] + 에너지 readout + 카오스 섭동** — *Phase의 영혼*. PRD §3 *그 한 순간*. ✅ *(CameraController 는 3-7 로 이월 — `docs/checks/phase-3/sub-3-5.md` 참조)*
 - **3-6**: **시간 컨트롤** — 타임스텝↔시각속도 substep 분리 (`TIME_SPEED` 상수 → `store.timeSpeed` + 분수 누적기, paused=루프 게이트), `MAX_SUBSTEPS` 캡, ControlPanel 시간 UI + 키보드. *물리 정확도(고정 dt) ⊥ 시각 속도*. ✅ *(`docs/checks/phase-3/sub-3-6.md`, #23)*
-- **3-7** (Phase 종료): **CameraController(천체 추적)** (3-5 이월, CameraRig 명령형 패턴 위에 + 프리셋 `CameraConfig` 메타 재사용) + **PresetSelector 사이드바 넘침 fix** (sub-3-6 스모크 발견) + **현재-시뮬 리셋** (`presetLoadedAt` nonce + ↻ 트랜스포트 버튼 + R 키, `selectPreset` 통합 경로 재사용) + 모바일/성능/Lighthouse + **Phase 종료 + 인수인계**. ⬜
+- **3-7** (Phase 종료): **CameraController(천체 추적)** (3-5 이월, CameraRig 명령형 패턴 위에 + 프리셋 `CameraConfig` 메타 재사용) + **PresetSelector 사이드바 넘침 fix** (sub-3-6 스모크 발견) + **현재-시뮬 리셋** (`presetLoadedAt` nonce + ↻ 트랜스포트 버튼 + R 키, `selectPreset` 통합 경로 재사용) + **고속 trail 매끄럽게** (frame당이 아니라 *substep당* 샘플 → 고속에서도 호가 짧아 다각형 X; ring 길이 보정으로 꼬리 길이 균형. sub-3-6 발견 — 물리 아닌 *샘플링* 문제) + 모바일/성능/Lighthouse + **Phase 종료 + 인수인계**. ⬜
 
-총 7 sub-phase (당초 6 → sub-3-5 의 카메라 이월 + 3-6 시간 컨트롤 집중 → 카메라/폴리시/종료를 3-7 로 분리). **3-1 / 3-2 가 심장** (순수 물리 + 검증), **3-5 가 영혼** (Euler vs RK4). 3-7 은 *마무리 + 폴리시 합류* sub-phase 라 Light 가 많음 — Plan 에서 (a) 카메라 / (b) 핫픽스(넘침+리셋) / (c) 성능·종료 세 묶음으로 쪼갠다.
+총 7 sub-phase (당초 6 → sub-3-5 의 카메라 이월 + 3-6 시간 컨트롤 집중 → 카메라/폴리시/종료를 3-7 로 분리). **3-1 / 3-2 가 심장** (순수 물리 + 검증), **3-5 가 영혼** (Euler vs RK4). 3-7 은 *마무리 + 폴리시 합류* sub-phase 라 Light 가 많음 — Plan 에서 (a) 카메라 / (b) 핫픽스(넘침 + 리셋 + 고속 trail) / (c) 성능·종료 세 묶음으로 쪼갠다.
 
 ---
 
