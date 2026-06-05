@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useGravityStore, type IntegratorKind } from '../../store/gravityStore'
+import { useGravityStore, TIME_SPEEDS, type IntegratorKind } from '../../store/gravityStore'
 import { EnergyReadout } from './EnergyReadout'
 import type { SystemState } from '../../lib/physics/types'
 import type { PresetId } from '../../data/presets'
@@ -12,11 +12,19 @@ import type { PresetId } from '../../data/presets'
  * 자라나는 패널 — 클러스터가 가로로 합류:
  *   - 3-5 Light 2 : [Euler | RK4] 적분기 토글 (store)
  *   - 3-5 Light 5 : 에너지/각운동량 readout (physics ref 샘플)
- *   - 3-5 Light 7 : 카오스 섭동 슬라이더 (three-body 한정)  ← 합류함
- *   - 3-6        : 시간 속도 / paused
+ *   - 3-5 Light 7 : 카오스 섭동 슬라이더 (three-body 한정)
+ *   - 3-6        : 시간 속도 + paused (재생 컨트롤 — 맨 앞 고정) + 키보드  ← 합류함
  *
- * 스타일은 PresetSelector 미러. 접근성 (PRD §6): 네이티브 컨트롤, 활성 적분기
- * `aria-pressed`, 슬라이더 `aria-label` + 키보드 조작, readout 수치 병기.
+ * 스타일은 PresetSelector / 기존 토글 미러. 접근성 (PRD §6): 네이티브 컨트롤,
+ * 활성 적분기·속도 `aria-pressed`, 재생/정지 `aria-label`, 슬라이더 `aria-label`
+ * + 키보드 조작, readout 수치 병기. 속도 라벨은 *색에만* 의존하지 않게 텍스트(×) 병기.
+ *
+ * 시간 컨트롤을 *맨 앞* 에 두는 이유: 재생 컨트롤이 선두가 관습적이고, 섭동
+ * 슬라이더는 three-body 에서만 나타나므로 — 시간 컨트롤이 그 뒤였다면 프리셋
+ * 전환마다 위치가 흔들린다. 맨 앞 = 위치 고정.
+ *
+ * 키보드 (3-6): Space = 일시정지 토글, 1~4 = 속도. 입력/버튼 포커스 시엔 무시해
+ * 네이티브 동작과 이중 발화하지 않게 한다.
  *
  * 설계 노트 — 섭동 슬라이더는 *놓을 때*(onPointerUp/onKeyUp) 만 store 에
  * 커밋한다. 드래그 내내 커밋하면 재시드(+미래의 trail remount)가 매 틱 일어나
@@ -37,6 +45,9 @@ const INTEGRATORS: { kind: IntegratorKind; label: string; hint: string }[] = [
   },
 ]
 
+/** 0.1 → "0.1×", 10000 → "10,000×". Speed is a *visual* multiplier, never dt. */
+const formatSpeed = (speed: number) => `${speed.toLocaleString('en-US')}×`
+
 interface ControlPanelProps {
   bodiesRef: React.RefObject<SystemState>
   G: number
@@ -49,6 +60,10 @@ export function ControlPanel({ bodiesRef, G, softening, presetId }: ControlPanel
   const setIntegrator = useGravityStore((s) => s.setIntegrator)
   const perturbation = useGravityStore((s) => s.perturbation)
   const setPerturbation = useGravityStore((s) => s.setPerturbation)
+  const timeSpeed = useGravityStore((s) => s.timeSpeed)
+  const paused = useGravityStore((s) => s.paused)
+  const setTimeSpeed = useGravityStore((s) => s.setTimeSpeed)
+  const togglePause = useGravityStore((s) => s.togglePause)
 
   // Slider follows the finger continuously (draft); commits to the store —
   // which re-seeds the simulation — only on release. Keep draft in sync when
@@ -58,11 +73,91 @@ export function ControlPanel({ bodiesRef, G, softening, presetId }: ControlPanel
     setDraft(perturbation)
   }, [perturbation])
 
+  // Keyboard time controls (3-6). Space toggles pause; 1–4 pick a speed.
+  // Skip when an interactive element is focused so we don't double-fire with
+  // the native button/slider behaviour. zustand setters are stable refs.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = document.activeElement as HTMLElement | null
+      const tag = el?.tagName
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        tag === 'BUTTON' ||
+        el?.isContentEditable
+      ) {
+        return
+      }
+      if (e.code === 'Space') {
+        e.preventDefault()
+        togglePause()
+        return
+      }
+      const idx = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].indexOf(e.code)
+      if (idx !== -1) {
+        e.preventDefault()
+        setTimeSpeed(TIME_SPEEDS[idx])
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [togglePause, setTimeSpeed])
+
   const isThreeBody = presetId === 'three-body'
 
   return (
     <div className="fixed bottom-4 md:bottom-6 left-1/2 z-10 -translate-x-1/2 max-w-[calc(100vw-1rem)]">
       <div className="flex items-center gap-3 overflow-x-auto whitespace-nowrap rounded-2xl border border-white/10 bg-black/40 px-3 py-2 shadow-2xl backdrop-blur-md">
+        {/* Time controls — playback. Fixed leftmost so the conditional nudge
+            slider never shifts them. Speed = how many fixed-dt steps per frame,
+            never a bigger dt (PRD §4-6 / sub-3-6). */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={togglePause}
+            aria-pressed={paused}
+            aria-label={paused ? 'Play' : 'Pause'}
+            title={paused ? 'Play (Space)' : 'Pause (Space)'}
+            className={[
+              'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+              paused
+                ? 'bg-white/90 text-black'
+                : 'text-white/70 hover:bg-white/10 hover:text-white',
+            ].join(' ')}
+          >
+            {paused ? '▶' : '⏸'}
+          </button>
+          <div
+            role="group"
+            aria-label="Visual speed"
+            className="flex items-center gap-1 rounded-xl bg-white/5 p-0.5"
+          >
+            {TIME_SPEEDS.map((speed) => {
+              const active = speed === timeSpeed
+              return (
+                <button
+                  key={speed}
+                  type="button"
+                  onClick={() => setTimeSpeed(speed)}
+                  aria-pressed={active}
+                  title={`${formatSpeed(speed)} — visual speed (accuracy is unchanged)`}
+                  className={[
+                    'rounded-lg px-2.5 py-1.5 text-sm font-medium tabular-nums transition-colors',
+                    active
+                      ? 'bg-white/90 text-black'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white',
+                  ].join(' ')}
+                >
+                  {formatSpeed(speed)}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
+
         {/* Integrator toggle — the method axis (PRD §3, the soul) */}
         <div role="group" aria-label="Integrator" className="flex items-center gap-1">
           <span className="px-1 text-xs font-medium uppercase tracking-wide text-white/40">
@@ -103,7 +198,8 @@ export function ControlPanel({ bodiesRef, G, softening, presetId }: ControlPanel
         />
 
         {/* Chaos perturbation — the condition axis. Only the figure-8 is
-            sensitive enough to make "a hair's nudge splits the fate" land. */}
+            sensitive enough to make "a hair's nudge splits the fate" land.
+            Kept last so its show/hide never shifts the controls before it. */}
         {isThreeBody && (
           <>
             <div className="h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
@@ -133,8 +229,6 @@ export function ControlPanel({ bodiesRef, G, softening, presetId }: ControlPanel
             </div>
           </>
         )}
-
-        {/* 3-6: time-speed / paused controls */}
       </div>
     </div>
   )
