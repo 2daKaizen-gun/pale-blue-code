@@ -37,7 +37,8 @@ export const DEFAULT_TIME_SPEED: TimeSpeed = 1
  *
  *   - 3-4 added `presetId` (the active preset)
  *   - 3-5 added `integrator` (the soul toggle) + `perturbation` (chaos seed)
- *   - 3-6 adds `timeSpeed` + `paused` (visual speed, decoupled from dt)
+ *   - 3-6 added `timeSpeed` + `paused` (visual speed, decoupled from dt)
+ *   - 3-7 adds `presetLoadedAt` (reload nonce — see below)
  *
  * Control values are read via `getState()` inside `useFrame` (zero per-frame
  * re-renders); UI components subscribe to them normally.
@@ -50,9 +51,20 @@ export const DEFAULT_TIME_SPEED: TimeSpeed = 1
  * `perturbation` — a fixed-direction nudge to the three-body figure-8's
  * starting point (other presets ignore it). Deterministic: the same value
  * yields the same divergence; 0 leaves the published IC untouched.
+ *
+ * `presetLoadedAt` — a monotonic *generation counter* (NOT a wall-clock
+ * timestamp, despite the name's flavour: a timestamp could collide on rapid
+ * re-fires — e.g. holding R — and silently skip a re-seed). Every
+ * `selectPreset` call bumps it, so re-selecting the *same* preset still forces
+ * a clean re-seed downstream (GravityPage diffs it; Scene folds it into the
+ * Trails key). This is the Phase 3 "reset": one user intent (reselect/reload)
+ * = one action, no separate reset path (sub-2-4 / sub-3-6 YAGNI). TechSpec §3
+ * reserved this slot.
  */
 interface GravityStore {
   presetId: PresetId
+  /** Monotonic generation counter; bumped on every selectPreset. See above. */
+  presetLoadedAt: number
   integrator: IntegratorKind
   perturbation: number
   /** Visual speed multiplier (sub-3-6). Never scales dt — see TIME_SPEEDS. */
@@ -68,6 +80,7 @@ interface GravityStore {
 
 export const useGravityStore = create<GravityStore>((set) => ({
   presetId: DEFAULT_PRESET_ID,
+  presetLoadedAt: 0,
   integrator: 'rk4',
   perturbation: 0,
   timeSpeed: DEFAULT_TIME_SPEED,
@@ -77,13 +90,18 @@ export const useGravityStore = create<GravityStore>((set) => ({
   // (sub-2-4 YAGNI: one user intent = one action). It restores a clean slate:
   // clean physics IC (the ref is re-seeded by the scene layer) *and* clean
   // controls here — perturbation, speed, and pause all back to default.
+  //
+  // 3-7: bump `presetLoadedAt` *every* call (function form reads prev). This
+  // is what makes re-selecting the SAME id re-seed — previously a same-id
+  // select changed nothing, so a "reload" (button / R key) was a no-op.
   selectPreset: (id) =>
-    set({
+    set((s) => ({
       presetId: id,
+      presetLoadedAt: s.presetLoadedAt + 1,
       perturbation: 0,
       timeSpeed: DEFAULT_TIME_SPEED,
       paused: false,
-    }),
+    })),
 
   setIntegrator: (kind) => set({ integrator: kind }),
   setPerturbation: (amount) => set({ perturbation: amount }),

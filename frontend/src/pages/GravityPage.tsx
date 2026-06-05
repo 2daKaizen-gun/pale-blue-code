@@ -10,7 +10,7 @@ import type { SystemState } from '../lib/physics/types'
 /**
  * Trail length, in *integration steps* (not frames). Since the Integrator now
  * pushes one point per substep (sub-3-7), a ring holds the last
- * TRAIL_CAPACITY steps = a fixed sim-time window (TRAIL_CAPACITY × dt),
+ * TRAIL_CAPACITY steps = a fixed sim-time window (TRAIL_CAPACITY x dt),
  * independent of visual speed. ~5 orbits for the two-body demo dt (T/120),
  * ~1 orbit for the finer accuracy dt (T/600).
  */
@@ -20,32 +20,39 @@ const TRAIL_CAPACITY = 600
  * Pale Blue Code — Phase 3: Gravity
  *
  * GravityPage — `/gravity` 진입점. 활성 프리셋 = gravityStore.presetId,
- * 카오스 시드 = gravityStore.perturbation.
+ * 카오스 시드 = gravityStore.perturbation, 리로드 nonce = presetLoadedAt.
  *
- * ─── ref 재초기화 (sub-3-4 [fix], 3-5 확장, 3-7 trail) ───────
- *   bodiesRef.current *와* trailsRef.current 를 프리셋 또는 섭동 변경 시
- *   *렌더 중 동기* 로 갈아끼움. useEffect(commit 이후) 로 하면 key-remount 된
- *   Trails/Bodies 는 새 개수인데 ref 는 잠깐 옛 상태라 길이가 어긋나 터졌음
- *   (3-4). 렌더 중 동기 재설정하면 자식 렌더 전에 맞춰져 타이밍 갭이 사라짐.
- *   (GravityPage 는 presetId/perturbation 변할 때만 리렌더 — 매 프레임 X.)
+ * ─── ref 재초기화 (sub-3-4 [fix], 3-5 확장, 3-7 trail + nonce) ──────
+ *   bodiesRef.current *와* trailsRef.current 를 프리셋·섭동·*리로드(nonce)*
+ *   변경 시 *렌더 중 동기* 로 갈아끼움. useEffect(commit 이후) 로 하면
+ *   key-remount 된 Trails/Bodies 는 새 개수인데 ref 는 잠깐 옛 상태라 길이가
+ *   어긋나 터졌음 (3-4). 렌더 중 동기 재설정하면 자식 렌더 전에 맞춰져 타이밍
+ *   갭이 사라짐. (GravityPage 는 presetId/perturbation/presetLoadedAt 변할
+ *   때만 리렌더 — 매 프레임 X.)
  *
  *   Vector3.clone() 으로 presets.ts 불변 데이터를 끊어 — 오염 방지.
  *   trailsRef: 새 RingBuffer 들로 교체 → 옛 궤적 클리어 (Trails 의 key remount
  *   와 함께 깨끗한 새 trajectory).
  *
+ *   nonce(presetLoadedAt): 같은 프리셋 *재선택* 도 재시드하게 하는 트리거.
+ *   presetId/perturbation 이 안 변해도(예: figure-8 에 nudge 0 인 채 ↻) nonce
+ *   가 bump 되어 깨끗이 다시 굴림. 리셋 로직을 따로 안 만들고 selectPreset 재사용.
+ *
  * ─── 카오스 시드 (3-5) ────────────────────────────────
- *   three-body(figure-8) 한정: body-1 의 시작점에 고정 방향 × perturbation 을
+ *   three-body(figure-8) 한정: body-1 의 시작점에 고정 방향 x perturbation 을
  *   더한다. 결정론 — 같은 값이면 같은 운명. 0 이면 published IC 그대로(영원히
  *   8자). 다른 프리셋은 perturbation 을 무시.
  *
  * ─── 컨트롤 표면 ──────────────────────────────────────
- *   <PresetSelector/> = 상단. <ControlPanel/> = 하단 (적분기 토글 + readout +
- *   섭동). ControlPanel 의 readout 은 physics 상태가 필요해 bodiesRef/G/
- *   softening/presetId 를 props 로 받음 — 렌더 트리 한 곳이 단일 진실원.
+ *   <PresetSelector/> = 상단. <ControlPanel/> = 하단 (재생/속도 + ↻리로드 +
+ *   적분기 토글 + readout + 섭동). ControlPanel 의 readout 은 physics 상태가
+ *   필요해 bodiesRef/G/softening/presetId 를 props 로 받음 — 렌더 트리 한 곳이
+ *   단일 진실원.
  */
 export default function GravityPage() {
   const presetId = useGravityStore((s) => s.presetId)
   const perturbation = useGravityStore((s) => s.perturbation)
+  const presetLoadedAt = useGravityStore((s) => s.presetLoadedAt)
   const preset = getPreset(presetId)
 
   const makeBodies = (): SystemState => {
@@ -55,7 +62,7 @@ export default function GravityPage() {
       velocity: b.velocity.clone(),
     }))
     // Chaos seed (three-body only): nudge body-1's starting point along a
-    // fixed axis. Deterministic; perturbation 0 → IC untouched (figure-8).
+    // fixed axis. Deterministic; perturbation 0 -> IC untouched (figure-8).
     if (preset.id === 'three-body' && perturbation !== 0) {
       bodies[0].position.x += perturbation
     }
@@ -71,17 +78,23 @@ export default function GravityPage() {
   const trailsRef = useRef<RingBuffer[]>(makeTrails())
   const loadedIdRef = useRef(presetId)
   const loadedPerturbRef = useRef(perturbation)
+  const loadedNonceRef = useRef(presetLoadedAt)
 
-  // 프리셋 또는 섭동 변경 → 렌더 중 동기 재초기화 (자식 렌더 전).
-  if (loadedIdRef.current !== presetId || loadedPerturbRef.current !== perturbation) {
+  // 프리셋·섭동·리로드(nonce) 변경 → 렌더 중 동기 재초기화 (자식 렌더 전).
+  if (
+    loadedIdRef.current !== presetId ||
+    loadedPerturbRef.current !== perturbation ||
+    loadedNonceRef.current !== presetLoadedAt
+  ) {
     loadedIdRef.current = presetId
     loadedPerturbRef.current = perturbation
+    loadedNonceRef.current = presetLoadedAt
     bodiesRef.current = makeBodies()
-    trailsRef.current = makeTrails() // fresh rings → old path cleared
+    trailsRef.current = makeTrails() // fresh rings -> old path cleared
   }
 
   // 페이지 진입 = 기본 프리셋 (F5 / HMR 클린 시작) — Phase 2 mount reset 정신.
-  // selectPreset 이 perturbation 도 0 으로 리셋.
+  // selectPreset 이 perturbation 도 0 으로 리셋 + nonce bump.
   useEffect(() => {
     useGravityStore.getState().selectPreset(DEFAULT_PRESET_ID)
   }, [])
@@ -99,6 +112,7 @@ export default function GravityPage() {
         softening={preset.softening}
         dt={preset.recommendedDt}
         perturbation={perturbation}
+        presetLoadedAt={presetLoadedAt}
       />
       <ControlPanel
         bodiesRef={bodiesRef}

@@ -13,23 +13,30 @@ import type { PresetId } from '../../data/presets'
  *   - 3-5 Light 2 : [Euler | RK4] 적분기 토글 (store)
  *   - 3-5 Light 5 : 에너지/각운동량 readout (physics ref 샘플)
  *   - 3-5 Light 7 : 카오스 섭동 슬라이더 (three-body 한정)
- *   - 3-6        : 시간 속도 + paused (재생 컨트롤 — 맨 앞 고정) + 키보드  ← 합류함
+ *   - 3-6        : 시간 속도 + paused (재생 컨트롤 — 맨 앞 고정) + 키보드
+ *   - 3-7        : ↻ 리로드 버튼 (재생 클러스터 선두) + R 키  ← 합류함
  *
  * 스타일은 PresetSelector / 기존 토글 미러. 접근성 (PRD §6): 네이티브 컨트롤,
- * 활성 적분기·속도 `aria-pressed`, 재생/정지 `aria-label`, 슬라이더 `aria-label`
- * + 키보드 조작, readout 수치 병기. 속도 라벨은 *색에만* 의존하지 않게 텍스트(×) 병기.
+ * 활성 적분기·속도 `aria-pressed`, 재생/정지·리로드 `aria-label`, 슬라이더
+ * `aria-label` + 키보드 조작, readout 수치 병기. 속도 라벨은 *색에만* 의존하지
+ * 않게 텍스트(×) 병기.
  *
  * 시간 컨트롤을 *맨 앞* 에 두는 이유: 재생 컨트롤이 선두가 관습적이고, 섭동
  * 슬라이더는 three-body 에서만 나타나므로 — 시간 컨트롤이 그 뒤였다면 프리셋
- * 전환마다 위치가 흔들린다. 맨 앞 = 위치 고정.
+ * 전환마다 위치가 흔들린다. 맨 앞 = 위치 고정. ↻ 리로드도 이 선두 클러스터에.
  *
- * 키보드 (3-6): Space = 일시정지 토글, 1~4 = 속도. 입력/버튼 포커스 시엔 무시해
- * 네이티브 동작과 이중 발화하지 않게 한다.
+ * 키보드 (3-6/3-7): Space = 일시정지, 1~4 = 속도, R = 리로드(현재 프리셋
+ * 재선택 = 깨끗한 재시드). 입력/버튼 포커스 시엔 무시해 네이티브 동작과 이중
+ * 발화하지 않게 한다.
+ *
+ * 리로드 (3-7): ↻ 버튼·R 키 모두 `selectPreset(현재 presetId)` 를 재사용한다 —
+ * 별도 reset 액션을 만들지 않는다 (sub-2-4/sub-3-6 YAGNI). store 의 nonce
+ * (presetLoadedAt) 가 같은 id 에도 bump 되므로, 재선택이 곧 리셋이 된다.
  *
  * 설계 노트 — 섭동 슬라이더는 *놓을 때*(onPointerUp/onKeyUp) 만 store 에
- * 커밋한다. 드래그 내내 커밋하면 재시드(+미래의 trail remount)가 매 틱 일어나
- * GPU 를 thrash — 3-4 컨텍스트 손실의 그 패턴. draft 로 화면만 따라가고, 손을
- * 떼는 순간 한 번 운명을 새로 굴린다.
+ * 커밋한다. 드래그 내내 커밋하면 재시드(+trail remount)가 매 틱 일어나 GPU 를
+ * thrash — 3-4 컨텍스트 손실의 그 패턴. draft 로 화면만 따라가고, 손을 떼는
+ * 순간 한 번 운명을 새로 굴린다.
  */
 
 const INTEGRATORS: { kind: IntegratorKind; label: string; hint: string }[] = [
@@ -64,6 +71,7 @@ export function ControlPanel({ bodiesRef, G, softening, presetId }: ControlPanel
   const paused = useGravityStore((s) => s.paused)
   const setTimeSpeed = useGravityStore((s) => s.setTimeSpeed)
   const togglePause = useGravityStore((s) => s.togglePause)
+  const selectPreset = useGravityStore((s) => s.selectPreset)
 
   // Slider follows the finger continuously (draft); commits to the store —
   // which re-seeds the simulation — only on release. Keep draft in sync when
@@ -73,9 +81,11 @@ export function ControlPanel({ bodiesRef, G, softening, presetId }: ControlPanel
     setDraft(perturbation)
   }, [perturbation])
 
-  // Keyboard time controls (3-6). Space toggles pause; 1–4 pick a speed.
-  // Skip when an interactive element is focused so we don't double-fire with
-  // the native button/slider behaviour. zustand setters are stable refs.
+  // Keyboard controls. Space toggles pause; 1–4 pick a speed; R reloads the
+  // current preset (clean re-seed via the nonce). Skip when an interactive
+  // element is focused so we don't double-fire with native button/slider
+  // behaviour. zustand setters are stable refs; presetId is read fresh via
+  // getState() so the handler needn't re-bind on preset change.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement as HTMLElement | null
@@ -92,6 +102,12 @@ export function ControlPanel({ bodiesRef, G, softening, presetId }: ControlPanel
       if (e.code === 'Space') {
         e.preventDefault()
         togglePause()
+        return
+      }
+      if (e.code === 'KeyR') {
+        e.preventDefault()
+        const s = useGravityStore.getState()
+        s.selectPreset(s.presetId)
         return
       }
       const idx = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].indexOf(e.code)
@@ -111,8 +127,17 @@ export function ControlPanel({ bodiesRef, G, softening, presetId }: ControlPanel
       <div className="flex items-center gap-3 overflow-x-auto whitespace-nowrap rounded-2xl border border-white/10 bg-black/40 px-3 py-2 shadow-2xl backdrop-blur-md">
         {/* Time controls — playback. Fixed leftmost so the conditional nudge
             slider never shifts them. Speed = how many fixed-dt steps per frame,
-            never a bigger dt (PRD §4-6 / sub-3-6). */}
+            never a bigger dt (PRD §4-6 / sub-3-6). ↻ reload heads the cluster. */}
         <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => selectPreset(presetId)}
+            aria-label="Reload preset"
+            title="Reload preset — clean re-seed (R)"
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            ↻
+          </button>
           <button
             type="button"
             onClick={togglePause}

@@ -26,9 +26,15 @@ interface SceneProps {
   /**
    * Chaos seed (three-body). Folded into the Trails key so a nudge starts a
    * *clean* trajectory instead of overlaying the old path on the new fate.
-   * 0 for every other preset (reset on preset switch) → no extra remounts.
+   * 0 for every other preset (reset on preset switch) -> no extra remounts.
    */
   perturbation: number
+  /**
+   * Reload nonce (sub-3-7). Also folded into the Trails key so re-selecting
+   * the *same* preset (reload button / R key) remounts Trails -> clears the
+   * rings -> a clean re-seed, even when presetId and perturbation are unchanged.
+   */
+  presetLoadedAt: number
 }
 
 const DPR: [number, number] = [1, 2]
@@ -36,8 +42,8 @@ const DPR: [number, number] = [1, 2]
 /**
  * Reframe the *single, never-remounted* camera + controls when the preset
  * changes. sub-3-4 [fix]: keying <PerspectiveCamera>/<OrbitControls> by
- * presetId collided (same key on sibling nodes) → React couldn't unmount
- * cleanly → GPU leak → Context Lost. Imperative reframe keeps one camera +
+ * presetId collided (same key on sibling nodes) -> React couldn't unmount
+ * cleanly -> GPU leak -> Context Lost. Imperative reframe keeps one camera +
  * one controls for the Canvas's whole life; only Trails/Bodies remount.
  */
 function CameraRig({ camera }: { camera: CameraConfig }) {
@@ -63,13 +69,14 @@ function CameraRig({ camera }: { camera: CameraConfig }) {
  * Scene — R3F Canvas 루트. 텍스처 0 → 안쪽 <Suspense> 불필요 (emissive 점).
  *
  * sub-3-4: 멀티 프리셋. sub-3-5: 카오스 재시드. sub-3-7: trail ring 을
- * GravityPage 가 소유 → Integrator(write)/Trails(read) 로 분리.
+ * GravityPage 가 소유(Integrator write / Trails read) + reload nonce.
  *   - 카메라/컨트롤: <CameraRig> 명령형 reframe (remount 안 함 → Context Lost 회피)
- *   - Trails: key 에 presetId *와* perturbation → 프리셋 전환·넛지 시 자원 새로.
- *     고유 prefix 라 형제끼리 key 안 겹침 (3-4 trouble #1).
- *   - Bodies: key 는 presetId 만 — 넛지는 천체 *개수* 를 안 바꾸니(3개 불변)
+ *   - Trails: key 에 presetId · perturbation · presetLoadedAt → 프리셋 전환,
+ *     넛지, *재선택(reload)* 모두에서 자원 새로. 고유 prefix 라 형제끼리 key
+ *     안 겹침 (3-4 trouble #1).
+ *   - Bodies: key 는 presetId 만 — 넛지/리로드는 천체 *개수* 를 안 바꾸니
  *     메시 remount 불필요. bodiesRef 재시드는 GravityPage 가 렌더 중 동기로
- *     맞춰 길이 갭 없음 (3-4 trouble #2).
+ *     맞춰 길이 갭 없음 (3-4 trouble #2), useFrame 이 다음 틱에 위치 덮음.
  *   - Integrator: 키 없음 — accelOf useMemo([G, softening]) 가 알아서 재생성.
  */
 export function Scene({
@@ -82,6 +89,7 @@ export function Scene({
   softening,
   dt,
   perturbation,
+  presetLoadedAt,
 }: SceneProps) {
   return (
     <Canvas
@@ -101,7 +109,7 @@ export function Scene({
         dt={dt}
       />
       <Trails
-        key={`trails-${presetId}-${perturbation}`}
+        key={`trails-${presetId}-${perturbation}-${presetLoadedAt}`}
         trailsRef={trailsRef}
         presetBodies={presetBodies}
       />
