@@ -128,17 +128,30 @@
 - `<Trails>`: 매 프레임 각 천체 위치를 per-body RingBuffer 에 push, `BufferGeometry` position/color 어트리뷰트로 페이드 라인 직접 write. 컴포넌트는 imperative `THREE.Line` 을 `<primitive>` 로 마운트.
 - `ControlPanel` (3-4부터): store setter 호출. 적분기 토글 / 프리셋 / 시간 속도 / 섭동.
 
-**substep 루프 (타임스텝 분리의 심장)**:
+**substep 루프 (타임스텝 분리의 심장)** *(sub-3-6 실물)*:
 ```
 useFrame((_, frameDelta)):
-  if paused: return                          // (3-6 부터)
-  totalSimDt = frameDelta * TIME_SPEED       // 3-3 = 1 상수, 3-6 부터 store
-  n = clamp(ceil(totalSimDt / FIXED_DT), 1, MAX_SUBSTEPS)
+  { integrator, timeSpeed, paused } = getState()   // 무구독 — 리렌더 0
+  if paused: return                                // 정지: 스텝 X + 누적도 X
+  { substeps, accumulator } =
+      advanceAccumulator(acc, frameDelta, timeSpeed, FIXED_DT, MAX_SUBSTEPS)
+  acc = accumulator                                // 남은 sim-time 다음 프레임 이월
+  if substeps == 0: return                         // 0.1× — 아직 FIXED_DT 만큼 안 참
+  step = (integrator == 'euler') ? eulerStep : rk4Step   // method 축 (3-5)
   s = bodiesRef.current
-  for k in 0..n:  s = rk4Step(s, FIXED_DT, accelOf)
-  bodiesRef.current = s                      // ref 교체 (in-place 아님)
+  for k in 0..substeps:  s = step(s, FIXED_DT, accelOf)
+  bodiesRef.current = s                            // ref 교체 (in-place 아님)
 ```
 → `FIXED_DT` 고정이라 *시각 속도와 무관하게 같은 정확도*. 시각 속도는 *프레임당 몇 번 적분하느냐* 로만 작용. `MAX_SUBSTEPS` 캡이 폭증 방지.
+
+> *sub-3-6 정정*: 당초 의사코드의 `clamp(ceil(…), 1, …)` 는 **floor-1** 때문에
+> *프레임당 1 step 미만* 을 표현 못 해 — fine-dt 프리셋에서 **0.1× 가 1× 와 동일**해지고
+> 프레임률에 의존했다 (sub-3-5 에 묻혀 있던 버그). 해법은 **분수 누적기**
+> (`lib/util/substep.ts`, 순수·테스트됨): sim-time 을 프레임 간 *은행* 에 모았다가
+> `FIXED_DT` 단위로 *통째* 소비. 0.1× = 여러 프레임에 한 step, 10,000× = 한 프레임에
+> 캡까지. 캡 초과분은 *드롭* (backlog 누적 = death spiral 차단). 결정론 유지 —
+> 방문 상태열 `step^k(s₀)` 은 속도와 무관, 누적기는 *언제* 찍느냐만 정함. *적분기 2층*
+> (순수 코어 ↔ 래퍼) 그대로: `rk4Step`/`eulerStep` 한 글자도 안 고침.
 
 ---
 
@@ -197,19 +210,33 @@ interface Preset {
 
 > **`data/planets.ts` 확장**: Phase 2는 mass가 불필요했음. Phase 3는 `mass` (real, kg 또는 M☉) 필드 추가 — *단일 소스 성장*. Phase 2 컴포넌트는 mass를 안 읽으므로 영향 0.
 
-### `store/gravityStore.ts` (제어 상태만, 3-4부터)
+### `store/gravityStore.ts` (제어 상태만, 3-4부터 / sub-3-6 실물)
 
 ```ts
+const TIME_SPEEDS = [0.1, 1, 100, 10_000] as const   // 3-6
+type TimeSpeed = (typeof TIME_SPEEDS)[number]
+
 interface GravityStore {
-  presetId: Preset['id']
-  integrator: 'euler' | 'rk4'
-  timeSpeed: number          // 0(정지) / 0.1 / 1 / 100 / 10000
-  paused: boolean
-  perturbation: number       // 3체 섭동량 (초기조건 미세 변위)
-  presetLoadedAt: number     // 프리셋/섭동 변경 → ref 재초기화 트리거
-  // setters...
+  presetId: PresetId
+  integrator: 'euler' | 'rk4'                // 3-5 — method 축 (영혼)
+  perturbation: number                       // 3-5 — 3체 섭동 (초기조건 미세 변위)
+  timeSpeed: TimeSpeed                        // 3-6 — 시각 속도 (dt 는 절대 스케일 X)
+  paused: boolean                            // 3-6 — substep 루프 게이트
+  // setters: selectPreset / setIntegrator / setPerturbation
+  //          + setTimeSpeed(unpause 동반) / togglePause                  // 3-6
 }
 ```
+
+> *sub-3-6 정정* (실물에 동기화 — *문서는 코드를 따라간다*):
+> - `timeSpeed` 는 `number` 가 아니라 **`TimeSpeed` 유니온** (4값 한정). 당초 주석
+>   `0(정지)` 는 폐기 — **pause 는 `timeSpeed === 0` 이 아니라 별도 `paused` 불리언**.
+>   둘은 *직교*: 정지해도 선택 속도 보존 → 재개 시 그 속도 (Phase 2 `prevSpeed` 부기 불필요).
+> - `selectPreset` 이 *프리셋 = Phase 3 리셋* 정신으로 `perturbation/timeSpeed/paused` 를
+>   기본값으로 함께 초기화 (별도 리셋 액션 없음, sub-2-4 YAGNI).
+> - **`presetLoadedAt` nonce 는 *아직 미구현*** — *같은* 프리셋 재선택 시 re-seed 가
+>   안 일어나는 구멍(현재 시뮬 리셋 먹통)을 메우는 장치. **리셋 커밋(3-6 이후 별도:
+>   nonce + ↻ 트랜스포트 버튼 + R 키)에서 도입 예정.** 그때 `GravityPage` 의 re-seed
+>   deps 에 합류.
 
 ---
 
