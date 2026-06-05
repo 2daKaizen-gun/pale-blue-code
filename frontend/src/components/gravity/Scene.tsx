@@ -7,11 +7,17 @@ import { Trails } from './Trails'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import type { PerspectiveCamera } from 'three'
 import type { SystemState } from '../../lib/physics/types'
+import type { RingBuffer } from '../../lib/util/ringBuffer'
 import type { CameraConfig, PresetBody, PresetId } from '../../data/presets'
 
 interface SceneProps {
   presetId: PresetId
   bodiesRef: React.RefObject<SystemState>
+  /**
+   * Per-body trail rings (owned by GravityPage). Threaded to the Integrator
+   * (writes, per substep) and Trails (reads, renders). sub-3-7.
+   */
+  trailsRef: React.RefObject<RingBuffer[]>
   presetBodies: PresetBody[]
   camera: CameraConfig
   G: number
@@ -56,10 +62,11 @@ function CameraRig({ camera }: { camera: CameraConfig }) {
  *
  * Scene — R3F Canvas 루트. 텍스처 0 → 안쪽 <Suspense> 불필요 (emissive 점).
  *
- * sub-3-4: 멀티 프리셋. sub-3-5: 카오스 재시드.
+ * sub-3-4: 멀티 프리셋. sub-3-5: 카오스 재시드. sub-3-7: trail ring 을
+ * GravityPage 가 소유 → Integrator(write)/Trails(read) 로 분리.
  *   - 카메라/컨트롤: <CameraRig> 명령형 reframe (remount 안 함 → Context Lost 회피)
- *   - Trails: key 에 presetId *와* perturbation → 프리셋 전환·넛지 시 ring-buffer
- *     새로 (옛 궤적 클리어). 고유 prefix 라 형제끼리 key 안 겹침 (3-4 trouble #1).
+ *   - Trails: key 에 presetId *와* perturbation → 프리셋 전환·넛지 시 자원 새로.
+ *     고유 prefix 라 형제끼리 key 안 겹침 (3-4 trouble #1).
  *   - Bodies: key 는 presetId 만 — 넛지는 천체 *개수* 를 안 바꾸니(3개 불변)
  *     메시 remount 불필요. bodiesRef 재시드는 GravityPage 가 렌더 중 동기로
  *     맞춰 길이 갭 없음 (3-4 trouble #2).
@@ -68,6 +75,7 @@ function CameraRig({ camera }: { camera: CameraConfig }) {
 export function Scene({
   presetId,
   bodiesRef,
+  trailsRef,
   presetBodies,
   camera,
   G,
@@ -85,10 +93,16 @@ export function Scene({
 
       <CameraRig camera={camera} />
 
-      <Integrator bodiesRef={bodiesRef} G={G} softening={softening} dt={dt} />
+      <Integrator
+        bodiesRef={bodiesRef}
+        trailsRef={trailsRef}
+        G={G}
+        softening={softening}
+        dt={dt}
+      />
       <Trails
         key={`trails-${presetId}-${perturbation}`}
-        bodiesRef={bodiesRef}
+        trailsRef={trailsRef}
         presetBodies={presetBodies}
       />
       <Bodies key={`bodies-${presetId}`} bodiesRef={bodiesRef} presetBodies={presetBodies} />

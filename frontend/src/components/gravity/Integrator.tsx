@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { computeAccelerations } from '../../lib/physics/gravity'
 import { rk4Step, eulerStep, type AccelFn } from '../../lib/physics/integrators'
 import type { SystemState } from '../../lib/physics/types'
+import type { RingBuffer } from '../../lib/util/ringBuffer'
 import { useGravityStore } from '../../store/gravityStore'
 import { advanceAccumulator } from '../../lib/util/substep'
 
@@ -17,6 +18,16 @@ interface IntegratorProps {
    * `gl.render(...)`. (Phase 2 useFrame-derived precedent.)
    */
   bodiesRef: React.RefObject<SystemState>
+  /**
+   * Per-body trail rings (owned by GravityPage, sibling of bodiesRef). We
+   * push a point *per substep* here — not once per frame in <Trails> — so
+   * high visual speeds (up to MAX_SUBSTEPS steps/frame) record the whole arc
+   * instead of chording it into a polygon (sub-3-7). Writing trails from the
+   * loop that actually advances time keeps the invariant "one ring point =
+   * one integration step", which makes trail length a *fixed sim-time window*
+   * regardless of visual speed.
+   */
+  trailsRef: React.RefObject<RingBuffer[]>
   /** Gravitational constant in the preset's unit system. */
   G: number
   /** Softening ε. 0 = exact Newton (preset's choice). */
@@ -40,9 +51,10 @@ const MAX_SUBSTEPS = 16
 /**
  * The integrator loop. Renders nothing — its sole job is to march
  * `bodiesRef` forward in time using the verified pure integrator core
- * (RK4 by default; Euler when the soul toggle is flipped).
+ * (RK4 by default; Euler when the soul toggle is flipped), and to sample
+ * each body's trail once per substep.
  *
- * Pattern (TechSpec §2, completed in sub-3-6):
+ * Pattern (TechSpec §2, completed in sub-3-6; trail sampling added 3-7):
  *   - Fixed physics dt → accuracy is constant across frame rate *and* speed.
  *   - Visual speed = how many fixed-dt steps we take, never a bigger dt. A
  *     fractional accumulator (lib/util/substep) banks sim-time across frames so
@@ -53,10 +65,11 @@ const MAX_SUBSTEPS = 16
  *     (PRD §3, the soul): same law, same dt, different method, different fate.
  *   - `bodiesRef.current = step(...)` per substep — ref replacement, never
  *     in-place mutation of the pure core (sub-3-2 rule).
+ *   - Trail push per substep (3-7) — see `trailsRef` doc.
  *   - Control state (integrator / timeSpeed / paused) read via getState() — no
  *     subscription, zero per-frame re-renders (physics-in-ref philosophy).
  */
-export function Integrator({ bodiesRef, G, softening, dt }: IntegratorProps) {
+export function Integrator({ bodiesRef, trailsRef, G, softening, dt }: IntegratorProps) {
   // Curry G / ε into the AccelFn. Stable across frames (deps unchanged).
   const accelOf: AccelFn = useMemo(
     () => (state: SystemState) => computeAccelerations(state, G, softening),
@@ -91,8 +104,17 @@ export function Integrator({ bodiesRef, G, softening, dt }: IntegratorProps) {
     const step = integrator === 'euler' ? eulerStep : rk4Step
 
     let s = bodiesRef.current
+    const trails = trailsRef.current
     for (let k = 0; k < substeps; k++) {
       s = step(s, dt, accelOf)
+      // Sample every substep so a high-speed frame's arc stays a curve, not a
+      // polygon. One ring point per integration step (3-7).
+      for (let i = 0; i < s.length; i++) {
+        const ring = trails[i]
+        if (!ring) continue // preset-switch transient: rings may lag the state
+        const p = s[i].position
+        ring.push(p.x, p.y, p.z)
+      }
     }
     bodiesRef.current = s
   })

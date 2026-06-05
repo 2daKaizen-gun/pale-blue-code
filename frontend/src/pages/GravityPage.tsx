@@ -4,7 +4,17 @@ import { PresetSelector } from '../components/gravity/PresetSelector'
 import { ControlPanel } from '../components/gravity/ControlPanel'
 import { getPreset, DEFAULT_PRESET_ID } from '../data/presets'
 import { useGravityStore } from '../store/gravityStore'
+import { RingBuffer } from '../lib/util/ringBuffer'
 import type { SystemState } from '../lib/physics/types'
+
+/**
+ * Trail length, in *integration steps* (not frames). Since the Integrator now
+ * pushes one point per substep (sub-3-7), a ring holds the last
+ * TRAIL_CAPACITY steps = a fixed sim-time window (TRAIL_CAPACITY × dt),
+ * independent of visual speed. ~5 orbits for the two-body demo dt (T/120),
+ * ~1 orbit for the finer accuracy dt (T/600).
+ */
+const TRAIL_CAPACITY = 600
 
 /**
  * Pale Blue Code — Phase 3: Gravity
@@ -12,14 +22,16 @@ import type { SystemState } from '../lib/physics/types'
  * GravityPage — `/gravity` 진입점. 활성 프리셋 = gravityStore.presetId,
  * 카오스 시드 = gravityStore.perturbation.
  *
- * ─── ref 재초기화 (sub-3-4 [fix], 3-5 확장) ───────────
- *   bodiesRef.current 를 프리셋 *또는* 섭동 변경 시 *렌더 중 동기* 로 갈아끼움.
- *   useEffect(commit 이후) 로 하면 key-remount 된 Trails/Bodies 는 새 개수인데
- *   bodiesRef 는 잠깐 옛 상태라 길이가 어긋나 Trails 가 터졌음 (3-4). 렌더 중
- *   동기 재설정하면 자식 렌더 전에 맞춰져 타이밍 갭이 사라짐. (GravityPage 는
- *   presetId/perturbation 변할 때만 리렌더 — 매 프레임 X.)
+ * ─── ref 재초기화 (sub-3-4 [fix], 3-5 확장, 3-7 trail) ───────
+ *   bodiesRef.current *와* trailsRef.current 를 프리셋 또는 섭동 변경 시
+ *   *렌더 중 동기* 로 갈아끼움. useEffect(commit 이후) 로 하면 key-remount 된
+ *   Trails/Bodies 는 새 개수인데 ref 는 잠깐 옛 상태라 길이가 어긋나 터졌음
+ *   (3-4). 렌더 중 동기 재설정하면 자식 렌더 전에 맞춰져 타이밍 갭이 사라짐.
+ *   (GravityPage 는 presetId/perturbation 변할 때만 리렌더 — 매 프레임 X.)
  *
  *   Vector3.clone() 으로 presets.ts 불변 데이터를 끊어 — 오염 방지.
+ *   trailsRef: 새 RingBuffer 들로 교체 → 옛 궤적 클리어 (Trails 의 key remount
+ *   와 함께 깨끗한 새 trajectory).
  *
  * ─── 카오스 시드 (3-5) ────────────────────────────────
  *   three-body(figure-8) 한정: body-1 의 시작점에 고정 방향 × perturbation 을
@@ -50,7 +62,13 @@ export default function GravityPage() {
     return bodies
   }
 
+  // One trail ring per body. Owned here (sibling of bodiesRef) so the
+  // Integrator can write per-substep and Trails can read — see sub-3-7.
+  const makeTrails = (): RingBuffer[] =>
+    preset.bodies.map(() => new RingBuffer(TRAIL_CAPACITY))
+
   const bodiesRef = useRef<SystemState>(makeBodies())
+  const trailsRef = useRef<RingBuffer[]>(makeTrails())
   const loadedIdRef = useRef(presetId)
   const loadedPerturbRef = useRef(perturbation)
 
@@ -59,6 +77,7 @@ export default function GravityPage() {
     loadedIdRef.current = presetId
     loadedPerturbRef.current = perturbation
     bodiesRef.current = makeBodies()
+    trailsRef.current = makeTrails() // fresh rings → old path cleared
   }
 
   // 페이지 진입 = 기본 프리셋 (F5 / HMR 클린 시작) — Phase 2 mount reset 정신.
@@ -73,6 +92,7 @@ export default function GravityPage() {
       <Scene
         presetId={presetId}
         bodiesRef={bodiesRef}
+        trailsRef={trailsRef}
         presetBodies={preset.bodies}
         camera={preset.camera}
         G={preset.G}
