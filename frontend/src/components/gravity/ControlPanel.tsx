@@ -14,7 +14,14 @@ import type { PresetBody, PresetId } from '../../data/presets'
  *   - 3-5 Light 5 : 에너지/각운동량 readout (physics ref 샘플)
  *   - 3-5 Light 7 : 카오스 섭동 슬라이더 (three-body 한정)
  *   - 3-6        : 시간 속도 + paused (재생 컨트롤 — 맨 앞 고정) + 키보드
- *   - 3-7        : ↻ 리로드 (재생 클러스터 선두) + R 키, Follow 순환 버튼  ← 합류함
+ *   - 3-7        : ↻ 리로드 + R 키, Follow 순환 버튼, 모바일 줄바꿈 레이아웃
+ *
+ * 레이아웃 (sub-3-7): PresetSelector 와 동일하게 `absolute` (부모 = 콘텐츠
+ * 영역) 라 데스크톱 사이드바 위로 안 넘침. 패널이 [↻ ⏸ 속도 | 적분기 |
+ * readout | Follow | nudge] 로 길어져 (3-6 "비대화" 후보) 좁은 폰의 가로
+ * 스크롤이 불편 → 모바일은 `flex-wrap` 으로 여러 줄 + 중앙 정렬, 데스크톱
+ * (md+)은 한 줄 nowrap + 가로 스크롤 폴백. 구분선은 모바일에서 숨김(줄바꿈
+ * 되면 어색) → gap 으로 구분, md+ 에서만 표시.
  *
  * 스타일은 PresetSelector / 기존 토글 미러. 접근성 (PRD §6): 네이티브 컨트롤,
  * 활성 적분기·속도·추적 `aria-pressed`, 재생/정지·리로드 `aria-label`, 슬라이더
@@ -24,8 +31,7 @@ import type { PresetBody, PresetId } from '../../data/presets'
  * 시간 컨트롤을 *맨 앞* 에 두는 이유: 재생 컨트롤이 선두가 관습적이고, 섭동
  * 슬라이더는 three-body 에서만 나타나므로 — 시간 컨트롤이 그 뒤였다면 프리셋
  * 전환마다 위치가 흔들린다. 맨 앞 = 위치 고정. ↻ 리로드도 이 선두 클러스터에.
- * Follow 버튼은 항상 보이므로 (모든 프리셋 추적 가능) 조건부 nudge *앞* 에 둬
- * nudge 의 show/hide 가 Follow 위치를 안 흔들게 한다.
+ * Follow 버튼은 항상 보이므로 조건부 nudge *앞* 에 둬 위치를 안정시킨다.
  *
  * 키보드 (3-6/3-7): Space = 일시정지, 1~4 = 속도, R = 리로드(현재 프리셋
  * 재선택 = 깨끗한 재시드). 입력/버튼 포커스 시엔 무시해 네이티브 동작과 이중
@@ -149,8 +155,8 @@ export function ControlPanel({
     followIndex == null ? 'Free' : presetBodies[followIndex]?.label ?? 'Free'
 
   return (
-    <div className="fixed bottom-4 md:bottom-6 left-1/2 z-10 -translate-x-1/2 max-w-[calc(100vw-1rem)]">
-      <div className="flex items-center gap-3 overflow-x-auto whitespace-nowrap rounded-2xl border border-white/10 bg-black/40 px-3 py-2 shadow-2xl backdrop-blur-md">
+    <div className="absolute bottom-4 md:bottom-6 left-1/2 z-10 -translate-x-1/2 max-w-[calc(100%-1rem)]">
+      <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-black/40 px-3 py-2 shadow-2xl backdrop-blur-md md:flex-nowrap md:justify-start md:gap-3 md:overflow-x-auto md:whitespace-nowrap">
         {/* Time controls — playback. Fixed leftmost so the conditional nudge
             slider never shifts them. Speed = how many fixed-dt steps per frame,
             never a bigger dt (PRD §4-6 / sub-3-6). ↻ reload heads the cluster. */}
@@ -207,7 +213,7 @@ export function ControlPanel({
           </div>
         </div>
 
-        <div className="h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
+        <div className="hidden md:block h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
 
         {/* Integrator toggle — the method axis (PRD §3, the soul) */}
         <div role="group" aria-label="Integrator" className="flex items-center gap-1">
@@ -238,7 +244,7 @@ export function ControlPanel({
           </div>
         </div>
 
-        <div className="h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
+        <div className="hidden md:block h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
 
         {/* Conservation readout — the consequence of the method, made numeric */}
         <EnergyReadout
@@ -248,7 +254,7 @@ export function ControlPanel({
           presetId={presetId}
         />
 
-        <div className="h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
+        <div className="hidden md:block h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
 
         {/* Camera follow — reference-frame change. Cycles Free → each body.
             Always present; kept before the conditional nudge so its position
@@ -273,7 +279,7 @@ export function ControlPanel({
             Kept last so its show/hide never shifts the controls before it. */}
         {isThreeBody && (
           <>
-            <div className="h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
+            <div className="hidden md:block h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
             <div className="flex items-center gap-2">
               <label
                 htmlFor="perturbation"
