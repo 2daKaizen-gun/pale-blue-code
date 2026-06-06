@@ -116,6 +116,7 @@ export default function GravityPage() {
       />
       <ControlPanel
         bodiesRef={bodiesRef}
+        presetBodies={preset.bodies}
         G={preset.G}
         softening={preset.softening}
         presetId={presetId}
