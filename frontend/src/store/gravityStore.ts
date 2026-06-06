@@ -38,7 +38,7 @@ export const DEFAULT_TIME_SPEED: TimeSpeed = 1
  *   - 3-4 added `presetId` (the active preset)
  *   - 3-5 added `integrator` (the soul toggle) + `perturbation` (chaos seed)
  *   - 3-6 added `timeSpeed` + `paused` (visual speed, decoupled from dt)
- *   - 3-7 adds `presetLoadedAt` (reload nonce — see below)
+ *   - 3-7 added `presetLoadedAt` (reload nonce) + `followIndex` (camera follow)
  *
  * Control values are read via `getState()` inside `useFrame` (zero per-frame
  * re-renders); UI components subscribe to them normally.
@@ -60,6 +60,11 @@ export const DEFAULT_TIME_SPEED: TimeSpeed = 1
  * Trails key). This is the Phase 3 "reset": one user intent (reselect/reload)
  * = one action, no separate reset path (sub-2-4 / sub-3-6 YAGNI). TechSpec §3
  * reserved this slot.
+ *
+ * `followIndex` — which body the camera tracks (index into the system), or
+ * null for free orbit (sub-3-7). Runtime user choice, not preset metadata, so
+ * it lives here. Reset to null on every selectPreset: body counts differ per
+ * preset (2–9), so a stale index would point at nothing.
  */
 interface GravityStore {
   presetId: PresetId
@@ -71,11 +76,14 @@ interface GravityStore {
   timeSpeed: TimeSpeed
   /** Gates the substep loop (sub-3-6). Independent of `timeSpeed`. */
   paused: boolean
+  /** Camera follow target: body index, or null for free orbit (sub-3-7). */
+  followIndex: number | null
   selectPreset: (id: PresetId) => void
   setIntegrator: (kind: IntegratorKind) => void
   setPerturbation: (amount: number) => void
   setTimeSpeed: (speed: TimeSpeed) => void
   togglePause: () => void
+  setFollowIndex: (index: number | null) => void
 }
 
 export const useGravityStore = create<GravityStore>((set) => ({
@@ -85,15 +93,17 @@ export const useGravityStore = create<GravityStore>((set) => ({
   perturbation: 0,
   timeSpeed: DEFAULT_TIME_SPEED,
   paused: false,
+  followIndex: null,
 
   // Preset reselect is the Phase 3 "reset" — there is no separate reset action
   // (sub-2-4 YAGNI: one user intent = one action). It restores a clean slate:
   // clean physics IC (the ref is re-seeded by the scene layer) *and* clean
-  // controls here — perturbation, speed, and pause all back to default.
+  // controls here — perturbation, speed, pause, and follow all back to default.
   //
   // 3-7: bump `presetLoadedAt` *every* call (function form reads prev). This
   // is what makes re-selecting the SAME id re-seed — previously a same-id
   // select changed nothing, so a "reload" (button / R key) was a no-op.
+  // followIndex back to null: the new preset may have a different body count.
   selectPreset: (id) =>
     set((s) => ({
       presetId: id,
@@ -101,6 +111,7 @@ export const useGravityStore = create<GravityStore>((set) => ({
       perturbation: 0,
       timeSpeed: DEFAULT_TIME_SPEED,
       paused: false,
+      followIndex: null,
     })),
 
   setIntegrator: (kind) => set({ integrator: kind }),
@@ -111,4 +122,6 @@ export const useGravityStore = create<GravityStore>((set) => ({
   setTimeSpeed: (speed) => set({ timeSpeed: speed, paused: false }),
 
   togglePause: () => set((s) => ({ paused: !s.paused })),
+
+  setFollowIndex: (index) => set({ followIndex: index }),
 }))
