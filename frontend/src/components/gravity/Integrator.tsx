@@ -6,6 +6,7 @@ import type { SystemState } from '../../lib/physics/types'
 import type { RingBuffer } from '../../lib/util/ringBuffer'
 import { useGravityStore } from '../../store/gravityStore'
 import { advanceAccumulator } from '../../lib/util/substep'
+import { useIsTouchDevice } from '../../hooks/useIsTouchDevice'
 
 interface IntegratorProps {
   /**
@@ -21,10 +22,10 @@ interface IntegratorProps {
   /**
    * Per-body trail rings (owned by GravityPage, sibling of bodiesRef). We
    * push a point *per substep* here — not once per frame in <Trails> — so
-   * high visual speeds (up to MAX_SUBSTEPS steps/frame) record the whole arc
-   * instead of chording it into a polygon (sub-3-7). Writing trails from the
-   * loop that actually advances time keeps the invariant "one ring point =
-   * one integration step", which makes trail length a *fixed sim-time window*
+   * high visual speeds (up to the substep cap) record the whole arc instead
+   * of chording it into a polygon (sub-3-7). Writing trails from the loop
+   * that actually advances time keeps the invariant "one ring point = one
+   * integration step", which makes trail length a *fixed sim-time window*
    * regardless of visual speed.
    */
   trailsRef: React.RefObject<RingBuffer[]>
@@ -41,12 +42,18 @@ interface IntegratorProps {
 }
 
 /**
- * Substep cap. Visual speed (especially 10,000×) can ask for far more fixed-dt
- * steps than a frame can afford; past this cap the accumulator drops the
- * backlog and we accept "sim-time loss" (visual speed = best effort), so a slow
- * or very fast frame can't snowball into a death spiral.
+ * Substep caps. Visual speed (especially 10,000×) can ask for far more
+ * fixed-dt steps than a frame can afford; past this cap the accumulator drops
+ * the backlog and we accept "sim-time loss" (visual speed = best effort), so a
+ * slow or very fast frame can't snowball into a death spiral.
+ *
+ * sub-3-7: split desktop/mobile. A touch device runs a tighter cap — fewer
+ * worst-case steps per frame protects battery and heat (PRD §6 "모바일은
+ * N·substep 상한을 데스크톱보다 보수적으로"). dt is untouched, so accuracy is
+ * identical on both; only the *high-speed best-effort ceiling* differs.
  */
-const MAX_SUBSTEPS = 16
+const MAX_SUBSTEPS_DESKTOP = 16
+const MAX_SUBSTEPS_MOBILE = 8
 
 /**
  * The integrator loop. Renders nothing — its sole job is to march
@@ -54,12 +61,12 @@ const MAX_SUBSTEPS = 16
  * (RK4 by default; Euler when the soul toggle is flipped), and to sample
  * each body's trail once per substep.
  *
- * Pattern (TechSpec §2, completed in sub-3-6; trail sampling added 3-7):
+ * Pattern (TechSpec §2, completed in sub-3-6; trail sampling + mobile cap 3-7):
  *   - Fixed physics dt → accuracy is constant across frame rate *and* speed.
  *   - Visual speed = how many fixed-dt steps we take, never a bigger dt. A
  *     fractional accumulator (lib/util/substep) banks sim-time across frames so
  *     0.1× truly slows (sub-one-step/frame) and 10,000× packs many steps in
- *     (up to MAX_SUBSTEPS).
+ *     (up to the substep cap).
  *   - `paused` freezes time: no stepping, and no sim-time banks up while paused.
  *   - The method axis (rk4 | euler) is chosen per frame from control state
  *     (PRD §3, the soul): same law, same dt, different method, different fate.
@@ -75,6 +82,12 @@ export function Integrator({ bodiesRef, trailsRef, G, softening, dt }: Integrato
     () => (state: SystemState) => computeAccelerations(state, G, softening),
     [G, softening],
   )
+
+  // Tighter substep ceiling on touch devices (battery/heat). Re-renders only
+  // when the pointer type actually changes (rare) — useFrame picks up the new
+  // value via closure on the next registered callback.
+  const isTouch = useIsTouchDevice()
+  const maxSubsteps = isTouch ? MAX_SUBSTEPS_MOBILE : MAX_SUBSTEPS_DESKTOP
 
   // Sim-time banked between frames (always < dt). Reset when the preset's dt
   // changes, so leftover time from one scale doesn't bleed into another.
@@ -95,7 +108,7 @@ export function Integrator({ bodiesRef, trailsRef, G, softening, dt }: Integrato
       frameDelta,
       timeSpeed,
       dt,
-      MAX_SUBSTEPS,
+      maxSubsteps,
     )
     accumulatorRef.current = accumulator
     if (substeps === 0) return // a 0.1× frame where less than one dt has banked
