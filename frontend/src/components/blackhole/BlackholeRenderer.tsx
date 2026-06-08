@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { RawShaderMaterial, Vector2, Vector3, Matrix4 } from 'three'
+import { RawShaderMaterial, Vector2, Vector3, Matrix4, GLSL3 } from 'three'
 import vertGlsl from '../../shaders/blackhole.vert.glsl?raw'
 import fragGlsl from '../../shaders/blackhole.frag.glsl?raw'
 
@@ -14,6 +14,7 @@ export function BlackholeRenderer() {
     matRef.current = new RawShaderMaterial({
       vertexShader: vertGlsl,
       fragmentShader: fragGlsl,
+      glslVersion: GLSL3,
       uniforms: {
         u_resolution:    { value: new Vector2(1, 1) },
         u_cameraPos:     { value: new Vector3() },
