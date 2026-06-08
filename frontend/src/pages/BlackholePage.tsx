@@ -1,7 +1,9 @@
-import PhasePlaceholder from '../components/phases/PhasePlaceholder'
-import { PHASES } from '../constants/phases'
+import { Scene } from '../components/blackhole/Scene'
 
 export default function BlackholePage() {
-  const phase = PHASES.find((p) => p.path === '/blackhole')!
-  return <PhasePlaceholder phase={phase} />
+  return (
+    <div className="relative h-screen w-full">
+      <Scene />
+    </div>
+  )
 }
