@@ -88,11 +88,12 @@ PCTC 가 **작업의 결**을 잡고, GitHub 가 **진행의 가시화** 를 맡
 
 ## 5. 커밋 규칙
 
-### 커밋은 Claude 가 *준비* 하고, 권이건이 *확정* 한다 (게이트)
+### 커밋은 Claude 가 *준비·실행* 하고, 권이건이 *확인* 한다
 - Claude: 관련 파일 편집 → `npm run build` (tsc) 통과 확인 → `git add` →
-  **커밋 메시지 제시**
-- 권이건: 변경을 검토하고 `git commit` 으로 확정. *이 게이트가 §10-2 "이해 우선"
-  의 실천* — 커밋 순간이 곧 이해를 확인하는 지점이다.
+  **커밋 메시지 제시 + 권이건 확인 요청 → `git commit` 실행**
+- 권이건: 메시지·변경 내용 검토 후 **OK** (또는 수정 지시). *이 확인이 §10-2
+  "이해 우선"의 실천* — 커밋 전에 무엇이 쌓이는지 인지하는 지점이다.
+- **push 는 여전히 권이건 게이트** — sub-phase 끝, 검토 후 직접.
 
 ### 메시지 원칙
 - **언어**: 영어 · **길이**: 한 줄 (50자 이내 권장) · **컨벤션**: Conventional Commits
@@ -192,7 +193,7 @@ AGPL-3.0 공개 의무, 비공개 상업 통합 불가. README/LICENSE 에 명�
   spec/기억으로 추정한 코드를 쓰지 않는다 (구현이 spec 을 이긴다 — sub-3-7 교훈)
 - **`npm run build` (tsc) 를 직접 실행해 통과를 확인한 뒤** 커밋 단계로 — 추측한
   빌드 통과를 보고하지 않는다 (CC 의 핵심 이득: 빌드를 *진짜로* 돌린다)
-- **`git add` + 커밋 메시지 제시까지** — `git commit`/push 는 권이건 게이트
+- **`git add` + 커밋 메시지 제시 + 확인 받고 `git commit`** — push 는 권이건 게이트
 - sub-phase 종료 시 Issue close 절차 + 마일스톤 현황 표시
 - Phase 종료 시 인수인계 작성 (Milestone/Issue 상태 포함) + Release 태깅 안내
 - Context rot/anxiety 방지 — 인수인계·회고·커밋을 *직접 읽어* 복원
@@ -204,9 +205,8 @@ AGPL-3.0 공개 의무, 비공개 상업 통합 불가. README/LICENSE 에 명�
 - Phase별 회고 작성 (Claude 가 도움)
 - 매일 NASA APOD 한 장
 - 막히면 솔직히 막혔다고 (혼자 30분 이상 헤매지 않기)
-- **커밋 확정 (`git commit`) 은 본인 손** — Claude 의 `add`/메시지를 *검토 후*.
-  이 게이트가 §10-2 의 실천이다
-- **push (`git push origin main`) 도 본인** — sub-phase 끝, 검토 후
+- **커밋 확인** — Claude 가 메시지+diff 보여주면 OK/수정 지시. `git commit` 은 Claude 가 실행
+- **push (`git push origin main`) 는 본인** — sub-phase 끝, 검토 후
 - **Milestone/Issue 생성·close 는 Claude 가 실행하되 본인 승인** (명령을 직접 칠
   필요는 없지만, *무엇이 만들어지는지* 는 본인이 안다)
 - 새 세션 시작 시 헌장(CC판) + 인수인계 + README 경로 지정

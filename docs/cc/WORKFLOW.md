@@ -161,14 +161,15 @@ P: (한 문장 — 무엇을 왜)
 C: (구현 — Claude 가 파일 편집)
 T: (검증 — Claude 가 build/test 실행 결과 한 줄)
 C: (배운 것/다음 — 생략 가능)
-→ Claude: git add + 커밋 메시지 제시 →  권이건: git commit (#N)
+→ Claude: git add + 커밋 메시지 제시 + 확인 요청 → 권이건: OK → Claude: git commit (#N)
 ```
 마지막 Light 의 커밋만 `Closes #N`.
 
 **커밋 게이트 흐름** (CC 핵심):
-1. Claude: 파일 편집 → `npm run build` 통과 확인 → `git add <files>` → 메시지 제시
-2. 권이건: `git diff --staged` 검토 → `git commit -m "..."` 확정
-3. 묶음/sub-phase 끝까지 반복 → 마지막에 권이건 push
+1. Claude: 파일 편집 → `npm run build` 통과 확인 → `git add <files>` → 메시지 제시 + 확인 요청
+2. 권이건: `git diff --staged` 검토 → **OK** (또는 수정 지시)
+3. Claude: `git commit -m "..."` 실행
+4. 묶음/sub-phase 끝까지 반복 → 마지막에 권이건 push
 
 ---
 
@@ -179,7 +180,8 @@ C: (배운 것/다음 — 생략 가능)
 - ❌ Test 없이 다음 sub-phase → 부채
 - ❌ Check 생략 → 인수인계 빈약
 - ❌ **빌드 안 돌리고 커밋 add** → CC 인데 추측 통과. `npm run build` 먼저
-- ❌ **Claude 가 commit/push 까지 해버림** → 게이트 붕괴. add·메시지까지만
+- ❌ **확인 없이 commit** → 반드시 메시지 제시 후 OK 받고 실행. push 는 권이건
+- ❌ **Light 여러 개 한 커밋** → 파일 묶음을 Light 단위로 쪼개서 커밋
 - ❌ push 누락 → 배포 멈춤
 - ❌ Milestone/Issue 미생성, 미close → 진행 가시화 깨짐
 

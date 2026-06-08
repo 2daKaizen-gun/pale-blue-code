@@ -24,7 +24,7 @@ sub-3-7 한 sub-phase 에서 파일을 **10번 넘게** 주고받았다. Phase 4
 | 테스트 | 권이건이 로컬 | **Claude 가 `npm test` 직접 실행** ✅ |
 | Issue/Milestone | 권이건이 PowerShell `gh` | **Claude 가 `gh` 실행** (승인 후) |
 | `git add` + 메시지 | 권이건 | **Claude** |
-| **`git commit`** | 권이건 | **권이건 (게이트 유지)** 🚪 |
+| **`git commit`** | 권이건 | **Claude (확인 후 실행)** ✅ |
 | **`git push`** | 권이건 | **권이건 (게이트 유지)** 🚪 |
 
 ---
@@ -35,9 +35,9 @@ sub-3-7 한 sub-phase 에서 파일을 **10번 넘게** 주고받았다. Phase 4
 지점*이다. Claude 가 다 자동화하면 빠르지만, *네가 무엇을 커밋하는지 모른 채* 쌓인다.
 그래서:
 
-- Claude 는 **`git add` + 커밋 메시지 제시까지**
-- 너는 **`git diff --staged` 검토 → `git commit`** 으로 확정
-- push 도 sub-phase 끝에 **네가 검토 후**
+- Claude 는 **`git add` + 메시지 제시 + 확인 요청 → `git commit` 실행**
+- 너는 **메시지·diff 검토 → OK** (또는 수정 지시)
+- push 는 sub-phase 끝에 **네가 검토 후**
 
 빠름보다 이해. 이 프로젝트의 영혼.
 
