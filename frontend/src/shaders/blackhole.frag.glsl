@@ -39,24 +39,24 @@ float starfield(vec3 dir) {
 
   float b = 0.0;
 
-  // Bright sparse layer (~4 % of cells)
-  vec2 c1 = floor(uv * 150.0);
-  vec2 l1 = fract(uv * 150.0);
+  // Bright layer (~20 % of cells) — dense enough to show gravitational lensing distortion
+  vec2 c1 = floor(uv * 200.0);
+  vec2 l1 = fract(uv * 200.0);
   float r1 = hash21(c1);
-  if (r1 > 0.96) {
+  if (r1 > 0.80) {
     vec2  sp  = vec2(hash21(c1 + 0.5), hash21(c1 + 1.5)) * 0.8 + 0.1;
     float d1  = length(l1 - sp);
-    b += smoothstep(0.07, 0.0, d1) * (0.6 + r1 * 0.4);
+    b += smoothstep(0.06, 0.0, d1) * (0.5 + r1 * 0.5);
   }
 
-  // Dim dense layer (~7 % of cells)
-  vec2 c2 = floor(uv * 400.0);
-  vec2 l2 = fract(uv * 400.0);
+  // Dim filler layer (~25 % of cells)
+  vec2 c2 = floor(uv * 500.0);
+  vec2 l2 = fract(uv * 500.0);
   float r2 = hash21(c2 + 99.7);
-  if (r2 > 0.93) {
+  if (r2 > 0.75) {
     vec2  sp2 = vec2(hash21(c2 + 13.3), hash21(c2 + 77.1)) * 0.8 + 0.1;
     float d2  = length(l2 - sp2);
-    b += smoothstep(0.04, 0.0, d2) * r2 * 0.4;
+    b += smoothstep(0.03, 0.0, d2) * r2 * 0.35;
   }
 
   return clamp(b, 0.0, 1.0);
@@ -116,7 +116,7 @@ vec3 traceRay(vec3 rd) {
   float p0   = (cosA < 0.0 ? 1.0 : -1.0) * sqrt(p0sq);
 
   // ── 3. RK4 integration ────────────────────────────────────────────────
-  const float D_PHI = 0.1;   // step size ~5.7° — sufficient for one photon orbit
+  const float D_PHI = 0.3;   // ~17°/step — covers 19 rad (64 steps), enough for photon-sphere escape
   vec2  state = vec2(u0, p0);
   float phi   = 0.0;
 
