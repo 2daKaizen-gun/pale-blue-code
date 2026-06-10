@@ -61,6 +61,25 @@ float starfield(vec3 dir) {
   return clamp(b, 0.0, 1.0);
 }
 
+// ── Schwarzschild geodesic math (sub-4-2) ─────────────────────────────────
+// State: vec2(u, p) where u = 1/r, p = du/dφ.
+// ODE: d²u/dφ² = -u + (3/2)·rs·u²  →  dp/dφ = -u + 1.5·rs·u²
+
+vec2 geodesicDerivs(vec2 state, float rs) {
+  float u = state.x;
+  float p = state.y;
+  return vec2(p, -u + 1.5 * rs * u * u);
+}
+
+vec2 rk4Step(vec2 s, float dphi, float rs) {
+  vec2 k1 = geodesicDerivs(s,            rs) * dphi;
+  vec2 k2 = geodesicDerivs(s + k1 * 0.5, rs) * dphi;
+  vec2 k3 = geodesicDerivs(s + k2 * 0.5, rs) * dphi;
+  vec2 k4 = geodesicDerivs(s + k3,       rs) * dphi;
+  return s + (k1 + 2.0*k2 + 2.0*k3 + k4) / 6.0;
+}
+// ──────────────────────────────────────────────────────────────────────────
+
 void main() {
   vec2 ndc = v_uv * 2.0 - 1.0;
   vec3 rd  = rayDir(ndc);
