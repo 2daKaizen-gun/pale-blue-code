@@ -61,7 +61,19 @@ float starfield(vec3 dir) {
   return clamp(b, 0.0, 1.0);
 }
 
-// ── Schwarzschild geodesic math (sub-4-2) ─────────────────────────────────
+// ── Schwarzschild null geodesic (sub-4-2) ─────────────────────────────────
+//
+// Traces one photon backward from the camera through Schwarzschild spacetime.
+// Returns the asymptotic incoming direction (used to sample the starfield).
+// Returns vec3(0) to signal horizon capture (caller renders black).
+//
+// Orbital plane reduction: Schwarzschild metric is spherically symmetric, so
+// the photon path lies in a plane. We find that plane from (camPos, rd), then
+// integrate the 2-D u–φ ODE and reconstruct a 3-D direction at the end.
+//
+// MAX_STEPS is a compile-time constant so the loop is valid on all GLSL
+// drivers; u_steps provides the runtime quality knob via early break.
+#define MAX_STEPS 128
 // State: vec2(u, p) where u = 1/r, p = du/dφ.
 // ODE: d²u/dφ² = -u + (3/2)·rs·u²  →  dp/dφ = -u + 1.5·rs·u²
 
@@ -78,19 +90,71 @@ vec2 rk4Step(vec2 s, float dphi, float rs) {
   vec2 k4 = geodesicDerivs(s + k3,       rs) * dphi;
   return s + (k1 + 2.0*k2 + 2.0*k3 + k4) / 6.0;
 }
+
+// Returns deflected direction, or vec3(0) on horizon capture.
+vec3 traceRay(vec3 rd) {
+  // ── 1. Orbital plane basis ────────────────────────────────────────────
+  vec3 e_r = normalize(u_cameraPos);          // radial outward from BH
+  vec3 n   = normalize(cross(u_cameraPos, rd)); // plane normal
+  // Guard: ray aimed straight at/away from BH → no deflection possible
+  if (length(cross(u_cameraPos, rd)) < 1e-6) return rd;
+  vec3 e_t = normalize(cross(n, e_r));        // tangential (+φ direction)
+
+  // Ensure e_t is in the same half-plane as rd's tangential component
+  if (dot(rd, e_t) < 0.0) { n = -n; e_t = -e_t; }
+
+  // ── 2. Initial conditions ─────────────────────────────────────────────
+  float r0  = length(u_cameraPos);
+  float u0  = 1.0 / r0;
+  // Impact parameter b = r0 * sin(angle between rd and e_r)
+  float sinA = length(cross(rd, e_r));
+  float cosA = dot(rd, e_r);
+  float b    = (sinA < 1e-6) ? 1e-6 : sinA / u0;
+  // p0 sign: ray moving toward BH (cosA < 0) → r decreases → u increases → p > 0
+  float p0sq = max(0.0, 1.0/(b*b) - u0*u0 + u_rs*u0*u0*u0);
+  float p0   = (cosA < 0.0 ? 1.0 : -1.0) * sqrt(p0sq);
+
+  // ── 3. RK4 integration ────────────────────────────────────────────────
+  const float D_PHI = 0.1;   // step size ~5.7° — sufficient for one photon orbit
+  vec2  state = vec2(u0, p0);
+  float phi   = 0.0;
+
+  for (int i = 0; i < MAX_STEPS; i++) {
+    if (i >= u_steps) break;
+
+    state = rk4Step(state, D_PHI, u_rs);
+    phi  += D_PHI;
+
+    float u_cur = state.x;
+    // Horizon capture: photon crossed r_s
+    if (u_rs > 0.0 && u_cur > 0.0 && (1.0 / u_cur) < u_rs) return vec3(0.0);
+    // Divergence guard (unphysical u < 0 → photon escaped to infinity)
+    if (u_cur <= 0.0) break;
+  }
+
+  // ── 4. Reconstruct 3-D exit direction ────────────────────────────────
+  // Position unit vector at final φ
+  vec3 e_r_f = e_r * cos(phi) + e_t * sin(phi);
+  vec3 e_t_f = -e_r * sin(phi) + e_t * cos(phi);
+  // Tangent of the orbit: (-p/u) * radial + 1 * tangential (unnormalized)
+  float u_f = max(state.x, 1e-8);
+  float p_f = state.y;
+  return normalize((-p_f / u_f) * e_r_f + e_t_f);
+}
 // ──────────────────────────────────────────────────────────────────────────
 
 void main() {
   vec2 ndc = v_uv * 2.0 - 1.0;
   vec3 rd  = rayDir(ndc);
 
-  // Black disc: pixels within 4° of the BH direction (world origin) go dark.
-  // Soft edge over ~0.12° so the boundary isn't aliased.
-  vec3  toBH     = normalize(-u_cameraPos);
-  float cosA     = dot(rd, toBH);
-  float discEdge = cos(radians(4.0));
-  float discMask = 1.0 - smoothstep(discEdge, discEdge + 0.002, cosA);
+  vec3 deflected = traceRay(rd);
 
-  float stars = starfield(rd);
-  fragColor   = vec4(vec3(stars) * discMask, 1.0);
+  // Horizon capture → black pixel
+  if (length(deflected) < 0.5) {
+    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    return;
+  }
+
+  float stars = starfield(deflected);
+  fragColor   = vec4(vec3(stars), 1.0);
 }

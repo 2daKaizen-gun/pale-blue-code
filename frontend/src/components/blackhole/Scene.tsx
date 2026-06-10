@@ -9,7 +9,7 @@ export function Scene() {
   return (
     <Canvas
       dpr={DPR}
-      camera={{ position: [0, 0, 5], fov: 60, near: 0.01, far: 1000 }}
+      camera={{ position: [0, 0, 15], fov: 60, near: 0.01, far: 1000 }}
     >
       {import.meta.env.DEV && <Stats />}
       <BlackholeRenderer />
