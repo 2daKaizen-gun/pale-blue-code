@@ -22,6 +22,7 @@ export function BlackholeRenderer() {
         u_fov:           { value: 60 },
         u_rs:            { value: 0 },
         u_steps:         { value: 64 },
+        u_showHorizon:   { value: false },
       },
       depthWrite: false,
       depthTest: false,

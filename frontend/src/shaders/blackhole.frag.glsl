@@ -7,8 +7,9 @@ uniform vec2  u_resolution;
 uniform vec3  u_cameraPos;
 uniform mat4  u_cameraToWorld;
 uniform float u_fov;
-uniform float u_rs;    // Schwarzschild radius — used in sub-4-2
-uniform int   u_steps; // geodesic integration steps — used in sub-4-2
+uniform float u_rs;
+uniform int   u_steps;
+uniform bool  u_showHorizon; // photon-sphere glow ring overlay
 
 #define PI 3.14159265359
 
@@ -156,5 +157,19 @@ void main() {
   }
 
   float stars = starfield(deflected);
-  fragColor   = vec4(vec3(stars), 1.0);
+
+  // Photon-sphere glow ring: thin bright band at b ≈ b_crit = sqrt(27/4)·r_s.
+  // b_crit is the impact parameter where photons orbit the photon sphere —
+  // it marks the inner edge of the bright Einstein ring seen by the observer.
+  if (u_showHorizon && u_rs > 0.0) {
+    float b_crit  = sqrt(6.75) * u_rs;          // sqrt(27/4)
+    float r_cam   = length(u_cameraPos);
+    float sinA    = length(cross(rd, normalize(-u_cameraPos)));
+    float b_ray   = sinA * r_cam;
+    float ringW   = u_rs * 0.08;
+    float glow    = smoothstep(ringW, 0.0, abs(b_ray - b_crit));
+    stars = clamp(stars + glow * 0.9, 0.0, 1.0);
+  }
+
+  fragColor = vec4(vec3(stars), 1.0);
 }
