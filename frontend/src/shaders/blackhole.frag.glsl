@@ -9,7 +9,10 @@ uniform mat4  u_cameraToWorld;
 uniform float u_fov;
 uniform float u_rs;
 uniform int   u_steps;
-uniform bool  u_showHorizon; // photon-sphere glow ring overlay
+uniform bool  u_showHorizon;
+uniform bool  u_diskVisible;
+uniform float u_diskInner;
+uniform float u_diskOuter;
 
 #define PI 3.14159265359
 
@@ -92,33 +95,41 @@ vec2 rk4Step(vec2 s, float dphi, float rs) {
   return s + (k1 + 2.0*k2 + 2.0*k3 + k4) / 6.0;
 }
 
-// Returns deflected direction, or vec3(0) on horizon capture.
-vec3 traceRay(vec3 rd) {
-  // ── 1. Orbital plane basis ────────────────────────────────────────────
-  vec3 e_r = normalize(u_cameraPos);          // radial outward from BH
-  vec3 n   = normalize(cross(u_cameraPos, rd)); // plane normal
-  // Guard: ray aimed straight at/away from BH → no deflection possible
-  if (length(cross(u_cameraPos, rd)) < 1e-6) return rd;
-  vec3 e_t = normalize(cross(n, e_r));        // tangential (+φ direction)
+// Temperature-gradient disk color. doppler=0.5 neutral (Doppler added in L3).
+vec3 diskColor(float r, float doppler) {
+  float t    = 1.0 - clamp((r - u_diskInner) / max(u_diskOuter - u_diskInner, 1e-4), 0.0, 1.0);
+  vec3  hot  = vec3(1.0, 0.95, 0.8);   // inner: hot white-yellow
+  vec3  cool = vec3(0.9, 0.35, 0.05);  // outer: cooler orange
+  return mix(cool, hot, t) * mix(0.5, 1.5, doppler);
+}
 
-  // Ensure e_t is in the same half-plane as rd's tangential component
+// Returns deflected direction, or vec3(0) on horizon capture.
+// diskR < 0 means no disk hit; diskDoppler is 0.5 (neutral) until L3.
+vec3 traceRay(vec3 rd, out float diskR, out float diskDoppler) {
+  diskR       = -1.0;
+  diskDoppler = 0.5;
+
+  // ── 1. Orbital plane basis ────────────────────────────────────────────
+  vec3 e_r = normalize(u_cameraPos);
+  vec3 n   = normalize(cross(u_cameraPos, rd));
+  if (length(cross(u_cameraPos, rd)) < 1e-6) return rd;
+  vec3 e_t = normalize(cross(n, e_r));
   if (dot(rd, e_t) < 0.0) { n = -n; e_t = -e_t; }
 
   // ── 2. Initial conditions ─────────────────────────────────────────────
-  float r0  = length(u_cameraPos);
-  float u0  = 1.0 / r0;
-  // Impact parameter b = r0 * sin(angle between rd and e_r)
+  float r0   = length(u_cameraPos);
+  float u0   = 1.0 / r0;
   float sinA = length(cross(rd, e_r));
   float cosA = dot(rd, e_r);
   float b    = (sinA < 1e-6) ? 1e-6 : sinA / u0;
-  // p0 sign: ray moving toward BH (cosA < 0) → r decreases → u increases → p > 0
   float p0sq = max(0.0, 1.0/(b*b) - u0*u0 + u_rs*u0*u0*u0);
   float p0   = (cosA < 0.0 ? 1.0 : -1.0) * sqrt(p0sq);
 
   // ── 3. RK4 integration ────────────────────────────────────────────────
-  const float D_PHI = 0.3;   // ~17°/step — covers 19 rad (64 steps), enough for photon-sphere escape
-  vec2  state = vec2(u0, p0);
-  float phi   = 0.0;
+  const float D_PHI = 0.3;
+  vec2  state  = vec2(u0, p0);
+  float phi    = 0.0;
+  float prev_y = u_cameraPos.y;  // initial 3-D position y = camera y
 
   for (int i = 0; i < MAX_STEPS; i++) {
     if (i >= u_steps) break;
@@ -127,32 +138,51 @@ vec3 traceRay(vec3 rd) {
     phi  += D_PHI;
 
     float u_cur = state.x;
-    // Horizon capture: photon crossed r_s
     if (u_rs > 0.0 && u_cur > 0.0 && (1.0 / u_cur) < u_rs) return vec3(0.0);
-    // Divergence guard (unphysical u < 0 → photon escaped to infinity)
     if (u_cur <= 0.0) break;
+
+    // Disk intersection: detect y=0 (equatorial plane) crossing
+    if (u_diskVisible && u_diskOuter > u_diskInner) {
+      vec3  e_r_phi = e_r * cos(phi) + e_t * sin(phi);
+      vec3  pos     = (1.0 / u_cur) * e_r_phi;
+      float cur_y   = pos.y;
+
+      if (prev_y * cur_y < 0.0) {              // sign change → crossed y=0
+        float r_hit = length(pos.xz);
+        if (r_hit > u_diskInner && r_hit < u_diskOuter) {
+          diskR = r_hit;
+          // diskDoppler remains 0.5 until L3 adds Doppler computation
+        }
+      }
+      prev_y = cur_y;
+    }
   }
 
   // ── 4. Reconstruct 3-D exit direction ────────────────────────────────
-  // Position unit vector at final φ
-  vec3 e_r_f = e_r * cos(phi) + e_t * sin(phi);
-  vec3 e_t_f = -e_r * sin(phi) + e_t * cos(phi);
-  // Tangent of the orbit: (-p/u) * radial + 1 * tangential (unnormalized)
-  float u_f = max(state.x, 1e-8);
-  float p_f = state.y;
+  vec3  e_r_f = e_r * cos(phi) + e_t * sin(phi);
+  vec3  e_t_f = -e_r * sin(phi) + e_t * cos(phi);
+  float u_f   = max(state.x, 1e-8);
+  float p_f   = state.y;
   return normalize((-p_f / u_f) * e_r_f + e_t_f);
 }
 // ──────────────────────────────────────────────────────────────────────────
 
 void main() {
-  vec2 ndc = v_uv * 2.0 - 1.0;
-  vec3 rd  = rayDir(ndc);
+  vec2  ndc = v_uv * 2.0 - 1.0;
+  vec3  rd  = rayDir(ndc);
 
-  vec3 deflected = traceRay(rd);
+  float diskR, diskDoppler;
+  vec3 deflected = traceRay(rd, diskR, diskDoppler);
 
   // Horizon capture → black pixel
   if (length(deflected) < 0.5) {
     fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    return;
+  }
+
+  // Disk hit → disk color
+  if (diskR > 0.0) {
+    fragColor = vec4(diskColor(diskR, diskDoppler), 1.0);
     return;
   }
 
