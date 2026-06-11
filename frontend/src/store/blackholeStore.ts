@@ -16,8 +16,8 @@ interface BlackholeState {
 export const useBlackholeStore = create<BlackholeState>((set) => ({
   mass: 1.5,
   steps: 64,
-  diskVisible: false,
-  showHorizon: false,
+  diskVisible: true,
+  showHorizon: true,
   setMass: (mass) => set({ mass }),
   setSteps: (steps) => set({ steps }),
   setDiskVisible: (diskVisible) => set({ diskVisible }),

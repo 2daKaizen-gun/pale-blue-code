@@ -95,17 +95,28 @@ vec2 rk4Step(vec2 s, float dphi, float rs) {
   return s + (k1 + 2.0*k2 + 2.0*k3 + k4) / 6.0;
 }
 
-// Disk color: temperature gradient × Doppler beaming.
-// doppler=1 → approaching (blue+bright), doppler=0 → receding (red+dim).
+// Disk color: Doppler beaming drives hue, radius drives brightness.
+// doppler=1 → approaching (blue-white, bright)
+// doppler=0 → receding  (deep red, dim)
 vec3 diskColor(float r, float doppler) {
-  float t      = 1.0 - clamp((r - u_diskInner) / max(u_diskOuter - u_diskInner, 1e-4), 0.0, 1.0);
-  vec3  hot    = vec3(1.0, 0.95, 0.8);   // inner: white-yellow
-  vec3  cool   = vec3(0.9, 0.35, 0.05);  // outer: orange
-  vec3  base   = mix(cool, hot, t);
-  vec3  blue   = vec3(0.55, 0.75, 1.0);  // approaching tint
-  vec3  red    = vec3(1.0,  0.35, 0.15); // receding tint
-  float bright = mix(0.4, 1.6, doppler); // beaming: approaching side brighter
-  return base * mix(red, blue, doppler) * bright;
+  // Radius: inner hotter/brighter, outer cooler/dimmer
+  float t = 1.0 - clamp((r - u_diskInner) / max(u_diskOuter - u_diskInner, 1e-4), 0.0, 1.0);
+
+  // Doppler hue — clear separation, not a tint
+  vec3 blueshift = vec3(0.3, 0.65, 1.0);   // approaching: blue-white
+  vec3 neutral   = vec3(1.0, 0.65, 0.15);  // broadside: orange
+  vec3 redshift  = vec3(0.7, 0.05, 0.0);   // receding: deep red
+
+  vec3 hue;
+  if (doppler > 0.5) {
+    hue = mix(neutral, blueshift, (doppler - 0.5) * 2.0);
+  } else {
+    hue = mix(redshift, neutral, doppler * 2.0);
+  }
+
+  float radBright    = mix(0.6, 1.4, t);          // inner brighter
+  float dopplerBright = mix(0.2, 2.0, doppler);   // beaming: approaching much brighter
+  return hue * radBright * dopplerBright;
 }
 
 // Returns deflected direction, or vec3(0) on horizon capture.
