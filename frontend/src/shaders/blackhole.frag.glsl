@@ -95,32 +95,38 @@ vec2 rk4Step(vec2 s, float dphi, float rs) {
   return s + (k1 + 2.0*k2 + 2.0*k3 + k4) / 6.0;
 }
 
-// Disk color: Doppler beaming drives hue + brightness, radius drives radial gradient.
-// Each pole is pre-multiplied so no channel blows past 1.0 and turns white.
-// doppler=1 → approaching (blue, bright)  doppler=0 → receding (deep red, dim)
+// HDR disk emission. Returns values >> 1.0; tonemapped in main().
+// doppler=1 → approaching (blue, very bright)  doppler=0 → receding (deep red, dim)
 vec3 diskColor(float r, float doppler) {
   float t = 1.0 - clamp((r - u_diskInner) / max(u_diskOuter - u_diskInner, 1e-4), 0.0, 1.0);
-  float radBright = mix(0.5, 1.2, t);  // inner brighter
 
-  // Pre-brightened poles — keep max channel ≤ 1.0 so colour is preserved under clamp
-  vec3 receding    = vec3(0.55, 0.04, 0.0)  * 0.3;   // dim deep red
-  vec3 broadside   = vec3(1.0,  0.60, 0.12) * 0.75;  // orange
-  vec3 approaching = vec3(0.20, 0.50, 1.0)  * 1.0;   // clear blue
+  // Thermal gradient: inner white-hot → mid orange → outer dim red
+  vec3 hot  = vec3(1.0, 0.90, 0.75);
+  vec3 warm = vec3(1.0, 0.50, 0.04);
+  vec3 cool = vec3(0.45, 0.06, 0.0);
+  vec3 thermal;
+  if (t > 0.6) thermal = mix(warm, hot,  (t - 0.6) / 0.4);
+  else         thermal = mix(cool, warm,  t / 0.6);
 
-  vec3 hue;
-  if (doppler > 0.5) {
-    hue = mix(broadside, approaching, (doppler - 0.5) * 2.0);
-  } else {
-    hue = mix(receding, broadside, doppler * 2.0);
-  }
-  return hue * radBright;
+  // Relativistic beaming: doppler² for sharp asymmetry (Interstellar signature)
+  float beaming     = mix(0.08, 4.5, doppler * doppler);
+  vec3  dopplerTint = mix(
+    vec3(1.0,  0.20, 0.02),  // receding:   deep red tint
+    vec3(0.25, 0.60, 1.0),   // approaching: blue tint
+    doppler
+  );
+
+  // ISCO inner-edge boost: sharply brighter near r_isco
+  float innerBoost = pow(t, 2.0) * 2.5 + 0.15;
+
+  return thermal * dopplerTint * beaming * innerBoost;
 }
 
-// Returns deflected direction, or vec3(0) on horizon capture.
-// diskR < 0 means no disk hit; diskDoppler is 0.5 (neutral) until L3.
-vec3 traceRay(vec3 rd, out float diskR, out float diskDoppler) {
-  diskR       = -1.0;
-  diskDoppler = 0.5;
+// Returns deflected direction (vec3(0) = horizon capture).
+// diskEmit accumulates HDR volumetric disk emission along the ray path —
+// both the near side and the gravitationally lensed far side contribute.
+vec3 traceRay(vec3 rd, out vec3 diskEmit) {
+  diskEmit = vec3(0.0);
 
   // ── 1. Orbital plane basis ────────────────────────────────────────────
   vec3 e_r = normalize(u_cameraPos);
@@ -138,11 +144,11 @@ vec3 traceRay(vec3 rd, out float diskR, out float diskDoppler) {
   float p0sq = max(0.0, 1.0/(b*b) - u0*u0 + u_rs*u0*u0*u0);
   float p0   = (cosA < 0.0 ? 1.0 : -1.0) * sqrt(p0sq);
 
-  // ── 3. RK4 integration ────────────────────────────────────────────────
-  const float D_PHI = 0.3;
-  vec2  state  = vec2(u0, p0);
-  float phi    = 0.0;
-  float prev_y = u_cameraPos.y;  // initial 3-D position y = camera y
+  // ── 3. RK4 integration + volumetric disk ─────────────────────────────
+  const float D_PHI   = 0.3;
+  vec2  state         = vec2(u0, p0);
+  float phi           = 0.0;
+  float disk_half_h   = max(u_diskInner * 0.20, 0.4);  // disk scale height
 
   for (int i = 0; i < MAX_STEPS; i++) {
     if (i >= u_steps) break;
@@ -154,23 +160,27 @@ vec3 traceRay(vec3 rd, out float diskR, out float diskDoppler) {
     if (u_rs > 0.0 && u_cur > 0.0 && (1.0 / u_cur) < u_rs) return vec3(0.0);
     if (u_cur <= 0.0) break;
 
-    // Disk intersection: detect y=0 (equatorial plane) crossing
+    // Volumetric disk: sample emission at every step inside the disk region.
+    // No single plane crossing — the ray accumulates light as it passes through
+    // the toroidal disk volume. Both the near side and lensed far side contribute.
     if (u_diskVisible && u_diskOuter > u_diskInner) {
       vec3  e_r_phi = e_r * cos(phi) + e_t * sin(phi);
       vec3  pos     = (1.0 / u_cur) * e_r_phi;
-      float cur_y   = pos.y;
+      float r       = length(pos.xz);
 
-      if (diskR < 0.0 && prev_y * cur_y < 0.0) { // first y=0 crossing only
-        float r_hit = length(pos.xz);
-        if (r_hit > u_diskInner && r_hit < u_diskOuter) {
-          diskR = r_hit;
-          // Keplerian Doppler: prograde tangential v ∝ 1/√r, project onto line-of-sight
-          vec3  v_dir = normalize(vec3(-pos.z, 0.0, pos.x));
-          float v_los = dot(v_dir, normalize(u_cameraPos - pos));
-          diskDoppler = clamp(v_los / sqrt(r_hit) * 3.0 + 0.5, 0.0, 1.0);
+      if (r > u_diskInner && r < u_diskOuter) {
+        float h_norm = pos.y / disk_half_h;
+        if (abs(h_norm) < 3.5) {
+          float density = exp(-0.5 * h_norm * h_norm);  // Gaussian vertical profile
+
+          // Keplerian Doppler: prograde rotation, projected onto line-of-sight
+          vec3  v_dir   = normalize(vec3(-pos.z, 0.0, pos.x));
+          float v_los   = dot(v_dir, normalize(u_cameraPos - pos));
+          float doppler = clamp(v_los / sqrt(max(r, 0.01)) * 3.5 + 0.5, 0.0, 1.0);
+
+          diskEmit += diskColor(r, doppler) * density * D_PHI;
         }
       }
-      prev_y = cur_y;
     }
   }
 
@@ -184,38 +194,39 @@ vec3 traceRay(vec3 rd, out float diskR, out float diskDoppler) {
 // ──────────────────────────────────────────────────────────────────────────
 
 void main() {
-  vec2  ndc = v_uv * 2.0 - 1.0;
-  vec3  rd  = rayDir(ndc);
+  vec2 ndc = v_uv * 2.0 - 1.0;
+  vec3 rd  = rayDir(ndc);
 
-  float diskR, diskDoppler;
-  vec3 deflected = traceRay(rd, diskR, diskDoppler);
+  vec3 diskEmit;
+  vec3 deflected = traceRay(rd, diskEmit);
 
-  // Horizon capture → black pixel
+  // Background: horizon capture = black, otherwise deflected starfield
+  vec3 color;
   if (length(deflected) < 0.5) {
-    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-    return;
+    color = vec3(0.0);
+  } else {
+    color = vec3(starfield(deflected)) * 1.4;  // slight boost so stars survive tonemapping
   }
 
-  // Disk hit → disk color
-  if (diskR > 0.0) {
-    fragColor = vec4(diskColor(diskR, diskDoppler), 1.0);
-    return;
-  }
-
-  float stars = starfield(deflected);
-
-  // Photon-sphere glow ring: thin bright band at b ≈ b_crit = sqrt(27/4)·r_s.
-  // b_crit is the impact parameter where photons orbit the photon sphere —
-  // it marks the inner edge of the bright Einstein ring seen by the observer.
+  // Photon-sphere glow ring (b ≈ b_crit = sqrt(27/4)·r_s)
   if (u_showHorizon && u_rs > 0.0) {
-    float b_crit  = sqrt(6.75) * u_rs;          // sqrt(27/4)
-    float r_cam   = length(u_cameraPos);
-    float sinA    = length(cross(rd, normalize(-u_cameraPos)));
-    float b_ray   = sinA * r_cam;
-    float ringW   = u_rs * 0.08;
-    float glow    = smoothstep(ringW, 0.0, abs(b_ray - b_crit));
-    stars = clamp(stars + glow * 0.9, 0.0, 1.0);
+    float b_crit = sqrt(6.75) * u_rs;
+    float r_cam  = length(u_cameraPos);
+    float sinA   = length(cross(rd, normalize(-u_cameraPos)));
+    float b_ray  = sinA * r_cam;
+    float ringW  = u_rs * 0.07;
+    float glow   = smoothstep(ringW, 0.0, abs(b_ray - b_crit));
+    color += vec3(1.0, 0.92, 0.75) * glow * 2.0;  // warm glow ring, HDR
   }
 
-  fragColor = vec4(vec3(stars), 1.0);
+  // Disk emission: additive — the disk physically emits light into the scene.
+  // Both the near-side arc and the gravitationally lensed far-side arc
+  // contribute automatically through volumetric integration.
+  color += diskEmit;
+
+  // Reinhard tonemapping: maps HDR [0,∞) → [0,1) while preserving colour ratios.
+  // Bright ISCO glow stays visibly orange-white; blue approaching arc stays blue.
+  color = color / (color + vec3(1.0));
+
+  fragColor = vec4(color, 1.0);
 }
