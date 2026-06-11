@@ -3,14 +3,16 @@ import { OrbitControls, Stats } from '@react-three/drei'
 import { BlackholeRenderer } from './BlackholeRenderer'
 import { UniformUpdater } from './UniformUpdater'
 import { ControlPanel } from './ControlPanel'
-
-const DPR: [number, number] = [1, 2]
+import { useIsTouchDevice } from '../../hooks/useIsTouchDevice'
 
 export function Scene() {
+  const isMobile = useIsTouchDevice()
+  const dpr: [number, number] = isMobile ? [1, 1.5] : [1, 2]
+
   return (
     <div className="relative h-full w-full">
       <Canvas
-        dpr={DPR}
+        dpr={dpr}
         camera={{ position: [0, 4, 20], fov: 60, near: 0.01, far: 1000 }}
       >
         {import.meta.env.DEV && <Stats />}
