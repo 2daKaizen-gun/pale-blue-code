@@ -13,6 +13,7 @@ uniform bool  u_showHorizon;
 uniform bool  u_diskVisible;
 uniform float u_diskInner;
 uniform float u_diskOuter;
+uniform float u_time;
 
 #define PI 3.14159265359
 
@@ -178,7 +179,21 @@ vec3 traceRay(vec3 rd, out vec3 diskEmit) {
           float v_los   = dot(v_dir, normalize(u_cameraPos - pos));
           float doppler = clamp(v_los / sqrt(max(r, 0.01)) * 3.5 + 0.5, 0.0, 1.0);
 
-          diskEmit += diskColor(r, doppler) * density * D_PHI;
+          // Keplerian differential rotation: inner disk spins faster than outer.
+          // Von Mises hotspot gives a concentrated bright flare orbiting at ISCO.
+          float theta     = atan(pos.z, pos.x);
+          float kep_omega = 4.5 / pow(max(r, 1.0), 1.5);
+          float rot       = theta - u_time * kep_omega;
+          float turb = 0.65
+                     + 0.25 * sin(rot * 2.0 + r * 0.18)
+                     + 0.10 * sin(rot * 9.0 - r * 0.55 + 2.1);
+          float isco_omega = 4.5 / pow(max(u_diskInner, 1.0), 1.5);
+          float hs_phase   = theta - u_time * isco_omega;
+          float hs_radial  = exp(-pow((r - u_diskInner) / (u_diskInner * 0.22), 2.0));
+          turb += 2.2 * exp(-4.0 * (1.0 - cos(hs_phase))) * hs_radial;
+          turb  = max(turb, 0.05);
+
+          diskEmit += diskColor(r, doppler) * density * turb * D_PHI;
         }
       }
     }

@@ -21,7 +21,8 @@ export function UniformUpdater() {
     mat.uniforms.u_showHorizon.value = showHorizon
     mat.uniforms.u_diskVisible.value = diskVisible
     mat.uniforms.u_diskInner.value   = 3.0 * r_s
-    mat.uniforms.u_diskOuter.value   = 6.0 * r_s
+    mat.uniforms.u_diskOuter.value   = 8.0 * r_s
+    mat.uniforms.u_time.value        = state.clock.getElapsedTime()
   })
 
   return null

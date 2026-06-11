@@ -26,6 +26,7 @@ export function BlackholeRenderer() {
         u_diskVisible:   { value: false },
         u_diskInner:     { value: 0 },
         u_diskOuter:     { value: 0 },
+        u_time:          { value: 0 },
       },
       depthWrite: false,
       depthTest: false,
