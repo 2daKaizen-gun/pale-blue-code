@@ -9,6 +9,8 @@ export function ControlPanel() {
   const setSteps    = useBlackholeStore((s) => s.setSteps)
   const showHorizon = useBlackholeStore((s) => s.showHorizon)
   const setShowHorizon = useBlackholeStore((s) => s.setShowHorizon)
+  const diskVisible = useBlackholeStore((s) => s.diskVisible)
+  const setDiskVisible = useBlackholeStore((s) => s.setDiskVisible)
 
   return (
     <div className="absolute bottom-4 md:bottom-6 left-1/2 z-10 -translate-x-1/2 max-w-[calc(100%-1rem)]">
@@ -85,6 +87,24 @@ export function ControlPanel() {
           ].join(' ')}
         >
           Horizon
+        </button>
+
+        <div className="hidden md:block h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
+
+        {/* Disk toggle */}
+        <button
+          type="button"
+          onClick={() => setDiskVisible(!diskVisible)}
+          aria-pressed={diskVisible}
+          title="Show accretion disk with Doppler beaming"
+          className={[
+            'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+            diskVisible
+              ? 'bg-orange-400/90 text-black'
+              : 'text-white/70 hover:bg-white/10 hover:text-white',
+          ].join(' ')}
+        >
+          Disk
         </button>
 
       </div>
