@@ -95,12 +95,17 @@ vec2 rk4Step(vec2 s, float dphi, float rs) {
   return s + (k1 + 2.0*k2 + 2.0*k3 + k4) / 6.0;
 }
 
-// Temperature-gradient disk color. doppler=0.5 neutral (Doppler added in L3).
+// Disk color: temperature gradient × Doppler beaming.
+// doppler=1 → approaching (blue+bright), doppler=0 → receding (red+dim).
 vec3 diskColor(float r, float doppler) {
-  float t    = 1.0 - clamp((r - u_diskInner) / max(u_diskOuter - u_diskInner, 1e-4), 0.0, 1.0);
-  vec3  hot  = vec3(1.0, 0.95, 0.8);   // inner: hot white-yellow
-  vec3  cool = vec3(0.9, 0.35, 0.05);  // outer: cooler orange
-  return mix(cool, hot, t) * mix(0.5, 1.5, doppler);
+  float t      = 1.0 - clamp((r - u_diskInner) / max(u_diskOuter - u_diskInner, 1e-4), 0.0, 1.0);
+  vec3  hot    = vec3(1.0, 0.95, 0.8);   // inner: white-yellow
+  vec3  cool   = vec3(0.9, 0.35, 0.05);  // outer: orange
+  vec3  base   = mix(cool, hot, t);
+  vec3  blue   = vec3(0.55, 0.75, 1.0);  // approaching tint
+  vec3  red    = vec3(1.0,  0.35, 0.15); // receding tint
+  float bright = mix(0.4, 1.6, doppler); // beaming: approaching side brighter
+  return base * mix(red, blue, doppler) * bright;
 }
 
 // Returns deflected direction, or vec3(0) on horizon capture.
@@ -151,7 +156,10 @@ vec3 traceRay(vec3 rd, out float diskR, out float diskDoppler) {
         float r_hit = length(pos.xz);
         if (r_hit > u_diskInner && r_hit < u_diskOuter) {
           diskR = r_hit;
-          // diskDoppler remains 0.5 until L3 adds Doppler computation
+          // Keplerian Doppler: prograde tangential v ∝ 1/√r, project onto line-of-sight
+          vec3  v_dir    = normalize(vec3(-pos.z, 0.0, pos.x));
+          float v_los    = dot(v_dir, normalize(u_cameraPos - pos));
+          diskDoppler    = clamp(v_los / sqrt(r_hit) * 3.0 + 0.5, 0.0, 1.0);
         }
       }
       prev_y = cur_y;
