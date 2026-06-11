@@ -95,28 +95,25 @@ vec2 rk4Step(vec2 s, float dphi, float rs) {
   return s + (k1 + 2.0*k2 + 2.0*k3 + k4) / 6.0;
 }
 
-// Disk color: Doppler beaming drives hue, radius drives brightness.
-// doppler=1 → approaching (blue-white, bright)
-// doppler=0 → receding  (deep red, dim)
+// Disk color: Doppler beaming drives hue + brightness, radius drives radial gradient.
+// Each pole is pre-multiplied so no channel blows past 1.0 and turns white.
+// doppler=1 → approaching (blue, bright)  doppler=0 → receding (deep red, dim)
 vec3 diskColor(float r, float doppler) {
-  // Radius: inner hotter/brighter, outer cooler/dimmer
   float t = 1.0 - clamp((r - u_diskInner) / max(u_diskOuter - u_diskInner, 1e-4), 0.0, 1.0);
+  float radBright = mix(0.5, 1.2, t);  // inner brighter
 
-  // Doppler hue — clear separation, not a tint
-  vec3 blueshift = vec3(0.3, 0.65, 1.0);   // approaching: blue-white
-  vec3 neutral   = vec3(1.0, 0.65, 0.15);  // broadside: orange
-  vec3 redshift  = vec3(0.7, 0.05, 0.0);   // receding: deep red
+  // Pre-brightened poles — keep max channel ≤ 1.0 so colour is preserved under clamp
+  vec3 receding    = vec3(0.55, 0.04, 0.0)  * 0.3;   // dim deep red
+  vec3 broadside   = vec3(1.0,  0.60, 0.12) * 0.75;  // orange
+  vec3 approaching = vec3(0.20, 0.50, 1.0)  * 1.0;   // clear blue
 
   vec3 hue;
   if (doppler > 0.5) {
-    hue = mix(neutral, blueshift, (doppler - 0.5) * 2.0);
+    hue = mix(broadside, approaching, (doppler - 0.5) * 2.0);
   } else {
-    hue = mix(redshift, neutral, doppler * 2.0);
+    hue = mix(receding, broadside, doppler * 2.0);
   }
-
-  float radBright    = mix(0.6, 1.4, t);          // inner brighter
-  float dopplerBright = mix(0.2, 2.0, doppler);   // beaming: approaching much brighter
-  return hue * radBright * dopplerBright;
+  return hue * radBright;
 }
 
 // Returns deflected direction, or vec3(0) on horizon capture.
@@ -163,14 +160,14 @@ vec3 traceRay(vec3 rd, out float diskR, out float diskDoppler) {
       vec3  pos     = (1.0 / u_cur) * e_r_phi;
       float cur_y   = pos.y;
 
-      if (prev_y * cur_y < 0.0) {              // sign change → crossed y=0
+      if (diskR < 0.0 && prev_y * cur_y < 0.0) { // first y=0 crossing only
         float r_hit = length(pos.xz);
         if (r_hit > u_diskInner && r_hit < u_diskOuter) {
           diskR = r_hit;
           // Keplerian Doppler: prograde tangential v ∝ 1/√r, project onto line-of-sight
-          vec3  v_dir    = normalize(vec3(-pos.z, 0.0, pos.x));
-          float v_los    = dot(v_dir, normalize(u_cameraPos - pos));
-          diskDoppler    = clamp(v_los / sqrt(r_hit) * 3.0 + 0.5, 0.0, 1.0);
+          vec3  v_dir = normalize(vec3(-pos.z, 0.0, pos.x));
+          float v_los = dot(v_dir, normalize(u_cameraPos - pos));
+          diskDoppler = clamp(v_los / sqrt(r_hit) * 3.0 + 0.5, 0.0, 1.0);
         }
       }
       prev_y = cur_y;

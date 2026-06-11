@@ -1,4 +1,5 @@
 import { useBlackholeStore, type LensingSteps } from '../../store/blackholeStore'
+import { bhOrbitRef } from './Scene'
 
 const STEPS_OPTIONS: LensingSteps[] = [64, 96, 128]
 
@@ -12,9 +13,30 @@ export function ControlPanel() {
   const diskVisible = useBlackholeStore((s) => s.diskVisible)
   const setDiskVisible = useBlackholeStore((s) => s.setDiskVisible)
 
+  const handleReset = () => {
+    setMass(1.5)
+    setSteps(64)
+    setDiskVisible(true)
+    setShowHorizon(true)
+    bhOrbitRef.current?.reset()
+  }
+
   return (
     <div className="absolute bottom-4 md:bottom-6 left-1/2 z-10 -translate-x-1/2 max-w-[calc(100%-1rem)]">
       <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-black/40 px-3 py-2 shadow-2xl backdrop-blur-md md:flex-nowrap md:gap-3">
+
+        {/* Reset — return camera + controls to initial state */}
+        <button
+          type="button"
+          onClick={handleReset}
+          aria-label="Reset view and controls"
+          title="Reset camera and controls to default"
+          className="rounded-lg px-3 py-1.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          ↻
+        </button>
+
+        <div className="hidden md:block h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
 
         {/* Mass slider */}
         <div className="flex items-center gap-2">

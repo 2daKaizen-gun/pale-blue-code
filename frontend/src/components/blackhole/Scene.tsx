@@ -1,10 +1,13 @@
-import { Link } from 'react-router-dom'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stats } from '@react-three/drei'
 import { BlackholeRenderer } from './BlackholeRenderer'
 import { UniformUpdater } from './UniformUpdater'
 import { ControlPanel } from './ControlPanel'
 import { useIsTouchDevice } from '../../hooks/useIsTouchDevice'
+
+// Module-level ref so ControlPanel can call reset() from outside the Canvas.
+// Same singleton pattern as bhMaterialRef.
+export const bhOrbitRef: { current: any } = { current: null }
 
 export function Scene() {
   const isMobile = useIsTouchDevice()
@@ -19,18 +22,13 @@ export function Scene() {
         {import.meta.env.DEV && <Stats />}
         <BlackholeRenderer />
         <UniformUpdater />
-        <OrbitControls makeDefault enableDamping dampingFactor={0.05} />
+        <OrbitControls
+          ref={(ref) => { bhOrbitRef.current = ref }}
+          makeDefault
+          enableDamping
+          dampingFactor={0.05}
+        />
       </Canvas>
-
-      {/* Home button — top-right overlay */}
-      <Link
-        to="/"
-        className="absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/40 px-3 py-1.5 text-xs font-medium text-white/60 backdrop-blur-md transition-colors hover:bg-white/10 hover:text-white"
-        aria-label="Back to home"
-      >
-        ← Home
-      </Link>
-
       <ControlPanel />
     </div>
   )
