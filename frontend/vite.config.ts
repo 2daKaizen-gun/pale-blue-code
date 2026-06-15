@@ -33,6 +33,7 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             if (id.includes('three')) return 'vendor-three'
             if (id.includes('@react-three')) return 'vendor-r3f'
+            if (id.includes('/d3') || id.includes('/d3-')) return 'vendor-d3'
           }
         },
       },
