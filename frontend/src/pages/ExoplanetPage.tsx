@@ -5,8 +5,9 @@ import FilterPanel from '../components/exoplanet/FilterPanel'
 import PlanetTable from '../components/exoplanet/PlanetTable'
 import ScatterPlot from '../components/exoplanet/ScatterPlot'
 import PlanetDetail from '../components/exoplanet/PlanetDetail'
+import TimelineView from '../components/exoplanet/TimelineView'
 
-type View = 'scatter' | 'table'
+type View = 'scatter' | 'table' | 'timeline'
 
 export default function ExoplanetPage() {
   const [planets, setPlanets] = useState<Planet[]>([])
@@ -62,7 +63,7 @@ export default function ExoplanetPage() {
 
       <div className="flex items-center gap-4">
         <div className="flex overflow-hidden rounded-lg border border-cosmos-border">
-          {(['scatter', 'table'] as View[]).map((v) => (
+          {(['scatter', 'table', 'timeline'] as View[]).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
@@ -88,24 +89,28 @@ export default function ExoplanetPage() {
         planets={planets}
       />
 
-      <div className="relative">
-        {view === 'scatter' ? (
-          <ScatterPlot
-            planets={filtered}
-            selectedPlanet={selectedPlanet}
-            onSelect={setSelectedPlanet}
-          />
-        ) : (
-          <PlanetTable planets={filtered} onSelect={setSelectedPlanet} />
-        )}
+      {view === 'timeline' ? (
+        <TimelineView planets={planets} />
+      ) : (
+        <div className="relative">
+          {view === 'scatter' ? (
+            <ScatterPlot
+              planets={filtered}
+              selectedPlanet={selectedPlanet}
+              onSelect={setSelectedPlanet}
+            />
+          ) : (
+            <PlanetTable planets={filtered} onSelect={setSelectedPlanet} />
+          )}
 
-        {selectedPlanet && (
-          <PlanetDetail
-            planet={selectedPlanet}
-            onClose={() => setSelectedPlanet(null)}
-          />
-        )}
-      </div>
+          {selectedPlanet && (
+            <PlanetDetail
+              planet={selectedPlanet}
+              onClose={() => setSelectedPlanet(null)}
+            />
+          )}
+        </div>
+      )}
     </div>
   )
 }
