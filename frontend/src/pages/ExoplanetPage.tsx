@@ -1,18 +1,40 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { fetchPlanets, type Planet } from '../lib/api/exoplanet'
 import Spinner from '../components/ui/Spinner'
+import FilterPanel from '../components/exoplanet/FilterPanel'
+import PlanetTable from '../components/exoplanet/PlanetTable'
+import ScatterPlot from '../components/exoplanet/ScatterPlot'
+import PlanetDetail from '../components/exoplanet/PlanetDetail'
+
+type View = 'scatter' | 'table'
 
 export default function ExoplanetPage() {
   const [planets, setPlanets] = useState<Planet[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [view, setView] = useState<View>('scatter')
+  const [selectedMethods, setSelectedMethods] = useState<Set<string>>(new Set())
+  const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null)
 
   useEffect(() => {
     fetchPlanets()
-      .then(setPlanets)
+      .then((data) => {
+        setPlanets(data)
+        setSelectedMethods(new Set(data.map((p) => p.discoverymethod)))
+      })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false))
   }, [])
+
+  const methods = useMemo(
+    () => [...new Set(planets.map((p) => p.discoverymethod))].sort(),
+    [planets]
+  )
+
+  const filtered = useMemo(
+    () => planets.filter((p) => selectedMethods.has(p.discoverymethod)),
+    [planets, selectedMethods]
+  )
 
   if (loading)
     return (
@@ -37,6 +59,53 @@ export default function ExoplanetPage() {
           {planets.length.toLocaleString()} confirmed exoplanets · NASA Exoplanet Archive
         </p>
       </header>
+
+      <div className="flex items-center gap-4">
+        <div className="flex overflow-hidden rounded-lg border border-cosmos-border">
+          {(['scatter', 'table'] as View[]).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`px-4 py-2 font-mono text-sm tracking-wider transition-colors ${
+                view === v
+                  ? 'bg-cosmos-elevated text-cosmos-text'
+                  : 'text-cosmos-muted hover:text-cosmos-text'
+              }`}
+            >
+              {v.toUpperCase()}
+            </button>
+          ))}
+        </div>
+        <span className="font-mono text-xs text-cosmos-muted">
+          {filtered.length.toLocaleString()} planets shown
+        </span>
+      </div>
+
+      <FilterPanel
+        methods={methods}
+        selected={selectedMethods}
+        onChange={setSelectedMethods}
+        planets={planets}
+      />
+
+      <div className="relative">
+        {view === 'scatter' ? (
+          <ScatterPlot
+            planets={filtered}
+            selectedPlanet={selectedPlanet}
+            onSelect={setSelectedPlanet}
+          />
+        ) : (
+          <PlanetTable planets={filtered} onSelect={setSelectedPlanet} />
+        )}
+
+        {selectedPlanet && (
+          <PlanetDetail
+            planet={selectedPlanet}
+            onClose={() => setSelectedPlanet(null)}
+          />
+        )}
+      </div>
     </div>
   )
 }
