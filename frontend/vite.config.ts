@@ -27,6 +27,16 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
+    modulePreload: {
+      resolveDependencies(_filename, deps, { hostType }) {
+        if (hostType === 'html') {
+          return deps.filter(
+            (dep) => !dep.includes('vendor-three') && !dep.includes('vendor-r3f')
+          )
+        }
+        return deps
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
