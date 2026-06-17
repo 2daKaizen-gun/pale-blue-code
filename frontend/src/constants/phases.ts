@@ -63,7 +63,7 @@ export const PHASES: Phase[] = [
     title: 'Exoplanet',
     subtitle: '외계행성',
     question: '우리는 다른 별을 어떻게 알게 되었는가?',
-    status: 'planned',
+    status: 'done',
   },
   {
     number: 6,
