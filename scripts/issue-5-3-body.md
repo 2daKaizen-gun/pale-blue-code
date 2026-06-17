@@ -2,7 +2,7 @@
 
 **Phase 5 — Exoplanet | Milestone: Phase 5 — Exoplanet | Label: phase-5**
 
-> *"2009년 케플러 발사 직후 점이 폭발하는 1초 — 그게 이 sub-phase의 전부다."*
+> *"The one second when Kepler launches in 2009 and the dots explode — that's the soul of this sub-phase."*
 
 ---
 
@@ -51,10 +51,10 @@ the phase.
 ## Success criteria
 
 - [ ] TimelineView renders cumulative discovery bars from 1992 to present
-- [ ] Play animation shows year-by-year growth — Kepler 2009 spike is visible
+- [ ] Play animation shows year-by-year growth — Kepler 2009 spike is clearly visible
 - [ ] Kepler (2009) and TESS (2018) marker lines labeled on chart
 - [ ] TIMELINE tab appears in ExoplanetPage view toggle
-- [ ] Lighthouse Performance ≥ 85 on `/exoplanet` (mobile)
+- [ ] Lighthouse Performance >= 85 on `/exoplanet` (mobile)
 - [ ] `phases.ts` Exoplanet status updated to `'done'`
 - [ ] Milestone closed, handoff updated
 
@@ -65,11 +65,10 @@ the phase.
 - **Client-side stats**: Timeline data computed from already-loaded `planets[]` —
   no new backend endpoint. 6,298 rows is trivial to aggregate in the browser.
   Backend `/api/planets/stats` deferred (YAGNI for this phase).
-- **Stacked bars over animated dots**: PRD §3 describes "점이 하나씩 나타나는 애니메이션"
-  but stacked bars are clearer for cumulative counts and more performant. Dots-per-year
-  could be added in sub-5-3b if the PRD soul feels missing.
+- **Stacked bars over animated dots**: PRD soul describes year-by-year dot animation
+  but stacked bars are clearer for cumulative counts and more performant.
 - **Full dataset for timeline**: Timeline ignores FilterPanel selection — it shows
-  *all* discoveries ever, to preserve the Kepler 2009 spike regardless of method filter.
+  all discoveries ever, to preserve the Kepler 2009 spike regardless of method filter.
 - **`getMethodColor` reuse**: Imported from FilterPanel to keep color encoding consistent
   across scatter, table badges, and timeline bars.
 
@@ -77,7 +76,7 @@ the phase.
 
 ## References
 
-- PRD §3 soul: "2009년 케플러 발사 직후 점이 폭발적으로 늘어나는 1초"
-- PRD §5 success: Lighthouse Performance 85+
-- TECHSPEC §8: sub-5-3 = "D3 발견 타임라인 + Lighthouse + Phase 종료"
+- PRD §3: soul moment = Kepler 2009 launch spike in the timeline animation
+- PRD §5 success criteria: Lighthouse Performance 85+
+- TECHSPEC §8: sub-5-3 = D3 discovery timeline + Lighthouse + phase close
 - Related issues: #28 (sub-5-1, closed), #29 (sub-5-2, closed)
