@@ -94,6 +94,9 @@ data/cache/
 lightcurves/
 mast_cache/
 
+# ---- Backend light curve file cache ----
+backend/cache/*.json
+
 # ---- IDE / Editor ----
 .vscode/
 !.vscode/settings.json.example
