@@ -1,4 +1,4 @@
-## Plan
+﻿## Plan
 
 Add TransitInfo panel (depth, estimated radius, orbital period), wire ExoplanetPage -> DataPage navigation via `?planet=` URL param, run Lighthouse, and close Phase 6.
 
@@ -9,16 +9,16 @@ Add TransitInfo panel (depth, estimated radius, orbital period), wire ExoplanetP
 - [x] D-1: `TransitInfo` — transit depth %, estimated radius (Rp = R* x sqrt(delta)), known catalog radius
 - [x] D-2: `PlanetDetail` — add "광도곡선 보기" link to `/data?planet=...`
 - [x] D-3: `DataPage` — read `?planet=` on mount via `useSearchParams`, resolve planet from catalog for TransitInfo
-- [ ] D-4: Lighthouse run — /data page >= 85 mobile
-- [ ] D-5: Phase 6 close — handoff doc + Milestone close + Release tag v0.6.0
+- [x] D-4: Lighthouse run — /data page >= 85 mobile
+- [x] D-5: Phase 6 close — handoff doc + Milestone close + Release tag v0.6.0
 
 ## Success Criteria
 
 - [x] ExoplanetPage planet click -> "광도곡선 보기" -> DataPage loads that planet's light curve
 - [x] TransitInfo shows transit depth, estimated radius, known radius side by side
-- [ ] Lighthouse Performance >= 85 on /data (mobile)
-- [ ] `docs/phase-handoffs/phase-6-to-7.md` written
-- [ ] GitHub Release v0.6.0 tagged
+- [x] Lighthouse Performance >= 85 on /data (mobile)
+- [x] `docs/phase-handoffs/phase-6-to-7.md` written
+- [x] GitHub Release v0.6.0 tagged
 
 ## Key Decisions
 

@@ -72,7 +72,7 @@ export const PHASES: Phase[] = [
     title: 'Data',
     subtitle: '데이터',
     question: '데이터는 어떻게 노래하는가?',
-    status: 'in-progress',
+    status: 'done',
   },
   {
     number: 7,
