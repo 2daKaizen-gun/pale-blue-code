@@ -1,4 +1,4 @@
-## Plan
+﻿## Plan
 Final sub-phase of Phase 2. PRD 짠4 features complete; closes out 짠6
 non-functional work + Phase termination. Measure-first, then optimize from data.
 
@@ -21,11 +21,11 @@ non-functional work + Phase termination. Measure-first, then optimize from data.
 - Doc sync (Context Rot): package.json actual = zustand 5.0.13, vitest 4.1.6 (TechSpec matrix said 4.5+ / 2.1+).
 
 ## Success criteria
-- [ ] Desktop 60fps, mobile 30fps+ (verified at Test)
-- [ ] Lighthouse Performance 85+ (run at Test, post L6/L7)
+- [x] Desktop 60fps, mobile 30fps+ (verified at Test)
+- [x] Lighthouse Performance 85+ (run at Test, post L6/L7)
 - [x] leva absent from prod build (3-way grep confirmed)
-- [ ] Mobile tap selects without fighting camera gestures (verify Test)
-- [ ] No regressions in toggles / reset / keyboard
+- [x] Mobile tap selects without fighting camera gestures (verify Test)
+- [x] No regressions in toggles / reset / keyboard
 
 ## References
 - PRD: docs/specs/phase-2/PRD.md (sections 5, 6)

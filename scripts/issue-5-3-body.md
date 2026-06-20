@@ -1,4 +1,4 @@
-# Sub-5-3: Timeline Animation + Lighthouse + Phase 5 Close
+﻿# Sub-5-3: Timeline Animation + Lighthouse + Phase 5 Close
 
 **Phase 5 — Exoplanet | Milestone: Phase 5 — Exoplanet | Label: phase-5**
 
@@ -50,13 +50,13 @@ the phase.
 
 ## Success criteria
 
-- [ ] TimelineView renders cumulative discovery bars from 1992 to present
-- [ ] Play animation shows year-by-year growth — Kepler 2009 spike is clearly visible
-- [ ] Kepler (2009) and TESS (2018) marker lines labeled on chart
-- [ ] TIMELINE tab appears in ExoplanetPage view toggle
-- [ ] Lighthouse Performance >= 85 on `/exoplanet` (mobile)
-- [ ] `phases.ts` Exoplanet status updated to `'done'`
-- [ ] Milestone closed, handoff updated
+- [x] TimelineView renders cumulative discovery bars from 1992 to present
+- [x] Play animation shows year-by-year growth — Kepler 2009 spike is clearly visible
+- [x] Kepler (2009) and TESS (2018) marker lines labeled on chart
+- [x] TIMELINE tab appears in ExoplanetPage view toggle
+- [x] Lighthouse Performance >= 85 on `/exoplanet` (mobile)
+- [x] `phases.ts` Exoplanet status updated to `'done'`
+- [x] Milestone closed, handoff updated
 
 ---
 

@@ -1,4 +1,4 @@
-## Plan
+﻿## Plan
 
 Add planet interactions to the solar system scene:
 
@@ -12,26 +12,26 @@ Add planet interactions to the solar system scene:
 
 ## Lights
 
-- [ ] Add `selectedPlanetId` + `selectPlanet`/`deselectPlanet` actions to store
-- [ ] Wire `onPointerOver/Out/Click` on `Planet` component
-- [ ] Hover label component via drei `<Html>` (attached, conditional render)
-- [ ] Enrich label content (name, type, one-line key fact)
-- [ ] `CameraController.tsx` — interpolate camera target/position on selection change; per-frame target = current planet position (tracking)
-- [ ] Yield camera tracking when the user manually orbits (intent conflict resolution)
-- [ ] `[Camera Reset]` button in ControlPanel + extend `Unified Reset` to also clear selection
-- [ ] Integration check, 60fps verification, retrospective + doc updates
+- [x] Add `selectedPlanetId` + `selectPlanet`/`deselectPlanet` actions to store
+- [x] Wire `onPointerOver/Out/Click` on `Planet` component
+- [x] Hover label component via drei `<Html>` (attached, conditional render)
+- [x] Enrich label content (name, type, one-line key fact)
+- [x] `CameraController.tsx` — interpolate camera target/position on selection change; per-frame target = current planet position (tracking)
+- [x] Yield camera tracking when the user manually orbits (intent conflict resolution)
+- [x] `[Camera Reset]` button in ControlPanel + extend `Unified Reset` to also clear selection
+- [x] Integration check, 60fps verification, retrospective + doc updates
 
 ## Success criteria
 
-- [ ] All 8 planets show a hover label (including small ones: Mercury, Mars)
-- [ ] Click triggers a 1.5s camera zoom-in
-- [ ] Orbiting planet stays roughly centered while tracked (1x speed)
-- [ ] Time-paused click behaves as snap (no tracking needed since the planet does not move)
-- [ ] `[Camera Reset]` returns camera to initial position and deselects the planet
-- [ ] `Unified Reset` also clears selection and resets camera (consistency with sub-2-4 reset philosophy)
-- [ ] User-initiated orbit interaction yields tracking
-- [ ] 60fps maintained during hover/click/tracking
-- [ ] `npm run build` passes (sub-2-4 lesson — tsc strictness over vitest looseness)
+- [x] All 8 planets show a hover label (including small ones: Mercury, Mars)
+- [x] Click triggers a 1.5s camera zoom-in
+- [x] Orbiting planet stays roughly centered while tracked (1x speed)
+- [x] Time-paused click behaves as snap (no tracking needed since the planet does not move)
+- [x] `[Camera Reset]` returns camera to initial position and deselects the planet
+- [x] `Unified Reset` also clears selection and resets camera (consistency with sub-2-4 reset philosophy)
+- [x] User-initiated orbit interaction yields tracking
+- [x] 60fps maintained during hover/click/tracking
+- [x] `npm run build` passes (sub-2-4 lesson — tsc strictness over vitest looseness)
 
 ## Key decisions
 

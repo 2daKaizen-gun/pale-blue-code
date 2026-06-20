@@ -1,4 +1,4 @@
-# Sub-5-2: ExoplanetPage — Table + D3 Scatter Plot
+﻿# Sub-5-2: ExoplanetPage — Table + D3 Scatter Plot
 
 **Phase 5 — Exoplanet | Milestone: Phase 5 — Exoplanet | Label: phase-5**
 
@@ -68,13 +68,13 @@ table UI, and render a scatter plot. Sub-5-3 adds the timeline animation.
 
 ## Success criteria
 
-- [ ] `npm install d3` done, `vendor-d3` chunk appears in build output
-- [ ] ExoplanetPage loads 6,298 planets from `http://localhost:8000/api/planets`
-- [ ] PlanetTable shows paginated rows; search and sort work
-- [ ] ScatterPlot renders 4,000+ colored dots (planets with valid orbper + rade)
-- [ ] Clicking a dot opens PlanetDetail side panel
-- [ ] FilterPanel checkboxes filter both table and scatter in sync
-- [ ] `npm run build` passes (tsc + vite) — zero TS errors
+- [x] `npm install d3` done, `vendor-d3` chunk appears in build output
+- [x] ExoplanetPage loads 6,298 planets from `http://localhost:8000/api/planets`
+- [x] PlanetTable shows paginated rows; search and sort work
+- [x] ScatterPlot renders 4,000+ colored dots (planets with valid orbper + rade)
+- [x] Clicking a dot opens PlanetDetail side panel
+- [x] FilterPanel checkboxes filter both table and scatter in sync
+- [x] `npm run build` passes (tsc + vite) — zero TS errors
 
 ---
 

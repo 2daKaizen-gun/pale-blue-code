@@ -1,4 +1,4 @@
-## Plan
+﻿## Plan
 
 Add Schwarzschild null geodesic integration (u–φ ODE, GLSL RK4) to the fullscreen shader,
 replacing the static black disc placeholder with per-pixel light bending. A photon traced
@@ -9,17 +9,17 @@ Wire mass/steps/horizon controls via ControlPanel so the user can feel the physi
 ## Lights
 
 **Bundle A — GLSL geodesic math**
-- [ ] `geodesicDerivs(state, rs)` + `rk4Step(state, dphi, rs)` — pure GLSL math functions
-- [ ] `traceRay(rd)` — orbital plane setup (e_r, e_t, n), initial conditions (u0, p0, b),
+- [x] `geodesicDerivs(state, rs)` + `rk4Step(state, dphi, rs)` — pure GLSL math functions
+- [x] `traceRay(rd)` — orbital plane setup (e_r, e_t, n), initial conditions (u0, p0, b),
       MAX_STEPS loop with event-horizon early-exit, final direction reconstruction
-- [ ] Wire `traceRay` into `main()`, replace disc placeholder → `starfield(traceRay(rd))`
-- [ ] Adjust Scene camera distance + mass default scale for visible Einstein ring
-- [ ] Verify: u_rs=0 matches 4-1 baseline; u_rs>0 produces lensing ring
+- [x] Wire `traceRay` into `main()`, replace disc placeholder → `starfield(traceRay(rd))`
+- [x] Adjust Scene camera distance + mass default scale for visible Einstein ring
+- [x] Verify: u_rs=0 matches 4-1 baseline; u_rs>0 produces lensing ring
 
 **Bundle B — Controls**
-- [ ] `ControlPanel.tsx` — mass slider (0.3–3.0), steps toggle (64/96/128), horizon toggle
-- [ ] Wire ControlPanel into `Scene.tsx` (Canvas 밖, fixed bottom, absolute positioning)
-- [ ] Update `UniformUpdater` to push `u_steps` + `u_showHorizon` each frame
+- [x] `ControlPanel.tsx` — mass slider (0.3–3.0), steps toggle (64/96/128), horizon toggle
+- [x] Wire ControlPanel into `Scene.tsx` (Canvas 밖, fixed bottom, absolute positioning)
+- [x] Update `UniformUpdater` to push `u_steps` + `u_showHorizon` each frame
 
 ## Success Criteria
 

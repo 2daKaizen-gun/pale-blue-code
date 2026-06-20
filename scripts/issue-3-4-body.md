@@ -1,4 +1,4 @@
-## Plan
+﻿## Plan
 Introduce the preset selector — the first real stage for `gravityStore`.
 Until 3-3 the scene ran on a single hard-coded system (`useRef` + inline
 constants). 3-4 lets the visitor switch between preset systems (solar
@@ -7,22 +7,22 @@ binary) from a panel outside the Canvas, while the Canvas reads the same
 truth via the store. Preset switching remounts trails via React `key`.
 
 ## Lights
-- [ ] Light 1 — Add `CameraConfig` + `camera` field to `Preset`; widen `id` to a 5-way union; migrate TWO_BODY / TWO_BODY_CIRCULAR
-- [ ] Light 2 — Add three-body figure-8 preset (published IC, verified closes)
-- [ ] Light 3 — Add binary-star preset (3:2, e = 0.4, verified)
-- [ ] Light 4 — Add `mass_kg` to planets.ts + sun.ts; build solar-system preset (real AU, M_sun=1, G=1) + `PRESETS` registry
-- [ ] Light 5 — Create `gravityStore` (Zustand): `presetId` + `selectPreset`
-- [ ] Light 6 — Build `PresetSelector` panel (top-center, keyboard operable, `aria-pressed`)
-- [ ] Light 7 — Drive Scene from selected preset: camera from preset, `<Trails key={presetId} />`, reinit `bodiesRef` on preset change
+- [x] Light 1 — Add `CameraConfig` + `camera` field to `Preset`; widen `id` to a 5-way union; migrate TWO_BODY / TWO_BODY_CIRCULAR
+- [x] Light 2 — Add three-body figure-8 preset (published IC, verified closes)
+- [x] Light 3 — Add binary-star preset (3:2, e = 0.4, verified)
+- [x] Light 4 — Add `mass_kg` to planets.ts + sun.ts; build solar-system preset (real AU, M_sun=1, G=1) + `PRESETS` registry
+- [x] Light 5 — Create `gravityStore` (Zustand): `presetId` + `selectPreset`
+- [x] Light 6 — Build `PresetSelector` panel (top-center, keyboard operable, `aria-pressed`)
+- [x] Light 7 — Drive Scene from selected preset: camera from preset, `<Trails key={presetId} />`, reinit `bodiesRef` on preset change
 
 ## Success criteria
-- [ ] Selecting any preset loads clean initial conditions (Phase 2 reset spirit)
-- [ ] Preset switch remounts trails — no stale ring-buffer points carried over
-- [ ] Camera framing correct per preset (two-body ~units vs solar ~tens of AU)
-- [ ] Figure-8 stays an "8" indefinitely when untouched (verified: closes to 5e-8 / energy 2.6e-13)
-- [ ] Solar-system preset feels like a Phase 2 revisit (continuity)
-- [ ] `gravityStore` read via `getState()` inside `useFrame` — zero per-frame re-renders (Phase 2 paradigm)
-- [ ] `npm run build` (tsc -b) clean before push
+- [x] Selecting any preset loads clean initial conditions (Phase 2 reset spirit)
+- [x] Preset switch remounts trails — no stale ring-buffer points carried over
+- [x] Camera framing correct per preset (two-body ~units vs solar ~tens of AU)
+- [x] Figure-8 stays an "8" indefinitely when untouched (verified: closes to 5e-8 / energy 2.6e-13)
+- [x] Solar-system preset feels like a Phase 2 revisit (continuity)
+- [x] `gravityStore` read via `getState()` inside `useFrame` — zero per-frame re-renders (Phase 2 paradigm)
+- [x] `npm run build` (tsc -b) clean before push
 
 ## Key decisions
 - `gravityStore` (Zustand) introduced here: selector UI (outside Canvas) and refs (inside Canvas) must share one truth — Phase 2 store pattern. Chosen over local useState because 3-5 (integrator toggle) and 3-6 (timeSpeed) will need the same `useFrame`-getState store.

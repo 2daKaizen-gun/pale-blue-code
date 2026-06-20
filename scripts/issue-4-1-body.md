@@ -1,4 +1,4 @@
-## Plan
+﻿## Plan
 
 Build the GLSL fullscreen shader scaffold for the black hole scene — no lensing yet.
 A fullscreen quad renders a procedural starfield via fragment shader, and the camera matrix
@@ -8,15 +8,15 @@ When this works, the geodesic ODE (sub-4-2) can be dropped straight in.
 ## Lights
 
 **Bundle A — Scene skeleton**
-- [ ] `Scene.tsx` + replace `BlackholePage.tsx` placeholder (Canvas + OrbitControls, mirrors Phase 3 pattern)
-- [ ] `blackholeStore.ts` — Zustand store with base state: `mass`, `steps`, `diskVisible`, `showHorizon`
+- [x] `Scene.tsx` + replace `BlackholePage.tsx` placeholder (Canvas + OrbitControls, mirrors Phase 3 pattern)
+- [x] `blackholeStore.ts` — Zustand store with base state: `mass`, `steps`, `diskVisible`, `showHorizon`
 
 **Bundle B — GLSL pipeline**
-- [ ] `blackhole.vert.glsl` — NDC fullscreen quad vertex (bypasses camera projection)
-- [ ] `blackhole.frag.glsl` — procedural starfield + central black disc (no lensing)
-- [ ] `BlackholeRenderer.tsx` — `PlaneGeometry(2,2)` + `ShaderMaterial` (`depthWrite: false`)
-- [ ] `UniformUpdater.tsx` — `useFrame` pushes `u_cameraToWorld`, `u_cameraPos`, `u_resolution` each frame
-- [ ] Build pass + browser smoke: starfield visible, rotates correctly with OrbitControls
+- [x] `blackhole.vert.glsl` — NDC fullscreen quad vertex (bypasses camera projection)
+- [x] `blackhole.frag.glsl` — procedural starfield + central black disc (no lensing)
+- [x] `BlackholeRenderer.tsx` — `PlaneGeometry(2,2)` + `ShaderMaterial` (`depthWrite: false`)
+- [x] `UniformUpdater.tsx` — `useFrame` pushes `u_cameraToWorld`, `u_cameraPos`, `u_resolution` each frame
+- [x] Build pass + browser smoke: starfield visible, rotates correctly with OrbitControls
 
 ## Success Criteria
 

@@ -1,22 +1,22 @@
-## Plan
+﻿## Plan
 Wire the generic `rk4Step` from 3-1 to `computeAccelerations` to roll a real two-body orbit, then prove the resulting ellipse is a genuine Kepler ellipse via conservation laws. Add `energy.ts` (total energy + angular momentum, pure N-body functions) and an explicit Euler integrator as the contrast axis. No rendering yet — the deliverable is a certificate that the gravity core is physically correct: the safety net for the unsolvable 3-body case later, where orbital divergence is physics (chaos), not a bug, so conservation is the only oracle.
 
 ## Lights
-- [ ] Light 1 — energy.ts: total energy (KE + softened PE), test-first
-- [ ] Light 2 — energy.ts: total angular momentum L = Σ mᵢ(rᵢ × vᵢ)
-- [ ] Light 3 — explicit Euler integrator, isolated against SHO (same as 3-1 RK4)
-- [ ] Light 4 — 2-body RK4 energy conservation (< 0.1%)
-- [ ] Light 5 — angular momentum conservation (< 0.01%)
-- [ ] Light 6 — Kepler's third law T²∝a³ (two orbits, different semi-major axes)
-- [ ] Light 7 — lock Euler divergence as regression (Euler err >> RK4), Closes this issue
+- [x] Light 1 — energy.ts: total energy (KE + softened PE), test-first
+- [x] Light 2 — energy.ts: total angular momentum L = Σ mᵢ(rᵢ × vᵢ)
+- [x] Light 3 — explicit Euler integrator, isolated against SHO (same as 3-1 RK4)
+- [x] Light 4 — 2-body RK4 energy conservation (< 0.1%)
+- [x] Light 5 — angular momentum conservation (< 0.01%)
+- [x] Light 6 — Kepler's third law T²∝a³ (two orbits, different semi-major axes)
+- [x] Light 7 — lock Euler divergence as regression (Euler err >> RK4), Closes this issue
 
 ## Success criteria
-- [ ] RK4 two-body: total energy relative error < 0.1% over N orbits
-- [ ] RK4: angular momentum relative error < 0.01% (central force → exactly conserved)
-- [ ] Kepler: T²/a³ agrees within 1% across orbits with different semi-major axes
-- [ ] Euler divergence regression green (Euler err >> RK4 — locks the 3-5 soul moment)
-- [ ] eulerStep passes SHO isolation test
-- [ ] `tsc -b` clean, landing bundle unaffected, full suite green
+- [x] RK4 two-body: total energy relative error < 0.1% over N orbits
+- [x] RK4: angular momentum relative error < 0.01% (central force → exactly conserved)
+- [x] Kepler: T²/a³ agrees within 1% across orbits with different semi-major axes
+- [x] Euler divergence regression green (Euler err >> RK4 — locks the 3-5 soul moment)
+- [x] eulerStep passes SHO isolation test
+- [x] `tsc -b` clean, landing bundle unaffected, full suite green
 
 ## Key decisions
 - Normalized units (G=1, dimensionless): conservation & Kepler are unit-independent; avoids float-scale bugs. Real SI values deferred to render stage (3-3+).

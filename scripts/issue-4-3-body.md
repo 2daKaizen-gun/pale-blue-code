@@ -1,4 +1,4 @@
-## Plan
+﻿## Plan
 
 Add an accretion disk to the Schwarzschild ray-marcher: detect equatorial-plane crossings
 inside the RK4 loop, color the disk with a temperature gradient, and animate Doppler beaming
@@ -10,45 +10,45 @@ the Phase 4 handoff document.
 ## Lights
 
 **Bundle A — Disk rendering infrastructure**
-- [ ] `BlackholeRenderer.tsx` + `UniformUpdater.tsx` — add `u_diskVisible`, `u_diskInner`,
+- [x] `BlackholeRenderer.tsx` + `UniformUpdater.tsx` — add `u_diskVisible`, `u_diskInner`,
       `u_diskOuter` uniforms; wire from store (`diskVisible`, `mass*6` outer, `mass*6` ISCO);
       move camera to `(0, 4, 20)` in `Scene.tsx` (~11° inclination above equatorial plane)
 
 **Bundle B — GLSL disk geometry**
-- [ ] Extend `traceRay(rd, out float diskR, out float diskDoppler)` — track 3D position
+- [x] Extend `traceRay(rd, out float diskR, out float diskDoppler)` — track 3D position
       `pos = (1/u)*(e_r·cosφ + e_t·sinφ)`, detect sign change of `pos.y` (y=0 crossing),
       record `diskR = length(pos.xz)` if `diskR ∈ [u_diskInner, u_diskOuter]`
-- [ ] Add `diskColor(r, doppler)` — temperature gradient (white-yellow inner → orange outer);
+- [x] Add `diskColor(r, doppler)` — temperature gradient (white-yellow inner → orange outer);
       `diskDoppler = 0.5` (neutral) for now; wire into `main()` as `diskR > 0` branch
 
 **Bundle C — Doppler beaming**
-- [ ] Compute Doppler inside `traceRay`: `v_tangential = normalize(vec3(-hit.z, 0, hit.x))`
+- [x] Compute Doppler inside `traceRay`: `v_tangential = normalize(vec3(-hit.z, 0, hit.x))`
       (prograde), `v_los = dot(v_tangential, normalize(u_cameraPos − hit))`,
       `diskDoppler = clamp(v_los / sqrt(r_hit) * 3.0 + 0.5, 0.0, 1.0)`
-- [ ] Update `diskColor` to use `diskDoppler`: blue+bright (≈1) ↔ red+dim (≈0)
+- [x] Update `diskColor` to use `diskDoppler`: blue+bright (≈1) ↔ red+dim (≈0)
 
 **Bundle D — UI + mobile**
-- [ ] `ControlPanel.tsx` — add Disk toggle button (matches Horizon button pattern)
-- [ ] `Scene.tsx` — `useIsTouchDevice` → `dpr={isMobile ? [1, 1.5] : [1, 2]}`
+- [x] `ControlPanel.tsx` — add Disk toggle button (matches Horizon button pattern)
+- [x] `Scene.tsx` — `useIsTouchDevice` → `dpr={isMobile ? [1, 1.5] : [1, 2]}`
 
 **Bundle E — Quality gate**
-- [ ] `npm run build` — confirm no TS errors and chunk sizes unchanged
-- [ ] Lighthouse `/blackhole` ≥ 85 Performance (BlackholePage already lazy-loaded from sub-2-7)
+- [x] `npm run build` — confirm no TS errors and chunk sizes unchanged
+- [x] Lighthouse `/blackhole` ≥ 85 Performance (BlackholePage already lazy-loaded from sub-2-7)
 
 **Bundle F — Phase close**
-- [ ] `docs/checks/phase-4/sub-4-3.md` — Test + Check retrospective
-- [ ] `docs/phase-handoffs/phase-4-to-5.md` — Phase 4 → 5 handoff
+- [x] `docs/checks/phase-4/sub-4-3.md` — Test + Check retrospective
+- [x] `docs/phase-handoffs/phase-4-to-5.md` — Phase 4 → 5 handoff
 
 ## Success Criteria
 
-- [ ] `diskVisible` on: accretion disk visible on equatorial plane, both near side and lensed far
+- [x] `diskVisible` on: accretion disk visible on equatorial plane, both near side and lensed far
       side (gravitational lensing curves far disk over the top of the BH)
-- [ ] Doppler beaming: one side is bluer/brighter, opposite is redder/dimmer as camera orbits
-- [ ] Mass slider: `r_isco` and `r_outer` scale with `r_s`, disk grows/shrinks accordingly
-- [ ] Disk toggle button works; default state is off
-- [ ] Camera at (0, 4, 20): disk visible as a surface, not edge-on
-- [ ] `npm run build` passes
-- [ ] Lighthouse Performance `/blackhole` ≥ 85
+- [x] Doppler beaming: one side is bluer/brighter, opposite is redder/dimmer as camera orbits
+- [x] Mass slider: `r_isco` and `r_outer` scale with `r_s`, disk grows/shrinks accordingly
+- [x] Disk toggle button works; default state is off
+- [x] Camera at (0, 4, 20): disk visible as a surface, not edge-on
+- [x] `npm run build` passes
+- [x] Lighthouse Performance `/blackhole` ≥ 85
 
 ## Key Decisions
 

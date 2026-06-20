@@ -1,4 +1,4 @@
-## Plan
+﻿## Plan
 Wire visual-speed time controls into the gravity scene while keeping physics
 accuracy independent of visual speed. The integration dt stays fixed at each
 preset's `recommendedDt`; visual speed only changes how many substeps run per
@@ -8,21 +8,21 @@ speed slider" — and the discipline is hard: speed must never scale dt, because
 scaling dt is exactly how Euler breaks the universe in 3-5.
 
 ## Lights
-- [ ] Light 1 - feat: wire timeSpeed + pause into gravity store (if not already wired from 3-4)
-- [ ] Light 2 - refactor: drive Integrator substeps from store timeSpeed (replace TIME_SPEED constant); paused skips the loop
-- [ ] Light 3 - fix: cap substeps (MAX_SUBSTEPS) to guard frame drops at high speed / mobile
-- [ ] Light 4 - feat: time controls UI in gravity ControlPanel (pause + 0.1x/1x/100x/10000x, reuse ControlButtons)
-- [ ] Light 5 - feat: keyboard shortcuts (Space pause, 1-4 speeds) + aria-pressed
-- [ ] Light 6 - test: substep chunking invariance + paused = no advance
-- [ ] Light 7 - test: integration check + retrospective + doc updates
+- [x] Light 1 - feat: wire timeSpeed + pause into gravity store (if not already wired from 3-4)
+- [x] Light 2 - refactor: drive Integrator substeps from store timeSpeed (replace TIME_SPEED constant); paused skips the loop
+- [x] Light 3 - fix: cap substeps (MAX_SUBSTEPS) to guard frame drops at high speed / mobile
+- [x] Light 4 - feat: time controls UI in gravity ControlPanel (pause + 0.1x/1x/100x/10000x, reuse ControlButtons)
+- [x] Light 5 - feat: keyboard shortcuts (Space pause, 1-4 speeds) + aria-pressed
+- [x] Light 6 - test: substep chunking invariance + paused = no advance
+- [x] Light 7 - test: integration check + retrospective + doc updates
 
 ## Success criteria
-- [ ] Pause + speeds (0.1x..10000x) work; keyboard parity with Phase 2
-- [ ] Physics accuracy independent of visual speed: same IC at any speed yields the same orbit (chunking-invariance regression test, PRD section 5)
-- [ ] Paused = state unchanged (test)
-- [ ] No visible frame drop at 10000x (MAX_SUBSTEPS cap); dt is never scaled
-- [ ] Each commit passes `npm run build` (sub-3-5 troubleshooting 1: every commit must compile)
-- [ ] 60fps on desktop
+- [x] Pause + speeds (0.1x..10000x) work; keyboard parity with Phase 2
+- [x] Physics accuracy independent of visual speed: same IC at any speed yields the same orbit (chunking-invariance regression test, PRD section 5)
+- [x] Paused = state unchanged (test)
+- [x] No visible frame drop at 10000x (MAX_SUBSTEPS cap); dt is never scaled
+- [x] Each commit passes `npm run build` (sub-3-5 troubleshooting 1: every commit must compile)
+- [x] 60fps on desktop
 
 ## Key decisions
 - Fixed dt = preset.recommendedDt; visual speed = substeps-per-frame only. The

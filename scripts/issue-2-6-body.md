@@ -1,4 +1,4 @@
-## Plan
+﻿## Plan
 Add Earth's Moon as a fully interactive body: it orbits Earth while staying
 tidally locked (same face toward Earth), recedes and vanishes together with
 Earth under the distance toggle, and is clickable for camera tracking
@@ -7,23 +7,23 @@ keyboard shortcuts (PRD §6 accessibility) and extraction of duplicated button
 styles. This closes the last unimplemented PRD §4 feature.
 
 ## Lights
-- [ ] Light 1 — chore: add moon texture asset + ATTRIBUTION
-- [ ] Light 2 — feat: MoonData type + PlanetData.moon + earth entry
-- [ ] Light 3 — refactor: extract getInitialAngle helper (Scene + CameraController)
-- [ ] Light 4 — feat: computeMoonVisualDistance (parent-relative) + vitest
-- [ ] Light 5 — feat: Moon.tsx orbiting + tidally locked, mounted under earth
-- [ ] Light 6 — refactor: extract getBodyWorldPosition resolver (sun/planet) + vitest, use in CameraController (behavior-preserving)
-- [ ] Light 7 — feat: add 'moon' to BodyId + moon case in resolver + moon click/hover/label
-- [ ] Light 8 — feat: D/T/A/C keyboard shortcuts + aria labels
-- [ ] Light 9 — refactor: extract ToggleButton / IconButton from ControlPanel
+- [x] Light 1 — chore: add moon texture asset + ATTRIBUTION
+- [x] Light 2 — feat: MoonData type + PlanetData.moon + earth entry
+- [x] Light 3 — refactor: extract getInitialAngle helper (Scene + CameraController)
+- [x] Light 4 — feat: computeMoonVisualDistance (parent-relative) + vitest
+- [x] Light 5 — feat: Moon.tsx orbiting + tidally locked, mounted under earth
+- [x] Light 6 — refactor: extract getBodyWorldPosition resolver (sun/planet) + vitest, use in CameraController (behavior-preserving)
+- [x] Light 7 — feat: add 'moon' to BodyId + moon case in resolver + moon click/hover/label
+- [x] Light 8 — feat: D/T/A/C keyboard shortcuts + aria labels
+- [x] Light 9 — refactor: extract ToggleButton / IconButton from ControlPanel
 
 ## Success criteria
-- [ ] Moon orbits Earth keeping the same face toward it (tidal lock)
-- [ ] Distance toggle: Earth + Moon recede and vanish together
-- [ ] Clicking the Moon tracks it; clicking Earth frames the Moon too (PRD §3)
-- [ ] D/T/A/C work, ignored while an input/textarea is focused, zero conflict with Space/R/1-4
-- [ ] Panel button extraction with no visual or behavioral regression
-- [ ] 60fps maintained (8 planets + moon + starfield + camera)
+- [x] Moon orbits Earth keeping the same face toward it (tidal lock)
+- [x] Distance toggle: Earth + Moon recede and vanish together
+- [x] Clicking the Moon tracks it; clicking Earth frames the Moon too (PRD §3)
+- [x] D/T/A/C work, ignored while an input/textarea is focused, zero conflict with Space/R/1-4
+- [x] Panel button extraction with no visual or behavioral regression
+- [x] 60fps maintained (8 planets + moon + starfield + camera)
 
 ## Key decisions
 - Moon is a child of Earth's outer (orbit-position) group, OUTSIDE the
