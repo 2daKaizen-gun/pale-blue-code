@@ -41,8 +41,12 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('three')) return 'vendor-three'
+            // @react-three must be checked before 'three' — it contains the
+            // substring 'three', so the wrong order pulled R3F (+ React as its
+            // peer dep) into vendor-three, causing the main bundle to statically
+            // import vendor-three on every page.
             if (id.includes('@react-three')) return 'vendor-r3f'
+            if (id.includes('/three/') || id.includes('\\three\\')) return 'vendor-three'
             if (id.includes('/d3') || id.includes('/d3-')) return 'vendor-d3'
           }
         },
