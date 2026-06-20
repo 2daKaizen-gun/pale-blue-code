@@ -1,18 +1,24 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { fetchPlanets, type Planet } from '../lib/api/exoplanet'
 import { fetchLightCurve, fetchFolded, type LightCurveData, type PhaseFoldData } from '../lib/api/lightcurve'
 import Spinner from '../components/ui/Spinner'
 import PlanetSearchBar from '../components/data/PlanetSearchBar'
 import LightCurveChart from '../components/data/LightCurveChart'
 import PhaseFoldChart from '../components/data/PhaseFoldChart'
+import TransitInfo from '../components/data/TransitInfo'
 
 const DEFAULT_PLANET = 'Kepler-452 b'
 
 type View = 'raw' | 'folded'
 
 export default function DataPage() {
+  const [searchParams] = useSearchParams()
+  const initialPlanet = searchParams.get('planet') ?? DEFAULT_PLANET
+
   const [planets, setPlanets] = useState<Planet[]>([])
-  const [planetName, setPlanetName] = useState(DEFAULT_PLANET)
+  const [planetName, setPlanetName] = useState(initialPlanet)
+  const [currentPlanet, setCurrentPlanet] = useState<Planet | null>(null)
 
   const [lcData, setLcData] = useState<LightCurveData | null>(null)
   const [foldData, setFoldData] = useState<PhaseFoldData | null>(null)
@@ -27,6 +33,13 @@ export default function DataPage() {
   useEffect(() => {
     fetchPlanets().then(setPlanets).catch(() => {/* autocomplete optional */})
   }, [])
+
+  // resolve planet metadata from catalog
+  useEffect(() => {
+    if (planets.length === 0) return
+    const match = planets.find((p) => p.pl_name.toLowerCase() === planetName.toLowerCase())
+    setCurrentPlanet(match ?? null)
+  }, [planets, planetName])
 
   const search = useCallback(async (name: string) => {
     if (!name.trim()) return
@@ -54,10 +67,10 @@ export default function DataPage() {
     }
   }, [])
 
-  // auto-search on mount
+  // auto-search on mount (uses initialPlanet from URL or default)
   useEffect(() => {
-    search(DEFAULT_PLANET)
-  }, [search])
+    search(initialPlanet)
+  }, [search, initialPlanet])
 
   return (
     <div className="flex flex-col gap-6">
@@ -125,6 +138,10 @@ export default function DataPage() {
             <p className="font-mono text-xs text-cosmos-muted">
               위상 접기 데이터 없음 (공전 주기 미확인)
             </p>
+          )}
+
+          {foldData && (
+            <TransitInfo fold={foldData} planet={currentPlanet} />
           )}
         </div>
       )}
