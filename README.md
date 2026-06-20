@@ -78,7 +78,7 @@
 |---|---|
 | Framework | React 19, TypeScript 6 |
 | Build Tool | Vite |
-| 2D 시각화 | D3.js, Plotly.js |
+| 2D 시각화 | D3.js |
 | 3D 시각화 | Three.js, React Three Fiber |
 | 셰이더 | GLSL (Phase 4) |
 | 상태 관리 | Zustand |
@@ -131,13 +131,17 @@ pale-blue-code/
 │       └── styles/                  디자인 토큰
 │
 └── backend/                         FastAPI (Phase 5+)
-    └── app/
-        ├── routers/
-        ├── services/
-        │   ├── lightkurve_service.py
-        │   ├── bls_algorithm.py
-        │   └── exoplanet_archive.py
-        └── models/
+    ├── main.py
+    ├── routers/
+    │   ├── planets.py
+    │   └── lightcurves.py
+    ├── services/
+    │   ├── archive.py               NASA Exoplanet Archive
+    │   └── mast.py                  Lightkurve + 파일 캐시
+    ├── models/
+    │   ├── planet.py
+    │   └── lightcurve.py
+    └── cache/                       lc_*.json (gitignore)
 ```
 
 <br/>
@@ -165,7 +169,7 @@ cd backend
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload    # http://localhost:8000
+uvicorn main:app --reload        # http://localhost:8000
 ```
 
 ### 환경 변수
