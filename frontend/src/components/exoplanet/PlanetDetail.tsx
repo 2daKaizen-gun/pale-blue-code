@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Planet } from '../../lib/api/exoplanet'
 
 interface Props {
@@ -62,6 +63,13 @@ export default function PlanetDetail({ planet, onClose }: Props) {
         value={planet.st_teff !== null ? `${Math.round(planet.st_teff)} K` : null}
       />
       <Row label="Planets in System" value={planet.sy_pnum} />
+
+      <Link
+        to={`/data?planet=${encodeURIComponent(planet.pl_name)}`}
+        className="mt-4 flex w-full items-center justify-center rounded-lg border border-cosmos-border bg-cosmos-bg px-3 py-2 font-mono text-xs text-cosmos-muted transition-colors hover:border-cosmos-nebula hover:text-cosmos-text"
+      >
+        광도곡선 보기 →
+      </Link>
     </div>
   )
 }
