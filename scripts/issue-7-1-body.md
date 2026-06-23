@@ -6,10 +6,10 @@ Reuse Phase 6 PDCSAP_FLUX cache (`lc_*.json`) as BLS input — no MAST re-fetch.
 
 ## Lights
 
-- [ ] `backend/models/bls.py` — `BLSBest` + `BLSResponse` Pydantic models
-- [ ] `backend/services/bls.py` — BLS execution + `bls_*.json` file cache
-- [ ] `backend/routers/bls.py` + register in `main.py` — `GET /api/bls/{planet_name}`
-- [ ] Manual verification: `GET /api/bls/Kepler-452%20b` → `best.period` within ±1d of 384.84d
+- [x] `backend/models/bls.py` — `BLSBest` + `BLSResponse` Pydantic models
+- [x] `backend/services/bls.py` — BLS execution + `bls_*.json` file cache
+- [x] `backend/routers/bls.py` + register in `main.py` — `GET /api/bls/{planet_name}`
+- [x] Manual verification: `GET /api/bls/Kepler-452%20b` → `best.period` within ±1d of 384.84d
 
 ## Success Criteria
 
