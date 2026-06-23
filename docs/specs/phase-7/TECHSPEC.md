@@ -181,8 +181,8 @@ export async function fetchBLS(planetName: string): Promise<BLSData>
 5. BLS 검증 스크립트 (optional, scripts/) — Kepler-452 b 테스트
 
 **성공 기준**:
-- `GET /api/bls/Kepler-452%20b` 응답 200
-- `best.period` ± 1일 이내 = 384.84d
+- `GET /api/bls/Kepler-7%20b` 응답 200
+- `best.period` ± 0.01일 이내 = 4.886d
 
 ### sub-7-2: SignalPage 프론트엔드
 **Goal**: SignalPage placeholder → 실구현 (PeriodogramChart + BLSResultCard)
