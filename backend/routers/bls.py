@@ -16,4 +16,4 @@ async def get_bls(planet_name: str):
             status_code=424,
             detail={"message": "Light curve not found. Fetch it first via /api/lightcurve/{planet_name}", "planet": planet_name},
         )
-    return BLSResponse(**data, best=data["best"])
+    return BLSResponse(**data)
