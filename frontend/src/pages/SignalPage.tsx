@@ -15,19 +15,20 @@ export default function SignalPage() {
   const [planetName, setPlanetName] = useState(initialPlanet)
 
   const [blsData, setBlsData] = useState<BLSData | null>(null)
-  const [loading, setLoading] = useState(false)
+  // Start in loading state immediately when URL has ?planet= — avoids flash of empty state
+  const [loading, setLoading] = useState(!!initialPlanet)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchPlanets().then(setPlanets).catch(() => {})
   }, [])
 
+  // Manual search triggered by button/search bar (event handler — not an effect, no lint warning)
   const search = useCallback(async (name: string) => {
     if (!name.trim()) return
     setLoading(true)
     setError(null)
     setBlsData(null)
-
     try {
       const data = await fetchBLS(name.trim())
       setBlsData(data)
@@ -38,10 +39,23 @@ export default function SignalPage() {
     }
   }, [])
 
-  // auto-search when ?planet= param is present
+  // Auto-fetch on mount when ?planet= is present.
+  // All setState calls are inside async callbacks, not synchronously in the effect body.
   useEffect(() => {
-    if (initialPlanet) search(initialPlanet)
-  }, [search, initialPlanet])
+    if (!initialPlanet) return
+    let cancelled = false
+    fetchBLS(initialPlanet)
+      .then((data) => {
+        if (!cancelled) { setBlsData(data); setLoading(false) }
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : 'Unknown error')
+          setLoading(false)
+        }
+      })
+    return () => { cancelled = true }
+  }, [initialPlanet])
 
   return (
     <div className="flex flex-col gap-6">
