@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { fetchPlanets, type Planet } from '../lib/api/exoplanet'
 import { fetchLightCurve, fetchFolded, type LightCurveData, type PhaseFoldData } from '../lib/api/lightcurve'
 import Spinner from '../components/ui/Spinner'
@@ -108,7 +108,7 @@ export default function DataPage() {
 
       {!loading && !error && lcData && (
         <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex overflow-hidden rounded-lg border border-cosmos-border">
               {(['raw', 'folded'] as View[]).map((v) => (
                 <button
@@ -125,6 +125,12 @@ export default function DataPage() {
                 </button>
               ))}
             </div>
+            <Link
+              to={`/signal?planet=${encodeURIComponent(planetName)}`}
+              className="font-mono text-xs text-cosmos-nebula transition-colors hover:text-cosmos-text"
+            >
+              SIGNAL →
+            </Link>
             <span className="font-mono text-xs text-cosmos-muted">
               {lcData.hostname} · {lcData.mission}
               {lcData.period != null && ` · period ${lcData.period.toFixed(2)} days`}
