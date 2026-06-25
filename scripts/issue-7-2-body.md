@@ -6,13 +6,13 @@ Build on Phase 6 patterns: `useRef + useEffect + ResizeObserver` for D3, `useSea
 
 ## Lights
 
-- [ ] `frontend/src/lib/api/bls.ts` -- BLSData type + fetchBLS API client
-- [ ] `frontend/src/components/signal/PeriodogramChart.tsx` -- D3 log-scale periodogram (single path line, peak marker)
-- [ ] `frontend/src/components/signal/BLSResultCard.tsx` -- best candidate card (period, duration, depth, power)
-- [ ] `frontend/src/pages/SignalPage.tsx` -- replace placeholder: PlanetSearchBar + "Find Period" button + chart + card
-- [ ] `frontend/src/pages/DataPage.tsx` -- add "Signal" link in tab bar (navigates to /signal?planet=...)
-- [ ] `frontend/src/constants/phases.ts` -- Phase 7 status: planned -> in-progress
-- [ ] `npm run build` pass
+- [x] `frontend/src/lib/api/bls.ts` -- BLSData type + fetchBLS API client
+- [x] `frontend/src/components/signal/PeriodogramChart.tsx` -- D3 log-scale periodogram (single path line, peak marker)
+- [x] `frontend/src/components/signal/BLSResultCard.tsx` -- best candidate card (period, duration, depth, power)
+- [x] `frontend/src/pages/SignalPage.tsx` -- replace placeholder: PlanetSearchBar + "Find Period" button + chart + card
+- [x] `frontend/src/pages/DataPage.tsx` -- add "Signal" link in tab bar (navigates to /signal?planet=...)
+- [x] `frontend/src/constants/phases.ts` -- Phase 7 status: planned -> in-progress
+- [x] `npm run build` pass
 
 ## Success Criteria
 

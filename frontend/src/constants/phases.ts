@@ -81,7 +81,7 @@ export const PHASES: Phase[] = [
     title: 'Signal',
     subtitle: '신호',
     question: '어떻게 행성을 찾는가?',
-    status: 'in-progress',
+    status: 'done',
   },
   {
     number: 8,
