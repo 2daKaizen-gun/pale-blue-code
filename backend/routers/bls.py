@@ -11,7 +11,7 @@ router = APIRouter()
 async def get_bls(planet_name: str):
     try:
         data = await run_in_threadpool(bls_service.run_bls, planet_name)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         raise HTTPException(
             status_code=424,
             detail={"message": "Light curve not found. Fetch it first via /api/lightcurve/{planet_name}", "planet": planet_name},
