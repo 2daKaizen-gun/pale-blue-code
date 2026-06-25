@@ -38,12 +38,12 @@ def _get_full_lc(planet_name: str, lc_meta: dict) -> tuple[np.ndarray, np.ndarra
     """Return full-resolution time+flux for BLS, cached as bls_lc_*.json.
 
     The display lc cache (lc_*.json) is decimated to 5,000 points — too sparse
-    for BLS on planets with few transits (e.g. Kepler-452 b: ~3 transits,
-    each only 1-2 points after decimation). bls_lc_*.json stores the full
-    undecimated dataset so BLS can detect all transit events.
+    for BLS (a planet with few transits would have only 1-2 points per transit
+    after decimation, making BLS blind). bls_lc_*.json stores the full
+    undecimated dataset so BLS can count all transit events.
 
-    remove_outliers is skipped: transit dips (~820 ppm for Kepler-452 b) can be
-    at 5σ for quiet stars and get clipped, destroying the BLS signal.
+    remove_outliers is skipped: transit dips can reach 5σ depth on quiet stars
+    and get clipped at sigma=5, destroying the BLS signal.
     """
     import lightkurve as lk
 
@@ -57,7 +57,7 @@ def _get_full_lc(planet_name: str, lc_meta: dict) -> tuple[np.ndarray, np.ndarra
 
     search = lk.search_lightcurve(hostname, mission=mission, author=mission, exptime="long")
     if len(search) == 0:
-        return np.array(lc_meta["time"]), np.array(lc_meta["flux"])
+        raise FileNotFoundError(f"No light curve found for '{planet_name}' via {mission}")
 
     lc_col = search.download_all()
     lc = lc_col.stitch().normalize().remove_nans()
