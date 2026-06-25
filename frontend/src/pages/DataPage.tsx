@@ -23,15 +23,16 @@ export default function DataPage() {
   const [lcData, setLcData] = useState<LightCurveData | null>(null)
   const [foldData, setFoldData] = useState<PhaseFoldData | null>(null)
 
-  const [loading, setLoading] = useState(false)
-  const [loadingMsg, setLoadingMsg] = useState('')
+  // Start in loading state — there is always an initial planet to fetch
+  const [loading, setLoading] = useState(true)
+  const [loadingMsg, setLoadingMsg] = useState('케플러 데이터 내려받는 중…')
   const [error, setError] = useState<string | null>(null)
 
   const [view, setView] = useState<View>('raw')
 
   // load planet catalog for autocomplete (non-blocking)
   useEffect(() => {
-    fetchPlanets().then(setPlanets).catch(() => {/* autocomplete optional */})
+    fetchPlanets().then(setPlanets).catch(() => {})
   }, [])
 
   // resolve planet metadata from catalog
@@ -41,6 +42,7 @@ export default function DataPage() {
     setCurrentPlanet(match ?? null)
   }, [planets, planetName])
 
+  // Manual search from search bar (event handler — setState calls fine here, not in effect body)
   const search = useCallback(async (name: string) => {
     if (!name.trim()) return
     setLoading(true)
@@ -67,10 +69,31 @@ export default function DataPage() {
     }
   }, [])
 
-  // auto-search on mount (uses initialPlanet from URL or default)
+  // Auto-fetch on mount — all setState calls inside async callbacks, not synchronously in effect body
   useEffect(() => {
-    search(initialPlanet)
-  }, [search, initialPlanet])
+    let cancelled = false
+
+    fetchLightCurve(initialPlanet)
+      .then(async (lc) => {
+        if (cancelled) return
+        setLcData(lc)
+        if (lc.period != null) {
+          setLoadingMsg('위상 접기 계산 중…')
+          try {
+            const folded = await fetchFolded(initialPlanet)
+            if (!cancelled) setFoldData(folded)
+          } catch { /* fold is non-fatal */ }
+        }
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Unknown error')
+      })
+      .finally(() => {
+        if (!cancelled) { setLoading(false); setLoadingMsg('') }
+      })
+
+    return () => { cancelled = true }
+  }, [initialPlanet])
 
   return (
     <div className="flex flex-col gap-6">
