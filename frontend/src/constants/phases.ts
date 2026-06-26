@@ -90,6 +90,6 @@ export const PHASES: Phase[] = [
     title: 'Hunt',
     subtitle: '사냥',
     question: '그래서 — 새 행성을 찾을 수 있는가?',
-    status: 'planned',
+    status: 'done',
   },
 ]
