@@ -12,6 +12,7 @@ class KOIMatch(BaseModel):
     kepoi_name: str
     disposition: str
     koi_period: float
+    harmonic: float = 1.0  # bls_period / koi_period: 1.0 exact, 4.0 = 4x alias, 0.5 = half-period
 
 
 class HuntLCResponse(BaseModel):

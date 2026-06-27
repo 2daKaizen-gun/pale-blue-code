@@ -125,8 +125,26 @@ def _load_koi_catalog() -> list[dict]:
     return _koi_cache
 
 
+def _harmonic_factor(
+    bls_period: float, koi_period: float, tolerance: float, max_n: int = 4
+) -> float | None:
+    """Relate a BLS peak to a catalog period, accounting for aliasing.
+
+    BLS frequently locks onto an integer multiple or divisor of the true
+    transit period (e.g. a 4x or half-period alias) when the data span is long
+    relative to the period. Return the matched ratio (1.0 exact, 4.0 = 4x alias,
+    0.5 = half-period alias), or None if no harmonic matches within tolerance.
+    """
+    for n in range(1, max_n + 1):
+        if abs(bls_period - n * koi_period) / (n * koi_period) < tolerance:
+            return float(n)
+        if abs(koi_period - n * bls_period) / (n * bls_period) < tolerance:
+            return 1.0 / n
+    return None
+
+
 def koi_check(kic_id: int, period: float, tolerance: float = 0.05) -> list[dict]:
-    """Return KOI entries for this star whose period is within tolerance of the given period."""
+    """Return KOI entries for this star matching the period or one of its harmonics."""
     rows = _load_koi_catalog()
     matches = []
     for r in rows:
@@ -136,10 +154,12 @@ def koi_check(kic_id: int, period: float, tolerance: float = 0.05) -> list[dict]
             koi_period = float(r["koi_period"])
         except (ValueError, KeyError):
             continue
-        if abs(koi_period - period) / period < tolerance:
+        factor = _harmonic_factor(period, koi_period, tolerance)
+        if factor is not None:
             matches.append({
                 "kepoi_name": r["kepoi_name"],
                 "disposition": r["koi_disposition"],
                 "koi_period": koi_period,
+                "harmonic": factor,
             })
     return matches
