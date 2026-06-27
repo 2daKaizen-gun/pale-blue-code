@@ -6,6 +6,14 @@ interface Props {
   matches: KOIMatch[]
 }
 
+// BLS often locks onto an integer multiple/divisor of the true period. When the
+// matched harmonic is not 1:1, explain why the catalog and BLS periods differ.
+function harmonicNote(harmonic: number): string | null {
+  if (Math.abs(harmonic - 1) < 1e-6) return null
+  if (harmonic > 1) return `BLS 피크는 카탈로그 주기의 ${Math.round(harmonic)}배 alias`
+  return `BLS 피크는 카탈로그 주기의 1/${Math.round(1 / harmonic)} 부고조파(alias)`
+}
+
 const DISPOSITION_STYLE: Record<string, { badge: string; label: string }> = {
   CANDIDATE: {
     badge: 'border-amber-500/50 bg-amber-500/10 text-amber-300',
@@ -71,6 +79,7 @@ export default function KOIMatchCard({ kicId, period, matches }: Props) {
       <ul className="flex flex-col gap-3">
         {matches.map((m) => {
           const style = DISPOSITION_STYLE[m.disposition] ?? DISPOSITION_STYLE['FALSE POSITIVE']
+          const note = harmonicNote(m.harmonic)
           return (
             <li
               key={m.kepoi_name}
@@ -84,9 +93,12 @@ export default function KOIMatchCard({ kicId, period, matches }: Props) {
                 </span>
                 <span className="font-mono text-sm text-cosmos-text">{m.kepoi_name}</span>
               </div>
-              <span className="font-mono text-xs text-cosmos-muted">
-                catalog period {m.koi_period.toFixed(3)}d · BLS {period.toFixed(3)}d
-              </span>
+              <div className="text-right">
+                <span className="font-mono text-xs text-cosmos-muted">
+                  catalog period {m.koi_period.toFixed(3)}d · BLS {period.toFixed(3)}d
+                </span>
+                {note && <p className="font-mono text-xs text-cosmos-solar">{note}</p>}
+              </div>
             </li>
           )
         })}

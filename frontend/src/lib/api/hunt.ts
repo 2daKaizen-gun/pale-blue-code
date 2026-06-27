@@ -11,6 +11,7 @@ export interface KOIMatch {
   kepoi_name: string
   disposition: 'CANDIDATE' | 'CONFIRMED' | 'FALSE POSITIVE'
   koi_period: number
+  harmonic: number // bls_period / koi_period: 1 exact, 4 = 4x alias, 0.5 = half-period
 }
 
 export interface HuntLCData {
