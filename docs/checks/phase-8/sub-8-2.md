@@ -2,8 +2,8 @@
 
 **날짜**: 2026-06-27
 **Issue**: #37
-**브랜치**: main @ `1b3046b`
-**결과**: ✅ 정적 검증 통과 / ⚠️ 라이브 브라우저 E2E는 push 전 권이건 확인 권고
+**브랜치**: main @ `822635a` (+ 사후 수정)
+**결과**: ✅ 라이브 E2E 통과 — 검증 중 발견한 BLS alias seam 결함을 harmonic-aware koi_check로 수정 완료
 
 ---
 
@@ -35,13 +35,28 @@ Phase 7 컴포넌트 `PeriodogramChart` · `BLSResultCard` 수정 0으로 재사
 - `GET /api/hunt/targets` → 5 타깃 / `lc/{kic}` → LC / `bls/{kic}` → BLSResponse / `koi-check` → KOIMatch[]
 - 에러 경로: LC 캐시 없이 BLS → 424, 없는 KIC → 404 — HuntPage가 `detail.message`를 파싱해 표시
 
-### 라이브 브라우저 E2E (⚠️ 미실행 — push 전 권고)
+### 라이브 브라우저 E2E (✅ 실행 완료 — Playwright + 시스템 Edge)
 
-이번 세션에서는 dev 서버 + 백엔드를 띄운 실제 클릭 흐름을 돌리지 않았다. push 전 다음 확인 권고:
-- `/hunt` → 타깃 그리드 5장 렌더
-- CANDIDATE 타깃(KIC 9140402) 클릭 → LC→BLS→KOI 순차 로딩 메시지 → 주기도그램 + BLSResultCard + KOIMatchCard
-- KIC 직접입력(유효/무효) 동작
-- 주의: BLS는 정수배 alias(½×·4×)를 피크로 잡는 경향(sub-8-1 findings) — KOIMatchCard가 "미등록"으로 뜰 수 있음. 주기도그램에서 참주기 시각 확인이 사용자 몫.
+backend(uvicorn :8000) + frontend(vite :5173)을 띄우고 Playwright(channel: msedge)로 실제 클릭 흐름 구동:
+- ✅ `/hunt` → 타깃 그리드 5장 렌더 (행성 이름 비노출, hint만)
+- ✅ KIC 9140402 클릭 → "수신 중"(LC)·"탐색 중"(BLS) 로딩 → 주기도그램(peak 9.98d) + BLSResultCard + KOIMatchCard
+- 🔍 잘못된 입력 "abc"/"0" → `유효한 KIC 번호를 입력하세요` + 타깃 목록 복귀
+- 🔍 CONFIRMED 타깃 11446443 → BLS 1.235d(½× alias)
+
+### ⚠️→✅ 발견 결함: BLS alias seam (수정 완료)
+
+**문제**: BLS가 참주기의 정수배 alias를 피크로 반환(9140402 → 4×=9.977d, 11446443 → ½×=1.235d).
+frontend가 이 alias 주기를 그대로 koi-check에 넘겨, 큐레이션 타깃 **전부**가 "미등록"(보라)으로 떨어짐.
+amber(CANDIDATE)·green(CONFIRMED) 배지가 happy-path에서 도달 불가 → PRD 성공 기준 미충족.
+
+**원인**: `koi_check`가 BLS 피크와 카탈로그 주기를 1:1 ±5%로만 비교. alias(고조파)를 고려 안 함.
+
+**수정**: `_harmonic_factor` 도입 — BLS 피크가 카탈로그 주기의 정수배(최대 4×) 또는 부고조파(1/n)이면 매칭.
+`KOIMatch.harmonic` 필드로 비율 노출, KOIMatchCard가 "BLS 피크는 카탈로그 주기의 N배 alias"로 표기.
+
+**수정 후 재검증 (E2E)**:
+- ✅ KIC 9140402 → **AMBER "UNCONFIRMED CANDIDATE"** K00928.01 (4배 alias 표기)
+- ✅ KIC 11446443 → **GREEN "CONFIRMED PLANET"** K00001.01 (1/2 부고조파 표기)
 
 ---
 
