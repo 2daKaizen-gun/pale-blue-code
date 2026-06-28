@@ -128,18 +128,18 @@ export default function HuntPage() {
               ADVANCED — 자유 탐색
             </p>
             <p className="text-sm text-cosmos-muted">KIC 번호를 직접 입력해 임의의 케플러 별을 사냥하세요.</p>
-            <div className="mt-1 flex flex-wrap items-center gap-3">
+            <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center">
               <input
                 value={manualKic}
                 onChange={(e) => setManualKic(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && submitManual()}
                 placeholder="KIC 11442793"
-                className="rounded-lg border border-cosmos-border bg-cosmos-bg px-3 py-2 font-mono text-sm text-cosmos-text placeholder:text-cosmos-subtle focus:border-cosmos-nebula focus:outline-none"
+                className="w-full rounded-lg border border-cosmos-border bg-cosmos-bg px-3 py-2 font-mono text-sm text-cosmos-text placeholder:text-cosmos-subtle focus:border-cosmos-nebula focus:outline-none sm:w-56"
               />
               <button
                 onClick={submitManual}
                 disabled={!manualKic.trim()}
-                className="rounded-lg border border-cosmos-nebula bg-cosmos-elevated px-4 py-2 font-mono text-sm text-cosmos-nebula transition-colors hover:bg-cosmos-nebula hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                className="w-full rounded-lg border border-cosmos-nebula bg-cosmos-elevated px-4 py-2 font-mono text-sm text-cosmos-nebula transition-colors hover:bg-cosmos-nebula hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
               >
                 HUNT
               </button>
