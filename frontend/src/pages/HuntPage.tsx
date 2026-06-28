@@ -11,6 +11,7 @@ import type { BLSData } from '../lib/api/bls'
 import Spinner from '../components/ui/Spinner'
 import HuntTargetCard from '../components/hunt/HuntTargetCard'
 import KOIMatchCard from '../components/hunt/KOIMatchCard'
+import DiscoveryActions from '../components/hunt/DiscoveryActions'
 import PeriodogramChart from '../components/signal/PeriodogramChart'
 import BLSResultCard from '../components/signal/BLSResultCard'
 
@@ -176,11 +177,14 @@ export default function HuntPage() {
               <PeriodogramChart data={blsData} />
               <BLSResultCard data={blsData} />
               {koiMatches !== null && (
-                <KOIMatchCard
-                  kicId={selectedKic}
-                  period={blsData.best.period}
-                  matches={koiMatches}
-                />
+                <>
+                  <KOIMatchCard
+                    kicId={selectedKic}
+                    period={blsData.best.period}
+                    matches={koiMatches}
+                  />
+                  <DiscoveryActions kicId={selectedKic} bls={blsData} matches={koiMatches} />
+                </>
               )}
             </>
           )}

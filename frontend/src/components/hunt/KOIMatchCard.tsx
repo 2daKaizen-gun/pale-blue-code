@@ -43,24 +43,6 @@ export default function KOIMatchCard({ kicId, period, matches }: Props) {
           {period.toFixed(3)}일 주기 신호가 NASA KOI 카탈로그에 등록되어 있지 않습니다 — 아직
           아무도 기록하지 않은 후보일 수 있습니다. 후속 분석으로 행성·쌍성·노이즈를 가려야 합니다.
         </p>
-        <div className="mt-4 flex flex-wrap gap-3 font-mono text-xs">
-          <a
-            href="https://www.zooniverse.org/projects/nora-dot-eisner/planet-hunters-tess"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded border border-cosmos-border px-3 py-1.5 text-cosmos-nebula transition-colors hover:border-cosmos-nebula"
-          >
-            Planet Hunters →
-          </a>
-          <a
-            href="https://exoplanetarchive.ipac.caltech.edu/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded border border-cosmos-border px-3 py-1.5 text-cosmos-nebula transition-colors hover:border-cosmos-nebula"
-          >
-            NASA Exoplanet Archive →
-          </a>
-        </div>
       </div>
     )
   }
