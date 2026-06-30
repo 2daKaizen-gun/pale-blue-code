@@ -12,7 +12,7 @@
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
 ![Three.js](https://img.shields.io/badge/Three.js-r170-000000?logo=three.js&logoColor=white)
 ![D3.js](https://img.shields.io/badge/D3.js-7-F9A03C?logo=d3.js&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white)
 ![License](https://img.shields.io/badge/License-AGPL_3.0-blue)
 
@@ -87,7 +87,7 @@
 ### Backend (Phase 5부터)
 | 카테고리 | 기술 |
 |---|---|
-| Framework | FastAPI (Python 3.11) |
+| Framework | FastAPI (Python 3.14) |
 | 과학 계산 | NumPy, SciPy, Astropy |
 | 천문학 라이브러리 | Lightkurve, AstroQuery |
 | 데이터 처리 | Pandas |
@@ -133,15 +133,23 @@ pale-blue-code/
 └── backend/                         FastAPI (Phase 5+)
     ├── main.py
     ├── routers/
-    │   ├── planets.py
-    │   └── lightcurves.py
+    │   ├── planets.py               NASA Exoplanet Archive
+    │   ├── lightcurves.py           광도곡선 (Phase 6)
+    │   ├── bls.py                   BLS 주기 탐색 (Phase 7)
+    │   └── hunt.py                  외계행성 사냥 (Phase 8)
     ├── services/
     │   ├── archive.py               NASA Exoplanet Archive
-    │   └── mast.py                  Lightkurve + 파일 캐시
+    │   ├── mast.py                  Lightkurve + 파일 캐시
+    │   ├── bls.py                   Box Least Squares
+    │   └── hunt.py                  KIC 광도곡선 + KOI 대조
     ├── models/
     │   ├── planet.py
-    │   └── lightcurve.py
-    └── cache/                       lc_*.json (gitignore)
+    │   ├── lightcurve.py
+    │   ├── bls.py
+    │   └── hunt.py
+    ├── data/
+    │   └── koi_catalog.csv          KOI 스냅샷 (kepid/kepoi/disposition/period)
+    └── cache/                       lc_*.json · bls_*.json (gitignore)
 ```
 
 <br/>
