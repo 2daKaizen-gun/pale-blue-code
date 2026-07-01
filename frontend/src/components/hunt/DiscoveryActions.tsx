@@ -1,6 +1,7 @@
 import type { BLSData } from '../../lib/api/bls'
 import type { KOIMatch } from '../../lib/api/hunt'
 import { buildDiscoveryRecord, downloadJSON } from '../../lib/discovery'
+import { REPORT_LINKS } from '../../lib/reportLinks'
 
 interface Props {
   kicId: number
@@ -30,22 +31,17 @@ export default function DiscoveryActions({ kicId, bls, matches }: Props) {
         >
           ↓ 결과 JSON 내보내기
         </button>
-        <a
-          href="https://www.zooniverse.org/projects/nora-dot-eisner/planet-hunters-tess"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded border border-cosmos-border px-3 py-1.5 text-cosmos-nebula transition-colors hover:border-cosmos-nebula"
-        >
-          Planet Hunters →
-        </a>
-        <a
-          href="https://exoplanetarchive.ipac.caltech.edu/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded border border-cosmos-border px-3 py-1.5 text-cosmos-nebula transition-colors hover:border-cosmos-nebula"
-        >
-          NASA Exoplanet Archive →
-        </a>
+        {REPORT_LINKS.map((link) => (
+          <a
+            key={link.href}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded border border-cosmos-border px-3 py-1.5 text-cosmos-nebula transition-colors hover:border-cosmos-nebula"
+          >
+            {link.label} →
+          </a>
+        ))}
       </div>
     </div>
   )
