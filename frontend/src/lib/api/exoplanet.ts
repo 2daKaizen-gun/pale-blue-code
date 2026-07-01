@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './base'
+
 export interface Planet {
   pl_name: string
   hostname: string
@@ -13,16 +15,14 @@ export interface Planet {
   disc_facility: string | null
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
-
 export async function fetchPlanets(): Promise<Planet[]> {
-  const res = await fetch(`${BASE_URL}/api/planets`)
+  const res = await fetch(`${API_BASE_URL}/api/planets`)
   if (!res.ok) throw new Error(`fetchPlanets failed: ${res.status}`)
   return res.json()
 }
 
 export async function fetchPlanet(name: string): Promise<Planet> {
-  const res = await fetch(`${BASE_URL}/api/planets/${encodeURIComponent(name)}`)
+  const res = await fetch(`${API_BASE_URL}/api/planets/${encodeURIComponent(name)}`)
   if (!res.ok) throw new Error(`fetchPlanet failed: ${res.status}`)
   return res.json()
 }

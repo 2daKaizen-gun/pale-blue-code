@@ -1,4 +1,5 @@
 import type { BLSData } from './bls'
+import { API_BASE_URL } from './base'
 
 export interface HuntTarget {
   kic_id: number
@@ -23,10 +24,8 @@ export interface HuntLCData {
   original_count: number
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
-
 async function getJSON<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`)
+  const res = await fetch(`${API_BASE_URL}${path}`)
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.detail?.message ?? body.detail ?? `request failed: ${res.status}`)

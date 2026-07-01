@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './base'
+
 export interface LightCurveData {
   planet_name: string
   hostname: string
@@ -20,14 +22,12 @@ export interface PhaseFoldData {
   transit_duration: number | null
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
-
 export async function fetchLightCurve(
   planetName: string,
   mission = 'Kepler',
 ): Promise<LightCurveData> {
   const res = await fetch(
-    `${BASE_URL}/api/lightcurve/${encodeURIComponent(planetName)}?mission=${mission}`,
+    `${API_BASE_URL}/api/lightcurve/${encodeURIComponent(planetName)}?mission=${mission}`,
   )
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
@@ -42,7 +42,7 @@ export async function fetchFolded(
   bins = 200,
 ): Promise<PhaseFoldData> {
   const res = await fetch(
-    `${BASE_URL}/api/lightcurve/${encodeURIComponent(planetName)}/folded?mission=${mission}&bins=${bins}`,
+    `${API_BASE_URL}/api/lightcurve/${encodeURIComponent(planetName)}/folded?mission=${mission}&bins=${bins}`,
   )
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))

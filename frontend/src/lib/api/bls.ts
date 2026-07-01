@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './base'
+
 export interface BLSData {
   planet_name: string
   periods: number[]
@@ -11,10 +13,8 @@ export interface BLSData {
   }
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
-
 export async function fetchBLS(planetName: string): Promise<BLSData> {
-  const res = await fetch(`${BASE_URL}/api/bls/${encodeURIComponent(planetName)}`)
+  const res = await fetch(`${API_BASE_URL}/api/bls/${encodeURIComponent(planetName)}`)
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.detail?.message ?? body.detail ?? `fetchBLS failed: ${res.status}`)
