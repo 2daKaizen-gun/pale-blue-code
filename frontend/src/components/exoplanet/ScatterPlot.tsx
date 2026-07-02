@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react'
 import * as d3 from 'd3'
 import type { Planet } from '../../lib/api/exoplanet'
-import { getMethodColor } from './FilterPanel'
+import { getMethodColor } from './methodColor'
 
 interface Props {
   planets: Planet[]

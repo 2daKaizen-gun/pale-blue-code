@@ -1,16 +1,5 @@
 import type { Planet } from '../../lib/api/exoplanet'
-
-export const METHOD_COLOR: Record<string, string> = {
-  Transit: '#818cf8',
-  'Radial Velocity': '#34d399',
-  Imaging: '#fbbf24',
-  Microlensing: '#f87171',
-  Astrometry: '#38bdf8',
-}
-
-export function getMethodColor(method: string): string {
-  return METHOD_COLOR[method] ?? '#64748b'
-}
+import { getMethodColor } from './methodColor'
 
 interface Props {
   methods: string[]

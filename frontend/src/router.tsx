@@ -1,3 +1,7 @@
+/* eslint-disable react-refresh/only-export-components --
+   This is the route-tree config, not a fast-refreshable component module:
+   it exports `router` (a non-component) alongside lazy() route elements.
+   Fast refresh never applies here, so the rule is a false positive. */
 import { lazy } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import AppLayout from './components/layout/AppLayout'
