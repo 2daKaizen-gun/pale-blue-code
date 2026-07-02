@@ -1,5 +1,5 @@
 import { useBlackholeStore, type LensingSteps } from '../../store/blackholeStore'
-import { bhOrbitRef } from './Scene'
+import { bhOrbitRef } from './refs'
 
 const STEPS_OPTIONS: LensingSteps[] = [64, 96, 128]
 

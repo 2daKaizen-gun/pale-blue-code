@@ -2,10 +2,7 @@ import { useRef } from 'react'
 import { RawShaderMaterial, Vector2, Vector3, Matrix4, GLSL3 } from 'three'
 import vertGlsl from '../../shaders/blackhole.vert.glsl?raw'
 import fragGlsl from '../../shaders/blackhole.frag.glsl?raw'
-
-// Module-level handle so UniformUpdater can push uniforms each frame
-// without prop-drilling or context. Single instance guaranteed by router.
-export const bhMaterialRef: { current: RawShaderMaterial | null } = { current: null }
+import { bhMaterialRef } from './refs'
 
 export function BlackholeRenderer() {
   const matRef = useRef<RawShaderMaterial | null>(null)

@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber'
 import type { PerspectiveCamera } from 'three'
-import { bhMaterialRef } from './BlackholeRenderer'
+import { bhMaterialRef } from './refs'
 import { useBlackholeStore } from '../../store/blackholeStore'
 
 export function UniformUpdater() {

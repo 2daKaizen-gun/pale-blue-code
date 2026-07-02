@@ -4,10 +4,7 @@ import { BlackholeRenderer } from './BlackholeRenderer'
 import { UniformUpdater } from './UniformUpdater'
 import { ControlPanel } from './ControlPanel'
 import { useIsTouchDevice } from '../../hooks/useIsTouchDevice'
-
-// Module-level ref so ControlPanel can call reset() from outside the Canvas.
-// Same singleton pattern as bhMaterialRef.
-export const bhOrbitRef: { current: any } = { current: null }
+import { bhOrbitRef } from './refs'
 
 export function Scene() {
   const isMobile = useIsTouchDevice()
