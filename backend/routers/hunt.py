@@ -3,8 +3,10 @@ from fastapi.concurrency import run_in_threadpool
 
 from models.hunt import HuntTarget, KOIMatch, HuntLCResponse
 from models.bls import BLSResponse
+from models.vetting import VettingReport
 from services import hunt as hunt_service
 from services import bls as bls_service
+from services import vetting as vetting_service
 
 router = APIRouter()
 
@@ -38,6 +40,22 @@ async def get_hunt_bls(kic_id: int):
             },
         )
     return BLSResponse(**data)
+
+
+@router.get("/hunt/vet/{kic_id}", response_model=VettingReport)
+async def get_hunt_vet(kic_id: int):
+    try:
+        report = await run_in_threadpool(vetting_service.vet, kic_id)
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=424,
+            detail={
+                "message": f"BLS not cached for KIC {kic_id}. "
+                           f"Run GET /api/hunt/bls/{kic_id} first.",
+                "kic_id": kic_id,
+            },
+        )
+    return report
 
 
 @router.get("/hunt/koi-check", response_model=list[KOIMatch])
