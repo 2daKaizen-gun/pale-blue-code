@@ -24,6 +24,26 @@ export interface HuntLCData {
   original_count: number
 }
 
+export type CheckName = 'odd_even' | 'secondary' | 'shape' | 'size'
+
+export interface VettingCheck {
+  name: CheckName
+  passed: boolean
+  hard: boolean // a hard fail alone collapses trust (strong eclipsing-binary signal)
+  metrics: Record<string, number> // backend returns numbers; the frontend renders sentences
+}
+
+export interface VettingReport {
+  kic_id: number
+  period: number // de-aliased true period the gates ran at
+  bls_period: number // raw BLS peak (may be a ½×/2×/4× alias)
+  alias_factor: number // period / bls_period (1 = BLS was already the true period)
+  checks: VettingCheck[]
+  passed_count: number
+  total: number
+  trust: 'strong' | 'weak' | 'unlikely'
+}
+
 async function getJSON<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`)
   if (!res.ok) {
@@ -47,4 +67,8 @@ export async function fetchHuntBLS(kicId: number): Promise<BLSData> {
 
 export async function fetchKOICheck(kicId: number, period: number): Promise<KOIMatch[]> {
   return getJSON<KOIMatch[]>(`/api/hunt/koi-check?kic_id=${kicId}&period=${period}`)
+}
+
+export async function fetchVetting(kicId: number): Promise<VettingReport> {
+  return getJSON<VettingReport>(`/api/hunt/vet/${kicId}`)
 }
