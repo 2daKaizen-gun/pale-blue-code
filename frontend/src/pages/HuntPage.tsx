@@ -15,6 +15,7 @@ import HuntTargetCard from '../components/hunt/HuntTargetCard'
 import KOIMatchCard from '../components/hunt/KOIMatchCard'
 import DiscoveryActions from '../components/hunt/DiscoveryActions'
 import VettingReportCard from '../components/hunt/VettingReport'
+import Reveal from '../components/ui/Reveal'
 import PeriodogramChart from '../components/signal/PeriodogramChart'
 import BLSResultCard from '../components/signal/BLSResultCard'
 
@@ -193,8 +194,12 @@ export default function HuntPage() {
 
           {!busy && !error && blsData && (
             <>
-              <PeriodogramChart data={blsData} />
-              <BLSResultCard data={blsData} />
+              <Reveal>
+                <PeriodogramChart data={blsData} />
+              </Reveal>
+              <Reveal delay={80}>
+                <BLSResultCard data={blsData} />
+              </Reveal>
 
               {vetLoading && (
                 <div className="flex items-center gap-3 rounded-lg border border-cosmos-border bg-cosmos-elevated p-5">
@@ -209,16 +214,24 @@ export default function HuntPage() {
                   판별을 실행하지 못했습니다: {vetError}
                 </div>
               )}
-              {vetReport && <VettingReportCard report={vetReport} />}
+              {vetReport && (
+                <Reveal>
+                  <VettingReportCard report={vetReport} />
+                </Reveal>
+              )}
 
               {koiMatches !== null && (
                 <>
-                  <KOIMatchCard
-                    kicId={selectedKic}
-                    period={blsData.best.period}
-                    matches={koiMatches}
-                  />
-                  <DiscoveryActions kicId={selectedKic} bls={blsData} matches={koiMatches} />
+                  <Reveal>
+                    <KOIMatchCard
+                      kicId={selectedKic}
+                      period={blsData.best.period}
+                      matches={koiMatches}
+                    />
+                  </Reveal>
+                  <Reveal delay={80}>
+                    <DiscoveryActions kicId={selectedKic} bls={blsData} matches={koiMatches} />
+                  </Reveal>
                 </>
               )}
             </>
