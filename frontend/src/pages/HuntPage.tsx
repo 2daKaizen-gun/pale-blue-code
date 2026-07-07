@@ -4,14 +4,17 @@ import {
   fetchHuntLC,
   fetchHuntBLS,
   fetchKOICheck,
+  fetchVetting,
   type HuntTarget,
   type KOIMatch,
+  type VettingReport,
 } from '../lib/api/hunt'
 import type { BLSData } from '../lib/api/bls'
 import Spinner from '../components/ui/Spinner'
 import HuntTargetCard from '../components/hunt/HuntTargetCard'
 import KOIMatchCard from '../components/hunt/KOIMatchCard'
 import DiscoveryActions from '../components/hunt/DiscoveryActions'
+import VettingReportCard from '../components/hunt/VettingReport'
 import PeriodogramChart from '../components/signal/PeriodogramChart'
 import BLSResultCard from '../components/signal/BLSResultCard'
 
@@ -22,9 +25,12 @@ export default function HuntPage() {
   const [lcLoading, setLcLoading] = useState(false)
   const [blsLoading, setBlsLoading] = useState(false)
   const [koiLoading, setKoiLoading] = useState(false)
+  const [vetLoading, setVetLoading] = useState(false)
 
   const [blsData, setBlsData] = useState<BLSData | null>(null)
   const [koiMatches, setKoiMatches] = useState<KOIMatch[] | null>(null)
+  const [vetReport, setVetReport] = useState<VettingReport | null>(null)
+  const [vetError, setVetError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const [manualKic, setManualKic] = useState('')
@@ -43,6 +49,8 @@ export default function HuntPage() {
     setError(null)
     setBlsData(null)
     setKoiMatches(null)
+    setVetReport(null)
+    setVetError(null)
 
     const fail = (e: unknown) =>
       setError(e instanceof Error ? e.message : 'Unknown error')
@@ -71,20 +79,31 @@ export default function HuntPage() {
       setBlsLoading(false)
     }
 
+    // Step 3: KOI cross-check and the four-gate vetting run in parallel — both
+    // consume the BLS result but neither depends on the other. Vetting failure is
+    // isolated to vetError so a vet miss never blanks the BLS/KOI results.
     setKoiLoading(true)
-    try {
-      setKoiMatches(await fetchKOICheck(kicId, bls.best.period))
-    } catch (e) {
-      fail(e)
-    } finally {
-      setKoiLoading(false)
-    }
+    setVetLoading(true)
+
+    const koiRun = fetchKOICheck(kicId, bls.best.period)
+      .then(setKoiMatches)
+      .catch(fail)
+      .finally(() => setKoiLoading(false))
+
+    const vetRun = fetchVetting(kicId)
+      .then(setVetReport)
+      .catch((e) => setVetError(e instanceof Error ? e.message : 'Unknown error'))
+      .finally(() => setVetLoading(false))
+
+    await Promise.all([koiRun, vetRun])
   }, [])
 
   const reset = () => {
     setSelectedKic(null)
     setBlsData(null)
     setKoiMatches(null)
+    setVetReport(null)
+    setVetError(null)
     setError(null)
   }
 
@@ -176,6 +195,22 @@ export default function HuntPage() {
             <>
               <PeriodogramChart data={blsData} />
               <BLSResultCard data={blsData} />
+
+              {vetLoading && (
+                <div className="flex items-center gap-3 rounded-lg border border-cosmos-border bg-cosmos-elevated p-5">
+                  <Spinner />
+                  <p className="font-mono text-xs text-cosmos-muted">
+                    네 관문으로 신호를 심문하는 중…
+                  </p>
+                </div>
+              )}
+              {vetError && (
+                <div className="rounded-lg border border-cosmos-border bg-cosmos-elevated p-5 font-mono text-xs text-cosmos-muted">
+                  판별을 실행하지 못했습니다: {vetError}
+                </div>
+              )}
+              {vetReport && <VettingReportCard report={vetReport} />}
+
               {koiMatches !== null && (
                 <>
                   <KOIMatchCard
