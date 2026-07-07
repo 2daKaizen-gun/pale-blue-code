@@ -15,36 +15,42 @@ _MAX_POINTS = 5000
 
 _koi_cache: list[dict] | None = None
 
+# Demonstration targets — every one is a KNOWN, catalogued Kepler Object of
+# Interest, not an undiscovered signal. They exist to learn the vetter against a
+# catalogued disposition: run BLS + vetting, form your own verdict, then compare
+# with NASA's in the KOI cross-check. (An actual first-time hunt of stars with no
+# KOI entry is Phase 9-B — see docs/specs/phase-9/9B-PLAN.md, honesty nail #3.)
+# The exact disposition is left for the cross-check to reveal, not the card.
 _TARGETS = [
     {
         "kic_id": 9140402,
         "label": "KIC 9140402",
-        "description": "Faint Kepler field star with suspected short-period dimming events.",
-        "hint": "short-period transit signal",
+        "description": "Known KOI K00928.01 — a short-period (~2.5 d) candidate. Demo target: vet it, then compare your verdict with the catalog.",
+        "hint": "known short-period KOI · demo",
     },
     {
         "kic_id": 4936180,
         "label": "KIC 4936180",
-        "description": "Moderate brightness fluctuations at regular 4-5 day intervals.",
-        "hint": "4-5 day periodicity suspected",
+        "description": "Known KOI K00820.01 — a ~4.6-day candidate. Demo target for learning the vetter against a catalogued disposition.",
+        "hint": "known ~4.6d KOI · demo",
     },
     {
         "kic_id": 7380537,
         "label": "KIC 7380537",
-        "description": "Rapid periodic flux drops flagged by automated pipeline.",
-        "hint": "hot Jupiter candidate range",
+        "description": "Known KOI K00883.01 — a short-period (~2.7 d) candidate. Demo target: form your own verdict, then check it against NASA's.",
+        "hint": "known short-period KOI · demo",
     },
     {
         "kic_id": 11446443,
         "label": "KIC 11446443",
-        "description": "Well-studied Kepler target — run BLS to verify the published result.",
-        "hint": "confirmed result available for comparison",
+        "description": "Known confirmed planet K00001.01 (Kepler-1b / TrES-2b). Demo target: the vetter should call this a strong candidate.",
+        "hint": "known confirmed planet · demo",
     },
     {
         "kic_id": 10583180,
         "label": "KIC 10583180",
-        "description": "Strong photometric signal detected — nature of the source unconfirmed.",
-        "hint": "strong signal, interpretation contested",
+        "description": "Known KOI K00748.01. Demo target: form your own verdict, then compare with NASA's disposition in the cross-check.",
+        "hint": "known KOI · demo",
     },
 ]
 
