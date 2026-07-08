@@ -100,6 +100,28 @@ export function buildDiscoveryRecord(
   }
 }
 
+// Read a previously exported record back into a normalized discovery@2 shape,
+// branching on the schema version tag. A discovery@1 record (written before the
+// vetting engine existed) has no `vetting` field — it is upgraded in place to
+// vetting: null, never crashing on the missing key. This is the import path a
+// future discovery repository (9-C) reads through; every stored record, old or
+// new, comes out as a single current-schema shape.
+export function parseDiscoveryRecord(raw: unknown): DiscoveryRecord {
+  if (typeof raw !== 'object' || raw === null || !('schema' in raw)) {
+    throw new Error('Not a discovery record: missing schema tag')
+  }
+  const rec = raw as Record<string, unknown>
+  switch (rec.schema) {
+    case 'pale-blue-code/discovery@2':
+      return rec as unknown as DiscoveryRecord
+    case 'pale-blue-code/discovery@1':
+      // Upgrade: @1 predates vetting, so there is no evidence to carry.
+      return { ...(rec as object), schema: 'pale-blue-code/discovery@2', vetting: null } as DiscoveryRecord
+    default:
+      throw new Error(`Unsupported discovery schema: ${String(rec.schema)}`)
+  }
+}
+
 // Trigger a client-side file download of `data` as pretty-printed JSON.
 export function downloadJSON(filename: string, data: unknown): void {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
