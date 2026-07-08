@@ -1,5 +1,5 @@
 import type { BLSData } from '../../lib/api/bls'
-import type { KOIMatch } from '../../lib/api/hunt'
+import type { KOIMatch, VettingReport } from '../../lib/api/hunt'
 import { buildDiscoveryRecord, downloadJSON } from '../../lib/discovery'
 import { REPORT_LINKS } from '../../lib/reportLinks'
 
@@ -7,14 +7,16 @@ interface Props {
   kicId: number
   bls: BLSData
   matches: KOIMatch[]
+  vetReport: VettingReport | null
 }
 
 // Shown after every hunt regardless of the KOI verdict: a hunter may want to
 // keep or report a confirmed match, an unconfirmed candidate, or a signal that
-// is not in the catalog at all.
-export default function DiscoveryActions({ kicId, bls, matches }: Props) {
+// is not in the catalog at all. The exported record carries the vetting
+// evidence (discovery@2) when it is available.
+export default function DiscoveryActions({ kicId, bls, matches, vetReport }: Props) {
   const exportRecord = () => {
-    const record = buildDiscoveryRecord(kicId, bls, matches)
+    const record = buildDiscoveryRecord(kicId, bls, matches, vetReport)
     downloadJSON(`discovery_kic-${kicId}.json`, record)
   }
 

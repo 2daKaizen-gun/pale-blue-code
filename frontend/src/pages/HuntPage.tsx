@@ -242,7 +242,12 @@ export default function HuntPage() {
                     />
                   </Reveal>
                   <Reveal delay={80}>
-                    <DiscoveryActions kicId={selectedKic} bls={blsData} matches={koiMatches} />
+                    <DiscoveryActions
+                      kicId={selectedKic}
+                      bls={blsData}
+                      matches={koiMatches}
+                      vetReport={vetReport}
+                    />
                   </Reveal>
                 </>
               )}
