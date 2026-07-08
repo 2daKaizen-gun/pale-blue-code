@@ -28,11 +28,18 @@ export default function DiscoveryActions({ kicId, bls, matches, vetReport }: Pro
     downloadJSON(`discovery_kic-${kicId}.json`, record)
   }
 
+  // Honesty rule (PRD §3 nail 1): an `unlikely` verdict is still exportable, but
+  // the UI must not nudge citizen-science reporting of a probable binary/false
+  // positive. The record is yours to keep; reporting it is discouraged.
+  const discourageReport = vetReport?.trust === 'unlikely'
+
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-cosmos-border bg-cosmos-elevated p-5">
       <p className="font-mono text-xs tracking-widest text-cosmos-muted">발견 기록</p>
       <p className="text-sm text-cosmos-muted">
-        이 탐색 결과를 JSON으로 저장하거나, 시민 과학 프로젝트에 보고하세요.
+        {discourageReport
+          ? '이 탐색 결과를 JSON으로 저장할 수 있습니다.'
+          : '이 탐색 결과를 JSON으로 저장하거나, 시민 과학 프로젝트에 보고하세요.'}
       </p>
 
       {/* What the exported record carries — the export is not a black box. */}
@@ -60,18 +67,26 @@ export default function DiscoveryActions({ kicId, bls, matches, vetReport }: Pro
         >
           ↓ 결과 JSON 내보내기
         </button>
-        {REPORT_LINKS.map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded border border-cosmos-border px-3 py-1.5 text-cosmos-nebula transition-colors hover:border-cosmos-nebula"
-          >
-            {link.label} →
-          </a>
-        ))}
+        {!discourageReport &&
+          REPORT_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded border border-cosmos-border px-3 py-1.5 text-cosmos-nebula transition-colors hover:border-cosmos-nebula"
+            >
+              {link.label} →
+            </a>
+          ))}
       </div>
+
+      {discourageReport && (
+        <p className="text-sm text-cosmos-muted">
+          판별 결과 <span className="text-cosmos-text">쌍성·위양성 가능성이 높습니다</span> — 시민 과학
+          프로젝트에 보고하기 전에 재검토를 권합니다. 기록은 저장할 수 있지만, 보고 링크는 숨겼습니다.
+        </p>
+      )}
     </div>
   )
 }
