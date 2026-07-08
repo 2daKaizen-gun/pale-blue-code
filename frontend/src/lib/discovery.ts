@@ -1,11 +1,26 @@
 import type { BLSData } from './api/bls'
-import type { KOIMatch } from './api/hunt'
+import type { KOIMatch, VettingReport, VettingCheck } from './api/hunt'
 
-// A self-contained record of one hunt: the BLS detection plus the KOI
-// cross-check verdict. Assembled entirely on the client from data already in
-// hand — exporting it lets a hunter keep (or report) what they found.
+// The vetting evidence, copied into the record so a discovery carries its own
+// proof. `null` when vetting could not run (a vet miss must not block export —
+// the detection + KOI verdict are still worth keeping). Trust and the four gate
+// results travel with the record; the reader never has to re-run the engine.
+export interface DiscoveryVetting {
+  trust: VettingReport['trust']
+  period_days: number // de-aliased true period the gates ran at
+  bls_period_days: number // raw BLS peak (may be a ½×/2×/4× alias)
+  alias_factor: number
+  passed_count: number
+  total: number
+  checks: VettingCheck[]
+}
+
+// A self-contained record of one hunt: the BLS detection, the KOI cross-check
+// verdict, and (as of @2) the four-gate vetting evidence. Assembled entirely on
+// the client from data already in hand — exporting it lets a hunter keep (or
+// report) what they found, evidence included.
 export interface DiscoveryRecord {
-  schema: 'pale-blue-code/discovery@1'
+  schema: 'pale-blue-code/discovery@2'
   generated_at: string
   target: {
     kic_id: number
@@ -24,6 +39,7 @@ export interface DiscoveryRecord {
     disposition: KOIMatch['disposition'] | null
     matches: KOIMatch[]
   }
+  vetting: DiscoveryVetting | null
 }
 
 // Most-significant disposition wins when a star has several KOI entries:
@@ -41,13 +57,17 @@ function topDisposition(matches: KOIMatch[]): KOIMatch['disposition'] | null {
   ).disposition
 }
 
+// `vetReport` is optional: a hunt whose vetting failed (or has not resolved) is
+// still exportable, and the record honestly records `vetting: null` rather than
+// fabricating a verdict.
 export function buildDiscoveryRecord(
   kicId: number,
   bls: BLSData,
   matches: KOIMatch[],
+  vetReport?: VettingReport | null,
 ): DiscoveryRecord {
   return {
-    schema: 'pale-blue-code/discovery@1',
+    schema: 'pale-blue-code/discovery@2',
     generated_at: new Date().toISOString(),
     target: {
       kic_id: kicId,
@@ -66,6 +86,17 @@ export function buildDiscoveryRecord(
       disposition: topDisposition(matches),
       matches,
     },
+    vetting: vetReport
+      ? {
+          trust: vetReport.trust,
+          period_days: vetReport.period,
+          bls_period_days: vetReport.bls_period,
+          alias_factor: vetReport.alias_factor,
+          passed_count: vetReport.passed_count,
+          total: vetReport.total,
+          checks: vetReport.checks,
+        }
+      : null,
   }
 }
 
