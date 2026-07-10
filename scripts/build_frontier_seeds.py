@@ -8,15 +8,20 @@ are far likelier to be real Kepler targets than a blind random KIC) and keeps
 only those that:
 
     1. are ABSENT from koi_catalog.csv (kepid membership) -> genuinely unrecorded
-    2. have a real Kepler long-cadence light curve (lightkurve probe)
+    2. have a real Kepler light curve (MAST timeseries probe)
 
 Network probing happens here, once. The runtime only reads the committed JSON
 (backend/data/frontier_seeds.json). Honesty nail #3: the pool is not "hidden
 KOIs" -- every entry is a star Kepler observed but no one filed as a candidate.
 
+Probing is BATCHED: instead of resolving each "KIC n" name individually (a
+non-existent KIC triggers a slow sky-position resolver timeout), we ask MAST once
+per batch which `kplr` target_names have timeseries products. Non-existent KICs
+simply do not come back -- no per-target timeout, ~1s per 100 candidates.
+
 Usage:
-    python scripts/build_frontier_seeds.py            # ~60 seeds -> real path
-    python scripts/build_frontier_seeds.py --n 2 --max-attempts 10 --out /tmp/smoke.json
+    python scripts/build_frontier_seeds.py            # ~50 seeds -> real path
+    python scripts/build_frontier_seeds.py --n 4 --max-candidates 20 --out /tmp/smoke.json
 """
 import argparse
 import csv
@@ -41,19 +46,36 @@ def load_recorded() -> set[int]:
         return {int(r["kepid"]) for r in csv.DictReader(f)}
 
 
-def has_kepler_lc(kic: int) -> bool:
-    import lightkurve as lk
+def probe_has_lc(kics: list[int]) -> set[int]:
+    """One batched MAST call -> subset of `kics` that have a Kepler light curve.
 
-    search = lk.search_lightcurve(
-        f"KIC {kic}", mission="Kepler", author="Kepler", exptime="long"
+    Kepler MAST target_name is 'kplr' + zero-padded 9-digit KIC. Querying a list
+    of names returns rows only for targets that actually have timeseries data, so
+    absent/unobserved KICs cost nothing (no name-resolution timeout).
+    """
+    from astroquery.mast import Observations
+
+    names = {f"kplr{k:09d}": k for k in kics}
+    obs = Observations.query_criteria(
+        obs_collection="Kepler",
+        target_name=list(names),
+        dataproduct_type="timeseries",
     )
-    return len(search) > 0
+    hits: set[int] = set()
+    for row in obs:
+        tn = str(row["target_name"])
+        if tn in names:
+            hits.add(names[tn])
+    return hits
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--n", type=int, default=60, help="target seed count")
-    ap.add_argument("--max-attempts", type=int, default=600)
+    ap.add_argument("--n", type=int, default=50, help="target seed count")
+    ap.add_argument("--max-candidates", type=int, default=1000,
+                    help="cap on unique KICs probed before giving up")
+    ap.add_argument("--batch-size", type=int, default=100,
+                    help="candidates per MAST query")
     ap.add_argument("--seed", type=int, default=9, help="RNG seed for reproducibility")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = ap.parse_args()
@@ -65,42 +87,54 @@ def main() -> int:
 
     seeds: list[int] = []
     tried: set[int] = set()
-    attempts = 0
+    probed = 0
     t0 = time.time()
-    while len(seeds) < args.n and attempts < args.max_attempts:
-        kic = rng.choice(anchors) + rng.choice(OFFSETS)
-        if kic <= 0 or kic in recorded or kic in tried:
-            continue
-        tried.add(kic)
-        attempts += 1
+    while len(seeds) < args.n and probed < args.max_candidates:
+        # Assemble a fresh batch of unique, unrecorded candidate KICs.
+        batch: list[int] = []
+        guard = 0
+        while len(batch) < args.batch_size and probed + len(batch) < args.max_candidates:
+            guard += 1
+            if guard > args.batch_size * 50:
+                break  # anchor+offset space near-exhausted
+            kic = rng.choice(anchors) + rng.choice(OFFSETS)
+            if kic <= 0 or kic in recorded or kic in tried:
+                continue
+            tried.add(kic)
+            batch.append(kic)
+        if not batch:
+            break
+        probed += len(batch)
         try:
-            ok = has_kepler_lc(kic)
-        except Exception:  # unresolved name / transient MAST error -> treat as miss
-            ok = False
+            hits = probe_has_lc(batch)
+        except Exception as exc:  # transient MAST error -> skip this batch
+            print(f"  batch query failed ({exc}); skipping", flush=True)
+            hits = set()
+        for kic in sorted(batch):
+            if kic in hits:
+                seeds.append(kic)
         print(
-            f"[{len(seeds):3d}/{args.n}] attempt {attempts:3d}: KIC {kic} "
-            f"{'HIT' if ok else 'miss'}",
+            f"[{len(seeds):3d}/{args.n}] probed {probed:4d} "
+            f"(+{len(hits)} hits this batch of {len(batch)})",
             flush=True,
         )
-        if ok:
-            seeds.append(kic)
 
-    seeds.sort()
+    seeds = sorted(set(seeds))[: args.n]
     payload = {
         "schema": "pale-blue-code/frontier-seeds@1",
         "built_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "criteria": "kepid absent from koi_catalog AND Kepler long-cadence LC exists",
+        "criteria": "kepid absent from koi_catalog AND Kepler light curve exists",
         "count": len(seeds),
         "kics": seeds,
     }
     args.out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(
         f"\nwrote {len(seeds)} seeds to {args.out} "
-        f"({attempts} attempts, {time.time() - t0:.0f}s)",
+        f"({probed} probed, {time.time() - t0:.0f}s)",
         flush=True,
     )
     if len(seeds) < args.n:
-        print("WARNING: fewer than requested -- raise --max-attempts", file=sys.stderr)
+        print("WARNING: fewer than requested -- raise --max-candidates", file=sys.stderr)
         return 1
     return 0
 
