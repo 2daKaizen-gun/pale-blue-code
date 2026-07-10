@@ -11,7 +11,7 @@ import type { BLSData } from '../lib/api/bls'
 import { Link } from 'react-router-dom'
 import Spinner from '../components/ui/Spinner'
 import FrontierTargetPicker from '../components/hunt/FrontierTargetPicker'
-import VettingReportCard from '../components/hunt/VettingReport'
+import FrontierVerdict from '../components/hunt/FrontierVerdict'
 import Reveal from '../components/ui/Reveal'
 import PeriodogramChart from '../components/signal/PeriodogramChart'
 import BLSResultCard from '../components/signal/BLSResultCard'
@@ -222,7 +222,7 @@ export default function FrontierHuntPage() {
               )}
               {vetReport && (
                 <Reveal>
-                  <VettingReportCard report={vetReport} />
+                  <FrontierVerdict report={vetReport} />
                 </Reveal>
               )}
             </>
