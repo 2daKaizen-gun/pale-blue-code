@@ -1,5 +1,6 @@
 import csv
 import json
+import random
 import re
 from pathlib import Path
 
@@ -10,10 +11,12 @@ _CACHE_DIR.mkdir(exist_ok=True)
 
 _DATA_DIR = Path(__file__).parent.parent / "data"
 _KOI_CSV = _DATA_DIR / "koi_catalog.csv"
+_FRONTIER_JSON = _DATA_DIR / "frontier_seeds.json"
 
 _MAX_POINTS = 5000
 
 _koi_cache: list[dict] | None = None
+_frontier_cache: list[int] | None = None
 
 # Demonstration targets — every one is a KNOWN, catalogued Kepler Object of
 # Interest, not an undiscovered signal. They exist to learn the vetter against a
@@ -169,3 +172,35 @@ def koi_check(kic_id: int, period: float, tolerance: float = 0.05) -> list[dict]
                 "harmonic": factor,
             })
     return matches
+
+
+def koi_entries(kic_id: int) -> list[dict]:
+    """All KOI rows for this star, period-independent (membership by kepid alone).
+
+    This is the "is this star recorded at all?" test — distinct from koi_check,
+    which matches a specific period harmonic. A star with ANY KOI entry is already
+    on file, so it is not undiscovered hunting ground (Phase 9-B honesty nail #3).
+    """
+    return [r for r in _load_koi_catalog() if int(r["kepid"]) == kic_id]
+
+
+def is_recorded(kic_id: int) -> bool:
+    """True if the star has any KOI entry — i.e. someone already filed it."""
+    return len(koi_entries(kic_id)) > 0
+
+
+def _load_frontier() -> list[int]:
+    """Pre-verified pool of unrecorded KICs with real Kepler light curves.
+
+    Built offline by scripts/build_frontier_seeds.py; runtime only reads the JSON.
+    """
+    global _frontier_cache
+    if _frontier_cache is None:
+        payload = json.loads(_FRONTIER_JSON.read_text(encoding="utf-8"))
+        _frontier_cache = [int(k) for k in payload["kics"]]
+    return _frontier_cache
+
+
+def pick_frontier(rng: random.Random | None = None) -> int:
+    """Pick one unrecorded KIC from the seed pool. RNG injectable for tests."""
+    return (rng or random.Random()).choice(_load_frontier())
