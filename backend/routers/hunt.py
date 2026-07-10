@@ -1,7 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.concurrency import run_in_threadpool
 
-from models.hunt import HuntTarget, KOIMatch, HuntLCResponse
+from models.hunt import (
+    HuntTarget,
+    KOIMatch,
+    HuntLCResponse,
+    FrontierPick,
+    RecordedCheck,
+)
 from models.bls import BLSResponse
 from models.vetting import VettingReport
 from services import hunt as hunt_service
@@ -65,3 +71,24 @@ async def koi_check(
 ):
     matches = hunt_service.koi_check(kic_id, period)
     return [KOIMatch(**m) for m in matches]
+
+
+@router.get("/hunt/frontier/random", response_model=FrontierPick)
+async def get_frontier_random():
+    """Draw one unrecorded KIC from the pre-verified frontier seed pool."""
+    kic_id = hunt_service.pick_frontier()
+    return FrontierPick(kic_id=kic_id, recorded=False)
+
+
+@router.get("/hunt/recorded/{kic_id}", response_model=RecordedCheck)
+async def get_recorded(kic_id: int):
+    """Is this star already on file? Period-independent KOI membership check."""
+    entries = hunt_service.koi_entries(kic_id)
+    return RecordedCheck(
+        kic_id=kic_id,
+        recorded=len(entries) > 0,
+        entries=[
+            {"kepoi_name": e["kepoi_name"], "disposition": e["koi_disposition"]}
+            for e in entries
+        ],
+    )

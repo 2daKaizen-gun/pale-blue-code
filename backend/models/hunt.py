@@ -22,3 +22,19 @@ class HuntLCResponse(BaseModel):
     flux_err: list[float]
     point_count: int
     original_count: int
+
+
+class FrontierPick(BaseModel):
+    kic_id: int
+    recorded: bool = False  # the pool holds only unrecorded KICs (invariant)
+
+
+class RecordedEntry(BaseModel):
+    kepoi_name: str
+    disposition: str
+
+
+class RecordedCheck(BaseModel):
+    kic_id: int
+    recorded: bool
+    entries: list[RecordedEntry]
