@@ -4,6 +4,7 @@ import {
   fetchHuntBLS,
   fetchVetting,
   checkRecorded,
+  frontierRandom,
   type VettingReport,
   type RecordedCheck,
 } from '../lib/api/hunt'
@@ -123,6 +124,23 @@ export default function FrontierHuntPage() {
     setError(null)
   }
 
+  // Keep the pioneer loop going: draw another unrecorded star right away. Most
+  // will be empty hands — that repetition is the honest texture of the frontier.
+  const huntAgain = useCallback(async () => {
+    try {
+      const pick = await frontierRandom()
+      await onPick(pick.kic_id)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '무작위 별을 뽑지 못했습니다')
+    }
+  }, [onPick])
+
+  // A terminal state has been reached — offer to hunt again.
+  const done =
+    selectedKic !== null &&
+    !busy &&
+    (recorded !== null || vetReport !== null || vetError !== null || error !== null)
+
   const loadingMessage = checkLoading
     ? 'KOI 카탈로그와 대조 중 — 이미 기록된 별인지 확인…'
     : lcLoading
@@ -187,12 +205,6 @@ export default function FrontierHuntPage() {
                     </li>
                   ))}
                 </ul>
-                <button
-                  onClick={reset}
-                  className="mt-1 self-start font-mono text-xs text-cosmos-nebula transition-colors hover:text-cosmos-text"
-                >
-                  ← 다른 별 사냥하기
-                </button>
               </div>
             </Reveal>
           )}
@@ -226,6 +238,28 @@ export default function FrontierHuntPage() {
                 </Reveal>
               )}
             </>
+          )}
+
+          {done && (
+            <div className="flex flex-col gap-3 border-t border-cosmos-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-cosmos-muted">
+                개척은 반복입니다 — 대부분 빈손이고, 그 빈손도 결과입니다. 계속 사냥해보세요.
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  onClick={huntAgain}
+                  className="w-full rounded-lg border border-cosmos-nebula bg-cosmos-elevated px-4 py-2 font-mono text-sm text-cosmos-nebula transition-colors hover:bg-cosmos-nebula hover:text-white sm:w-auto"
+                >
+                  🎲 다른 미기록 별 사냥
+                </button>
+                <button
+                  onClick={reset}
+                  className="w-full rounded-lg border border-cosmos-border px-4 py-2 font-mono text-sm text-cosmos-muted transition-colors hover:text-cosmos-text sm:w-auto"
+                >
+                  타깃 선택으로
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
