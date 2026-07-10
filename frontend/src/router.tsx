@@ -33,6 +33,7 @@ const ExoplanetPage = lazy(() => import('./pages/ExoplanetPage'))
 const DataPage = lazy(() => import('./pages/DataPage'))
 const SignalPage = lazy(() => import('./pages/SignalPage'))
 const HuntPage = lazy(() => import('./pages/HuntPage'))
+const FrontierHuntPage = lazy(() => import('./pages/FrontierHuntPage'))
 
 export const router = createBrowserRouter([
   {
@@ -46,7 +47,8 @@ export const router = createBrowserRouter([
       { path: 'exoplanet', element: <ExoplanetPage /> },
       { path: 'data',      element: <DataPage /> },
       { path: 'signal',    element: <SignalPage /> },
-      { path: 'hunt',      element: <HuntPage /> },
+      { path: 'hunt',          element: <HuntPage /> },
+      { path: 'hunt/frontier', element: <FrontierHuntPage /> },
     ],
   },
 ])

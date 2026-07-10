@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import {
   fetchHuntTargets,
   fetchHuntLC,
@@ -144,8 +145,11 @@ export default function HuntPage() {
             <p className="mt-1 text-sm text-cosmos-muted">
               아래 별들은 이미 카탈로그에 등록된 <span className="text-cosmos-text">알려진 KOI</span>입니다 —
               발견이 아니라 판별기를 배우기 위한 시연용. 직접 판정해보고 NASA 결론과 대조해보세요.
-              아무도 기록하지 않은 별을 실제로 사냥하는 <span className="text-cosmos-text">단독 탐색</span>은
-              다음 악장(9-B)에서 열립니다.
+              아무도 기록하지 않은 별을 실제로 사냥하는 단독 탐색은{' '}
+              <Link to="/hunt/frontier" className="text-cosmos-nebula hover:text-cosmos-text">
+                Frontier(9-B)
+              </Link>
+              에서 열립니다.
             </p>
           </div>
 
