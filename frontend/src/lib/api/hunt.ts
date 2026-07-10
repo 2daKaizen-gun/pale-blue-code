@@ -72,3 +72,31 @@ export async function fetchKOICheck(kicId: number, period: number): Promise<KOIM
 export async function fetchVetting(kicId: number): Promise<VettingReport> {
   return getJSON<VettingReport>(`/api/hunt/vet/${kicId}`)
 }
+
+// ── Phase 9-B: the frontier (real solo hunt of unrecorded stars) ──────────────
+
+export interface FrontierPick {
+  kic_id: number
+  recorded: boolean // the seed pool holds only unrecorded KICs (always false here)
+}
+
+export interface RecordedEntry {
+  kepoi_name: string
+  disposition: KOIMatch['disposition']
+}
+
+export interface RecordedCheck {
+  kic_id: number
+  recorded: boolean // true if the star has ANY KOI entry (period-independent)
+  entries: RecordedEntry[]
+}
+
+// Draw one unrecorded KIC from the pre-verified frontier seed pool.
+export async function frontierRandom(): Promise<FrontierPick> {
+  return getJSON<FrontierPick>('/api/hunt/frontier/random')
+}
+
+// Is this star already on file? Period-independent KOI membership + its entries.
+export async function checkRecorded(kicId: number): Promise<RecordedCheck> {
+  return getJSON<RecordedCheck>(`/api/hunt/recorded/${kicId}`)
+}
