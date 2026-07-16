@@ -21,6 +21,7 @@ import Spinner from '../components/ui/Spinner'
 import FrontierTargetPicker from '../components/hunt/FrontierTargetPicker'
 import FrontierVerdict from '../components/hunt/FrontierVerdict'
 import HuntLog from '../components/hunt/HuntLog'
+import DiscoveryActions from '../components/hunt/DiscoveryActions'
 import Reveal from '../components/ui/Reveal'
 import PeriodogramChart from '../components/signal/PeriodogramChart'
 import BLSResultCard from '../components/signal/BLSResultCard'
@@ -260,6 +261,22 @@ export default function FrontierHuntPage() {
               {vetReport && (
                 <Reveal>
                   <FrontierVerdict report={vetReport} />
+                </Reveal>
+              )}
+
+              {/* Discovery record only for the earned find: strong + unrecorded
+                  (9B-PLAN §6). matches=[] — no KOI entry exists by construction,
+                  so the exported record honestly reads in_catalog: false and
+                  carries the four-gate vetting evidence (discovery@2). Weak/empty
+                  hands are tallied in the log, not exported as a "발견". */}
+              {vetReport?.trust === 'strong' && selectedKic !== null && (
+                <Reveal delay={80}>
+                  <DiscoveryActions
+                    kicId={selectedKic}
+                    bls={blsData}
+                    matches={[]}
+                    vetReport={vetReport}
+                  />
                 </Reveal>
               )}
             </>
