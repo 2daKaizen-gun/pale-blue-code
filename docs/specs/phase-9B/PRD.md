@@ -1,7 +1,7 @@
 # Phase 9-B PRD — 울타리 열기 (Opening the Gate)
 
 > *작성일: 2026-07-09*
-> *상태: Draft → sub-9B-1 진입 시 Confirmed*
+> *상태: **완료 (2026-07-16)** — sub-9B-1·2·3 전부 종료, Phase 9-B 닫힘. 인계: `docs/phase-handoffs/phase-9B-to-9C.md`*
 > *전신(前身): `docs/specs/phase-9/9B-PLAN.md` (계획 초안) 를 정식화한 문서*
 
 > 🛰️ 트랙 "모두의 하늘"의 **둘째 악장**. 9-A(Vetting)가 **신호를 심문하는 법**을 벼렸다면,

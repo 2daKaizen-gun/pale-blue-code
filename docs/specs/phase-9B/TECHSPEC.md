@@ -1,6 +1,7 @@
 # Phase 9-B TechSpec — 울타리 열기 (Opening the Gate)
 
 > *작성일: 2026-07-09*
+> *상태: **완료 (2026-07-16)** — Phase 9-B 종료. 회고: `docs/checks/phase-9B/sub-9B-{1,2,3}.md`*
 > *PRD: `docs/specs/phase-9B/PRD.md`*
 > *전신 계획: `docs/specs/phase-9/9B-PLAN.md`*
 
