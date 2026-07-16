@@ -10,9 +10,17 @@ import {
 } from '../lib/api/hunt'
 import type { BLSData } from '../lib/api/bls'
 import { Link } from 'react-router-dom'
+import {
+  loadHuntLog,
+  recordHunt,
+  clearHuntLog,
+  computeStats,
+  type HuntStats,
+} from '../lib/huntLog'
 import Spinner from '../components/ui/Spinner'
 import FrontierTargetPicker from '../components/hunt/FrontierTargetPicker'
 import FrontierVerdict from '../components/hunt/FrontierVerdict'
+import HuntLog from '../components/hunt/HuntLog'
 import Reveal from '../components/ui/Reveal'
 import PeriodogramChart from '../components/signal/PeriodogramChart'
 import BLSResultCard from '../components/signal/BLSResultCard'
@@ -41,6 +49,10 @@ export default function FrontierHuntPage() {
   const [vetError, setVetError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // The honest running tally (localStorage). Seeded from prior sessions so the
+  // frontier's "N번 사냥, 후보 M" persists across reloads.
+  const [stats, setStats] = useState<HuntStats>(() => computeStats(loadHuntLog()))
+
   const busy = checkLoading || lcLoading || blsLoading
 
   const runHunt = useCallback(async (kicId: number) => {
@@ -54,6 +66,10 @@ export default function FrontierHuntPage() {
     } catch (e) {
       // A free-input star Kepler never observed lands here.
       const msg = e instanceof Error ? e.message : ''
+      if (msg.includes('No Kepler light curve')) {
+        // No light curve = never hunted; logged apart from the hunt count.
+        setStats(computeStats(recordHunt(kicId, 'no_lc')))
+      }
       setError(
         msg.includes('No Kepler light curve')
           ? '이 별은 케플러가 관측하지 않았어요 — 광도곡선이 없습니다. 다른 KIC로 시도해보세요.'
@@ -80,7 +96,11 @@ export default function FrontierHuntPage() {
     // vetError so a vet miss never blanks the BLS result.
     setVetLoading(true)
     await fetchVetting(kicId)
-      .then(setVetReport)
+      .then((report) => {
+        setVetReport(report)
+        // The hunt ran to a verdict — tally it by trust (the honest outcome).
+        setStats(computeStats(recordHunt(kicId, report.trust)))
+      })
       .catch((e) => setVetError(e instanceof Error ? e.message : 'Unknown error'))
       .finally(() => setVetLoading(false))
   }, [])
@@ -108,12 +128,15 @@ export default function FrontierHuntPage() {
 
       if (rec.recorded) {
         setRecorded(rec) // already on file — not hunting ground, stop here
+        setStats(computeStats(recordHunt(kicId, 'recorded')))
         return
       }
       await runHunt(kicId)
     },
     [runHunt],
   )
+
+  const clearLog = () => setStats(computeStats(clearHuntLog()))
 
   const reset = () => {
     setSelectedKic(null)
@@ -157,6 +180,8 @@ export default function FrontierHuntPage() {
           골라, 우리 판별기로 직접 거른다. 대부분은 빈손이고, 그 빈손도 정직한 결과다.
         </p>
       </header>
+
+      <HuntLog stats={stats} onClear={clearLog} />
 
       {selectedKic === null ? (
         <FrontierTargetPicker onPick={onPick} busy={busy} />
