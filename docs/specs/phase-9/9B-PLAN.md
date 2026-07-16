@@ -1,7 +1,15 @@
 # Phase 9-B 계획 — 울타리 열기 (Opening the Gate)
 
 > *작성일: 2026-07-07*
-> *상태: Plan (Draft) — 9-A(판별 엔진) 완성 후 착수*
+> *상태: **Superseded (2026-07-16)** — 정식 스펙으로 승격 완료. Phase 9-B 종료.*
+
+> 📌 **이 문서는 초안(Draft)이다.** 정식화된 산출물은 아래를 정본으로 본다:
+> - PRD: `docs/specs/phase-9B/PRD.md`
+> - TechSpec: `docs/specs/phase-9B/TECHSPEC.md`
+> - 회고: `docs/checks/phase-9B/sub-9B-{1,2,3}.md`
+> - 인계: `docs/phase-handoffs/phase-9B-to-9C.md`
+>
+> 아래 원문은 계획이 태어난 맥락(정직 발견)의 기록으로 보존한다.
 
 > 🛰️ Phase 9-A(9-1 백엔드 엔진 / 9-2 리포트 UI / 9-3 발견기록 v2)가 **신호를 심문하는 법**을
 > 만들었다면, 9-B는 그 판별기를 손에 쥐고 **진짜로 아무도 기록하지 않은 하늘을 사냥한다.**
