@@ -45,6 +45,8 @@
 | 📉 **광도곡선 분석기** | 케플러/TESS 데이터에서 transit 신호 검출 |
 | 🎯 **BLS 알고리즘** | Box Least Squares 직접 구현, 알려진 행성으로 검증 |
 | 🛰️ **외계행성 사냥** | MAST 아카이브의 raw 데이터에서 미발견 후보 탐색 |
+| 🔎 **후보 판별** | 4관문(홀짝·2차식·모양·크기)으로 신호를 심문 — NASA 표준 재구현 |
+| 🌌 **개척 사냥** | KOI에 *없는* 별을 직접 걸러 신뢰 후보 or 정직한 빈손 |
 
 <br/>
 
@@ -66,6 +68,20 @@
 
 **Phase 1~7 합산**: 약 7~8개월  
 **Phase 8**: 별도 트랙, 무기한 진행 — *지금도 이 연구는 계속됩니다.*
+
+### 🌌 열린 트랙 — *모두의 하늘*
+
+Phase 8(사냥)이 "찾을 수 있는가?"에 답한 뒤, 프로젝트는 정해진 끝이 없는 열린 트랙으로
+이어집니다. **검출을 넘어 판별로, 알려진 별을 넘어 아무도 안 간 하늘로.**
+
+| 악장 | 이름 | 핵심 질문 | 상태 |
+|:---:|---|---|:---:|
+| 9-A | 판별 — *Vetting* | 이 신호는 *왜* 진짜/가짜인가? | ✓ 완료 |
+| 9-B | 울타리 열기 — *Opening the Gate* | KOI에 *없는* 별을 실제로 사냥할 수 있는가? | ✓ 완료 |
+| 9-C | 모두의 발견 — *Everyone's Find* | 이 사냥을 모두에게 열 수 있는가? | ○ 먼 미래 |
+
+> **정직의 못**: 목표는 "확정 발견"이 아니라 *신뢰도 있는 새 후보를 정직하게 걸러내는 것*.
+> 개척지는 대부분 빈손이고, 그 빈손조차 정직한 결과입니다.
 
 > 📜 Phase별 상세 작업은 `docs/phase-handoffs/` 에서 추적됩니다.
 
@@ -141,14 +157,17 @@ pale-blue-code/
     │   ├── archive.py               NASA Exoplanet Archive
     │   ├── mast.py                  Lightkurve + 파일 캐시
     │   ├── bls.py                   Box Least Squares
-    │   └── hunt.py                  KIC 광도곡선 + KOI 대조
+    │   ├── hunt.py                  KIC 광도곡선 + KOI 대조 + frontier
+    │   └── vetting.py               4관문 판별 + de-alias (Phase 9-A)
     ├── models/
     │   ├── planet.py
     │   ├── lightcurve.py
     │   ├── bls.py
-    │   └── hunt.py
+    │   ├── hunt.py
+    │   └── vetting.py
     ├── data/
-    │   └── koi_catalog.csv          KOI 스냅샷 (kepid/kepoi/disposition/period)
+    │   ├── koi_catalog.csv          KOI 스냅샷 (kepid/kepoi/disposition/period)
+    │   └── frontier_seeds.json      미기록 KIC 씨드 풀 (Phase 9-B)
     └── cache/                       lc_*.json · bls_*.json (gitignore)
 ```
 
@@ -279,4 +298,4 @@ Phase {N} 시작하자.
 
 <br/>
 
-🪐 *Phase 8은 끝나지 않습니다. 지금도 새로운 TESS 데이터가 들어올 때마다 외계행성 후보를 탐색하고 있습니다.*
+🪐 *하늘은 닫히지 않습니다. 판별기를 벼렸고(9-A), 아무도 안 간 별을 사냥했습니다(9-B). 대부분 빈손이지만, 그 빈손조차 정직한 결과입니다.*
