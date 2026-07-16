@@ -1,5 +1,7 @@
+import contextlib
 import csv
 import json
+import os
 import random
 import re
 from pathlib import Path
@@ -85,6 +87,32 @@ def _decimate(
     return time[idx], flux[idx], err[idx]
 
 
+def _download_stitched_lc(search):
+    """Download + stitch a lightkurve search result, with the progress bar muted.
+
+    astroquery/astropy render a download progress bar to sys.stdout. Inside a
+    threadpool worker under uvicorn that stream can be closed mid-download, raising
+    "I/O operation on closed file" and 500-ing the request (and worse, leaving a
+    half-written .fits behind). We don't need the bar on a server, so silence
+    stdout/stderr for the duration of the download.
+    """
+    with open(os.devnull, "w") as _null, contextlib.redirect_stdout(_null), \
+            contextlib.redirect_stderr(_null):
+        return search.download_all().stitch().normalize().remove_nans().remove_outliers(sigma=5)
+
+
+def _purge_mast_cache(kic_id: int) -> None:
+    """Delete this star's lightkurve download cache (corrupt/interrupted files)."""
+    import shutil
+
+    base = Path.home() / ".cache" / "lightkurve" / "mastDownload"
+    if not base.exists():
+        return
+    for d in base.glob(f"**/kplr{kic_id:09d}_*"):
+        if d.is_dir():
+            shutil.rmtree(d, ignore_errors=True)
+
+
 def fetch_lc_by_kic(kic_id: int) -> dict:
     """Fetch and cache a Kepler light curve by KIC number.
 
@@ -92,6 +120,7 @@ def fetch_lc_by_kic(kic_id: int) -> dict:
     so that bls_service._get_full_lc can re-search lightkurve via lc_meta["hostname"].
     """
     import lightkurve as lk
+    from lightkurve.utils import LightkurveError
 
     cache_path = _lc_cache_path(kic_id)
     if cache_path.exists():
@@ -102,7 +131,14 @@ def fetch_lc_by_kic(kic_id: int) -> dict:
     if len(search) == 0:
         raise FileNotFoundError(f"No Kepler light curve found for {star_name}")
 
-    lc = search.download_all().stitch().normalize().remove_nans().remove_outliers(sigma=5)
+    try:
+        lc = _download_stitched_lc(search)
+    except LightkurveError:
+        # An interrupted download leaves a corrupt .fits in the lightkurve cache,
+        # and every retry then re-reads that bad file. Purge this star's cache and
+        # try once more with a clean slate (self-heal against network hiccups).
+        _purge_mast_cache(kic_id)
+        lc = _download_stitched_lc(search)
     time_arr = lc.time.value.astype(float)
     flux_arr = lc.flux.value.astype(float)
     err_arr = lc.flux_err.value.astype(float) if lc.flux_err is not None else np.zeros_like(flux_arr)
