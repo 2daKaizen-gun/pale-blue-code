@@ -62,7 +62,7 @@
   - Milestone URL: `https://github.com/2daKaizen-gun/pale-blue-code/milestone/10`
 
 ### 인계 시점 미해결 항목
-- [ ] 큐레이션 `4936180` / `7380537` 캐시미스 E2E 미완주 — 낮음 (9-A 인계분, 10583180만 완주)
+- [x] 큐레이션 `4936180` / `7380537` E2E 완주 (2026-07-17): 둘 다 **strong 4/4** (K00820.01 4.642d · K00883.01 8.066d ×1/3 de-alias). CANDIDATE 처분과 무모순 — 9-A 인계분 해소.
 - [ ] 판별 한계(문서화됨): `kepler-22b`(BLS 336 비배수 알리아스), `kepler-452b`(얕은 grazing→weak)
 - [ ] 발견기록에 주기도그램 PNG 첨부 — 향후 확장 여지만
 - [ ] **⚠️ gh 활성계정**: 이 repo 이슈 조작은 `gh auth switch --user 2daKaizen-gun` 필요

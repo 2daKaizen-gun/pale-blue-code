@@ -55,7 +55,7 @@
   - Milestone URL: `https://github.com/2daKaizen-gun/pale-blue-code/milestone/9`
 
 ### 인계 시점 미해결 항목
-- [ ] 큐레이션 `4936180` / `7380537` 캐시미스 E2E 미완주 — 낮음 (10583180만 FP앵커로 완주검증)
+- [x] 큐레이션 `4936180` / `7380537` E2E 완주 (2026-07-17): 둘 다 **strong 4/4** — 4936180(K00820.01 CAND, 4.642d, alias 1.0) · 7380537(K00883.01 CAND, 8.066d, ×1/3 서브하모닉 de-alias). CANDIDATE 처분과 무모순(HARD 실패 0).
 - [ ] 판별 한계 (문서화됨): `kepler-22b`(BLS 336 비배수 알리아스 미교정), `kepler-452b`(얕은 grazing→정직한 weak)
 - [ ] 발견 기록에 주기도그램 PNG 첨부 — 향후 확장 여지만
 
