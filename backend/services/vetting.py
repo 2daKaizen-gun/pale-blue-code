@@ -47,6 +47,28 @@ _DEALIAS_BALANCE_MIN = 0.5  # every mod-2 and mod-3 cycle group must carry the t
 _PERIOD_MIN = 0.5
 _PERIOD_MAX = 600.0
 
+# Honesty nail 4 (Phase 10): a wide sky is seen shallowly. The gates rest on
+# repeated transits — odd/even needs several to compare, secondary needs cycle
+# coverage — so a "strong" earned on only a handful of transits is only
+# provisionally strong. Kepler's multi-year baseline clears this trivially; a
+# single 27-day TESS sector on a longer-period planet may not. We do NOT touch the
+# gate math or the trust verdict; provisional is a separate, honest flag alongside.
+_N_MIN_TRANSITS = 5
+
+
+def transit_count(baseline_days: float, period: float) -> int:
+    """How many transit epochs fit in the observed span: floor(baseline / period)."""
+    if period <= 0 or baseline_days <= 0:
+        return 0
+    return int(baseline_days // period)
+
+
+def is_provisional(trust: str, n_transits: int) -> bool:
+    """A 'strong' verdict resting on fewer than _N_MIN_TRANSITS transits is only
+    provisionally strong. weak/unlikely are never flagged — provisional downgrades
+    confidence, it never invents it."""
+    return trust == "strong" and n_transits < _N_MIN_TRANSITS
+
 
 # ── low-level helpers ────────────────────────────────────────────────────────
 
@@ -314,7 +336,14 @@ def _dealias(time: np.ndarray, flux: np.ndarray, best: dict) -> tuple[dict, floa
     return corrected, chosen["period"] / p0
 
 
-def build_report(kic_id: int, time: np.ndarray, flux: np.ndarray, best: dict) -> VettingReport:
+def build_report(
+    star_id: int,
+    time: np.ndarray,
+    flux: np.ndarray,
+    best: dict,
+    mission: str = "kepler",
+    sector_count: int | None = None,
+) -> VettingReport:
     corrected, factor = _dealias(time, flux, best)
     checks = [
         check_odd_even(time, flux, corrected),
@@ -322,15 +351,23 @@ def build_report(kic_id: int, time: np.ndarray, flux: np.ndarray, best: dict) ->
         check_shape(time, flux, corrected),
         check_size(time, flux, corrected),
     ]
+    trust = synthesize(checks)
+    baseline_days = float(time[-1] - time[0]) if len(time) >= 2 else 0.0
+    n_transits = transit_count(baseline_days, corrected["period"])
     return VettingReport(
-        kic_id=kic_id,
+        kic_id=star_id,
         period=corrected["period"],
         bls_period=best["period"],
         alias_factor=factor,
         checks=checks,
         passed_count=sum(c.passed for c in checks),
         total=len(checks),
-        trust=synthesize(checks),
+        trust=trust,
+        mission=mission,
+        baseline_days=baseline_days,
+        transit_count=n_transits,
+        sector_count=sector_count,
+        provisional=is_provisional(trust, n_transits),
     )
 
 
@@ -364,6 +401,6 @@ def vet(star_id: int, mission: str = "kepler") -> VettingReport:
         return VettingReport.model_validate_json(cache_path.read_text(encoding="utf-8"))
 
     time, flux, best = _load_vetting_input(star_id, mission)
-    report = build_report(star_id, time, flux, best)
+    report = build_report(star_id, time, flux, best, mission=mission)
     cache_path.write_text(report.model_dump_json(), encoding="utf-8")
     return report

@@ -232,3 +232,46 @@ def test_synthesize_two_soft_fails_is_unlikely():
         _check("size", False, False),
     ]
     assert vet.synthesize(checks) == "unlikely"   # n_pass == 2
+
+
+# ── honesty nail 4 (Phase 10): confidence scales with how much we watched ──────
+
+def test_transit_count_is_floor_baseline_over_period():
+    assert vet.transit_count(27.0, 3.0) == 9      # a hot Jupiter in one TESS sector
+    assert vet.transit_count(27.0, 13.0) == 2     # a longer period → only 2 epochs
+    assert vet.transit_count(0.0, 3.0) == 0
+    assert vet.transit_count(27.0, 0.0) == 0      # guards against divide-by-zero
+
+
+def test_is_provisional_only_downgrades_thin_strong():
+    assert vet.is_provisional("strong", vet._N_MIN_TRANSITS - 1) is True
+    assert vet.is_provisional("strong", vet._N_MIN_TRANSITS) is False
+    assert vet.is_provisional("weak", 1) is False        # never invents concern
+    assert vet.is_provisional("unlikely", 0) is False
+
+
+def test_long_baseline_strong_is_not_provisional():
+    # Kepler-length span (~60 d, ~20 transits at P=3d): a strong verdict stands.
+    time, flux, best = make_planet()
+    report = vet.build_report(11446443, time, flux, best)
+    assert report.trust == "strong"
+    assert report.transit_count >= vet._N_MIN_TRANSITS
+    assert report.provisional is False
+    assert report.mission == "kepler"               # default
+    assert report.sector_count is None              # not TESS
+    assert report.baseline_days == pytest.approx(_SPAN, abs=_CADENCE)
+
+
+def test_short_baseline_strong_is_provisional():
+    # The same clean planet, but observed for only ~13 days → ~4 transits
+    # (< _N_MIN_TRANSITS). The gate math is untouched, so trust stays "strong";
+    # provisional is the honest flag that the base is thin (nail 4).
+    time, flux, best = make_planet()
+    m = time < 13.0
+    report = vet.build_report(42, time[m], flux[m], best, mission="tess", sector_count=1)
+    assert report.trust == "strong"
+    assert report.transit_count < vet._N_MIN_TRANSITS
+    assert report.provisional is True
+    assert report.mission == "tess"
+    assert report.sector_count == 1
+    assert report.baseline_days == pytest.approx(time[m][-1] - time[m][0])
