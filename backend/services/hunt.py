@@ -15,12 +15,14 @@ _DATA_DIR = Path(__file__).parent.parent / "data"
 _KOI_CSV = _DATA_DIR / "koi_catalog.csv"
 _TOI_CSV = _DATA_DIR / "toi_catalog.csv"
 _FRONTIER_JSON = _DATA_DIR / "frontier_seeds.json"
+_TESS_FRONTIER_JSON = _DATA_DIR / "frontier_seeds_tess.json"
 
 _MAX_POINTS = 5000
 
 _koi_cache: list[dict] | None = None
 _toi_cache: list[dict] | None = None
 _frontier_cache: list[int] | None = None
+_tess_frontier_cache: list[int] | None = None
 
 # Demonstration targets — every one is a KNOWN, catalogued Kepler Object of
 # Interest, not an undiscovered signal. They exist to learn the vetter against a
@@ -360,3 +362,21 @@ def _load_frontier() -> list[int]:
 def pick_frontier(rng: random.Random | None = None) -> int:
     """Pick one unrecorded KIC from the seed pool. RNG injectable for tests."""
     return (rng or random.Random()).choice(_load_frontier())
+
+
+def _load_frontier_tess() -> list[int]:
+    """Pre-verified pool of unrecorded TICs with real SPOC light curves.
+
+    Built offline by scripts/build_frontier_seeds_tess.py; runtime reads the JSON
+    only. The TESS sibling of _load_frontier.
+    """
+    global _tess_frontier_cache
+    if _tess_frontier_cache is None:
+        payload = json.loads(_TESS_FRONTIER_JSON.read_text(encoding="utf-8"))
+        _tess_frontier_cache = [int(t) for t in payload["tics"]]
+    return _tess_frontier_cache
+
+
+def pick_frontier_tess(rng: random.Random | None = None) -> int:
+    """Pick one unrecorded TIC from the TESS seed pool. RNG injectable for tests."""
+    return (rng or random.Random()).choice(_load_frontier_tess())

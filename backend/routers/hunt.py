@@ -79,10 +79,18 @@ async def koi_check(
 
 
 @router.get("/hunt/frontier/random", response_model=FrontierPick)
-async def get_frontier_random():
-    """Draw one unrecorded KIC from the pre-verified frontier seed pool."""
-    kic_id = hunt_service.pick_frontier()
-    return FrontierPick(kic_id=kic_id, recorded=False)
+async def get_frontier_random(mission: str = Query("kepler")):
+    """Draw one unrecorded star from the pre-verified frontier seed pool.
+
+    Kepler -> unrecorded KIC; TESS -> unrecorded TIC. The pool holds only
+    unrecorded stars by construction, so recorded is always False.
+    """
+    pick = (
+        hunt_service.pick_frontier_tess
+        if mission.lower() == "tess"
+        else hunt_service.pick_frontier
+    )
+    return FrontierPick(kic_id=pick(), recorded=False)
 
 
 @router.get("/hunt/recorded/{kic_id}", response_model=RecordedCheck)

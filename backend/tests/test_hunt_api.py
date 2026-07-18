@@ -22,6 +22,14 @@ def test_frontier_random_returns_unrecorded_pool_member():
     assert body["kic_id"] in hunt._load_frontier()
 
 
+def test_frontier_random_tess_returns_unrecorded_pool_member():
+    r = client.get("/api/hunt/frontier/random?mission=tess")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["recorded"] is False
+    assert body["kic_id"] in hunt._load_frontier_tess()   # kic_id carries the TIC
+
+
 def test_recorded_endpoint_flags_a_known_koi():
     r = client.get(f"/api/hunt/recorded/{_KNOWN_KOI_KIC}")
     assert r.status_code == 200

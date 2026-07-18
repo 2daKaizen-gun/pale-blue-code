@@ -148,3 +148,32 @@ def test_pick_frontier_is_deterministic_with_seeded_rng():
     a = hunt.pick_frontier(random.Random(42))
     b = hunt.pick_frontier(random.Random(42))
     assert a == b
+
+
+# --- Light 4: TESS frontier seed pool -------------------------------------------
+
+def test_tess_frontier_pool_invariant_all_unrecorded():
+    """The core promise, TESS edition: every seeded TIC is genuinely unrecorded."""
+    tics = hunt._load_frontier_tess()
+    assert len(tics) > 0
+    for tic in tics:
+        assert hunt.is_recorded_tess(tic) is False, f"TIC {tic} is actually a TOI"
+
+
+def test_tess_frontier_pool_matches_committed_json():
+    tics = hunt._load_frontier_tess()
+    assert len(tics) == len(set(tics))             # unique
+    assert tics == sorted(tics)                     # sorted
+    assert all(isinstance(t, int) and t > 0 for t in tics)
+
+
+def test_pick_frontier_tess_returns_unrecorded_pool_member():
+    tic = hunt.pick_frontier_tess(random.Random(0))
+    assert tic in hunt._load_frontier_tess()
+    assert hunt.is_recorded_tess(tic) is False
+
+
+def test_pick_frontier_tess_is_deterministic_with_seeded_rng():
+    a = hunt.pick_frontier_tess(random.Random(42))
+    b = hunt.pick_frontier_tess(random.Random(42))
+    assert a == b
