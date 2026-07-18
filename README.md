@@ -78,10 +78,19 @@ Phase 8(사냥)이 "찾을 수 있는가?"에 답한 뒤, 프로젝트는 정해
 |:---:|---|---|:---:|
 | 9-A | 판별 — *Vetting* | 이 신호는 *왜* 진짜/가짜인가? | ✓ 완료 |
 | 9-B | 울타리 열기 — *Opening the Gate* | KOI에 *없는* 별을 실제로 사냥할 수 있는가? | ✓ 완료 |
+| 10 | 온 하늘 — *Skyward* | 한 구멍(Kepler)을 넘어 온 하늘(TESS)로? | ◐ 진행중 |
 | 9-C | 모두의 발견 — *Everyone's Find* | 이 사냥을 모두에게 열 수 있는가? | ○ 먼 미래 |
+
+**Phase 10(Skyward)** 은 이 열린 트랙 위에서 **독립 Phase**로 갈라져 나와, 사냥터 자체를
+넓힙니다 — Kepler가 본 하늘 0.25%(4년, 깊게)에서, TESS가 훑은 하늘 ~85%(구역당 27일, 얕게)로.
+Kepler/TESS는 하나의 **개척지 허브**에서 고르며, 판별 엔진(9-A)은 그대로 재사용됩니다.
 
 > **정직의 못**: 목표는 "확정 발견"이 아니라 *신뢰도 있는 새 후보를 정직하게 걸러내는 것*.
 > 개척지는 대부분 빈손이고, 그 빈손조차 정직한 결과입니다.
+>
+> **정직의 못 (10) — 넓은 하늘은 얕게 봅니다**: TESS는 한 구역을 27일만 봐서 판별 4관문이
+> 무뎌질 수 있습니다(관측된 transit이 적으면 홀짝·2차식 검정이 약해짐). → baseline·sector 수를
+> 그대로 노출하고, 근거가 얇으면 strong을 **잠정(provisional) strong**으로 정직하게 낮춥니다.
 
 > 📜 Phase별 상세 작업은 `docs/phase-handoffs/` 에서 추적됩니다.
 
@@ -157,8 +166,8 @@ pale-blue-code/
     │   ├── archive.py               NASA Exoplanet Archive
     │   ├── mast.py                  Lightkurve + 파일 캐시
     │   ├── bls.py                   Box Least Squares
-    │   ├── hunt.py                  KIC 광도곡선 + KOI 대조 + frontier
-    │   └── vetting.py               4관문 판별 + de-alias (Phase 9-A)
+    │   ├── hunt.py                  KIC/TIC 광도곡선 + KOI/TOI 대조 + frontier (Kepler·TESS)
+    │   └── vetting.py               4관문 판별 + de-alias (Phase 9-A, 미션 무관)
     ├── models/
     │   ├── planet.py
     │   ├── lightcurve.py
@@ -167,7 +176,9 @@ pale-blue-code/
     │   └── vetting.py
     ├── data/
     │   ├── koi_catalog.csv          KOI 스냅샷 (kepid/kepoi/disposition/period)
-    │   └── frontier_seeds.json      미기록 KIC 씨드 풀 (Phase 9-B)
+    │   ├── toi_catalog.csv          TOI 스냅샷 (tid/toi/disposition/period, Phase 10)
+    │   ├── frontier_seeds.json      미기록 KIC 씨드 풀 (Phase 9-B)
+    │   └── frontier_seeds_tess.json 미기록 TIC 씨드 풀 (Phase 10)
     └── cache/                       lc_*.json · bls_*.json (gitignore)
 ```
 
@@ -298,4 +309,4 @@ Phase {N} 시작하자.
 
 <br/>
 
-🪐 *하늘은 닫히지 않습니다. 판별기를 벼렸고(9-A), 아무도 안 간 별을 사냥했습니다(9-B). 대부분 빈손이지만, 그 빈손조차 정직한 결과입니다.*
+🪐 *하늘은 닫히지 않습니다. 판별기를 벼렸고(9-A), 아무도 안 간 별을 사냥했습니다(9-B). 이제 사냥터를 Kepler 한 구멍에서 온 하늘로 넓히는 중입니다(10, Skyward). 대부분 빈손이지만, 그 빈손조차 정직한 결과입니다.*
