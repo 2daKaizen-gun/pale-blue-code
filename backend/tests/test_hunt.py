@@ -42,6 +42,35 @@ def test_koi_entries_is_period_independent():
     assert {int(e["kepid"]) for e in entries} == {_KNOWN_KOI_KIC}
 
 
+# A known catalogued TESS star: TIC 50365310 = TOI 1000.01.
+_KNOWN_TOI_TIC = 50365310
+
+
+def test_toi_entries_returns_all_entries_for_a_recorded_star():
+    entries = hunt.toi_entries(_KNOWN_TOI_TIC)
+    assert len(entries) > 0
+    for e in entries:
+        assert int(float(e["tid"])) == _KNOWN_TOI_TIC
+        assert e["toi"]
+        assert e["tfopwg_disp"] is not None
+
+
+def test_is_recorded_tess_true_for_known_toi():
+    assert hunt.is_recorded_tess(_KNOWN_TOI_TIC) is True
+
+
+def test_is_recorded_tess_false_for_absent_tic():
+    # A TIC nowhere near any TOI → no TOI entry.
+    assert hunt.is_recorded_tess(1) is False
+    assert hunt.toi_entries(1) == []
+
+
+def test_toi_entries_is_membership_by_tid():
+    # Membership is by TIC id alone — every returned row is this star.
+    entries = hunt.toi_entries(_KNOWN_TOI_TIC)
+    assert {int(float(e["tid"])) for e in entries} == {_KNOWN_TOI_TIC}
+
+
 def test_frontier_pool_invariant_all_unrecorded():
     """The core promise: every seeded KIC is genuinely unrecorded."""
     kics = hunt._load_frontier()

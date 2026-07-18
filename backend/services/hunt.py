@@ -13,11 +13,13 @@ _CACHE_DIR.mkdir(exist_ok=True)
 
 _DATA_DIR = Path(__file__).parent.parent / "data"
 _KOI_CSV = _DATA_DIR / "koi_catalog.csv"
+_TOI_CSV = _DATA_DIR / "toi_catalog.csv"
 _FRONTIER_JSON = _DATA_DIR / "frontier_seeds.json"
 
 _MAX_POINTS = 5000
 
 _koi_cache: list[dict] | None = None
+_toi_cache: list[dict] | None = None
 _frontier_cache: list[int] | None = None
 
 # Demonstration targets — every one is a KNOWN, catalogued Kepler Object of
@@ -223,6 +225,38 @@ def koi_entries(kic_id: int) -> list[dict]:
 def is_recorded(kic_id: int) -> bool:
     """True if the star has any KOI entry — i.e. someone already filed it."""
     return len(koi_entries(kic_id)) > 0
+
+
+def _load_toi_catalog() -> list[dict]:
+    global _toi_cache
+    if _toi_cache is None:
+        with _TOI_CSV.open(encoding="utf-8") as f:
+            _toi_cache = list(csv.DictReader(f))
+    return _toi_cache
+
+
+def toi_entries(tic_id: int) -> list[dict]:
+    """All TOI rows for this star, keyed by TIC id (`tid`) alone.
+
+    The TESS analogue of koi_entries: "is this star recorded at all?" A star with
+    ANY TOI entry is already on file, so it is not undiscovered TESS hunting ground
+    (honesty nail #3, extended to TESS in Phase 10). tfopwg_disp carries the TFOPWG
+    disposition (FP / PC / CP / KP); toi is the TOI designation.
+    """
+    rows = _load_toi_catalog()
+    out = []
+    for r in rows:
+        try:
+            if int(float(r["tid"])) == tic_id:
+                out.append(r)
+        except (ValueError, KeyError):
+            continue
+    return out
+
+
+def is_recorded_tess(tic_id: int) -> bool:
+    """True if the star has any TOI entry — i.e. someone already filed it."""
+    return len(toi_entries(tic_id)) > 0
 
 
 def _load_frontier() -> list[int]:
