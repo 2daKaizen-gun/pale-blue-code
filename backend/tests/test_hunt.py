@@ -10,6 +10,8 @@ Covers the "unrecorded target" primitives that Phase 9-B is built on:
 import json
 import random
 
+import numpy as np
+
 from services import hunt
 
 # A known catalogued star: KIC 11446443 = Kepler-1b / TrES-2b = KOI K00001.
@@ -69,6 +71,47 @@ def test_toi_entries_is_membership_by_tid():
     # Membership is by TIC id alone — every returned row is this star.
     entries = hunt.toi_entries(_KNOWN_TOI_TIC)
     assert {int(float(e["tid"])) for e in entries} == {_KNOWN_TOI_TIC}
+
+
+# --- Light 2: TESS light-curve fetch (fetch_lc_by_tic) --------------------------
+
+def test_tic_lc_cache_path_naming():
+    p = hunt._tic_lc_cache_path(12345678)
+    assert p.name == "lc_tic-12345678_tess.json"
+
+
+def test_build_tess_payload_records_baseline_and_sectors():
+    # A single 27-day sector: three points spanning day 100 -> 127.
+    time = np.array([100.0, 101.0, 127.0])
+    flux = np.array([1.0, 0.99, 1.0])
+    err = np.array([0.0, 0.0, 0.0])
+    payload = hunt._build_tess_payload(42, time, flux, err, sector_count=1)
+    assert payload["mission"] == "TESS"
+    assert payload["author"] == "SPOC"          # BLS re-search depends on this
+    assert payload["hostname"] == "TIC 42"
+    assert payload["baseline_days"] == 27.0      # last - first, undecimated
+    assert payload["sector_count"] == 1
+    assert payload["original_count"] == 3
+
+
+def test_build_tess_payload_empty_series_is_zero_baseline():
+    empty = np.array([])
+    payload = hunt._build_tess_payload(1, empty, empty, empty, sector_count=0)
+    assert payload["baseline_days"] == 0.0
+    assert payload["sector_count"] == 0
+    assert payload["original_count"] == 0
+
+
+def test_fetch_lc_by_tic_returns_cache_without_network():
+    tic = 999000111
+    p = hunt._tic_lc_cache_path(tic)
+    sentinel = {"kic_id": tic, "mission": "TESS", "sentinel": True}
+    p.write_text(json.dumps(sentinel), encoding="utf-8")
+    try:
+        got = hunt.fetch_lc_by_tic(tic)   # cache hit → must never touch the network
+        assert got == sentinel
+    finally:
+        p.unlink(missing_ok=True)
 
 
 def test_frontier_pool_invariant_all_unrecorded():

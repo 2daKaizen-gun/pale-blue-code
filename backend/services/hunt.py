@@ -164,6 +164,81 @@ def fetch_lc_by_kic(kic_id: int) -> dict:
     return data
 
 
+def _tic_lc_cache_path(tic_id: int) -> Path:
+    slug = _slug(f"TIC {tic_id}")
+    return _CACHE_DIR / f"lc_{slug}_tess.json"
+
+
+def _build_tess_payload(
+    tic_id: int,
+    time_arr: np.ndarray,
+    flux_arr: np.ndarray,
+    err_arr: np.ndarray,
+    sector_count: int,
+) -> dict:
+    """Assemble the cached TESS LC payload (pure — no network).
+
+    Records baseline_days and sector_count from the FULL (undecimated) series so
+    the hunt can be honest about how little TESS actually watched this star: a
+    single 27-day sector blunts the four-gate vetter (Phase 10 honesty nail 4).
+    """
+    original_count = len(time_arr)
+    baseline_days = float(time_arr[-1] - time_arr[0]) if original_count else 0.0
+    time_d, flux_d, err_d = _decimate(time_arr, flux_arr, err_arr)
+    star = f"TIC {tic_id}"
+    return {
+        "kic_id": tic_id,          # generic star id, kept for HuntLCResponse symmetry
+        "planet_name": star,
+        "hostname": star,
+        "mission": "TESS",
+        "author": "SPOC",          # BLS re-search reads this (author="TESS" is invalid)
+        "time": time_d.tolist(),
+        "flux": flux_d.tolist(),
+        "flux_err": err_d.tolist(),
+        "period": None,
+        "point_count": len(time_d),
+        "original_count": original_count,
+        "baseline_days": baseline_days,
+        "sector_count": sector_count,
+    }
+
+
+def fetch_lc_by_tic(tic_id: int) -> dict:
+    """Fetch and cache a TESS light curve by TIC number.
+
+    The TESS sibling of fetch_lc_by_kic. Searches SPOC (2-min PDCSAP), stitches
+    all sectors, caches as lc_tic-XXXXXX_tess.json with mission="TESS" so that
+    bls_service._find_lc_cache (which already iterates "tess") picks it up and
+    _get_full_lc re-searches via lc_meta["author"].
+    """
+    import lightkurve as lk
+    from lightkurve.utils import LightkurveError
+
+    cache_path = _tic_lc_cache_path(tic_id)
+    if cache_path.exists():
+        return json.loads(cache_path.read_text(encoding="utf-8"))
+
+    star_name = f"TIC {tic_id}"
+    search = lk.search_lightcurve(star_name, mission="TESS", author="SPOC")
+    if len(search) == 0:
+        raise FileNotFoundError(f"No TESS SPOC light curve found for {star_name}")
+
+    try:
+        lc = _download_stitched_lc(search)
+    except LightkurveError:
+        # A single retry against a network hiccup. (The Kepler self-heal purge is
+        # KIC-filename specific; TESS product names differ, so we simply retry.)
+        lc = _download_stitched_lc(search)
+
+    time_arr = lc.time.value.astype(float)
+    flux_arr = lc.flux.value.astype(float)
+    err_arr = lc.flux_err.value.astype(float) if lc.flux_err is not None else np.zeros_like(flux_arr)
+
+    data = _build_tess_payload(tic_id, time_arr, flux_arr, err_arr, sector_count=len(search))
+    cache_path.write_text(json.dumps(data), encoding="utf-8")
+    return data
+
+
 def _load_koi_catalog() -> list[dict]:
     global _koi_cache
     if _koi_cache is None:
