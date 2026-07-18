@@ -177,3 +177,25 @@ def test_pick_frontier_tess_is_deterministic_with_seeded_rng():
     a = hunt.pick_frontier_tess(random.Random(42))
     b = hunt.pick_frontier_tess(random.Random(42))
     assert a == b
+
+
+# --- sub-10-2: sector_count read-back for nail 4 --------------------------------
+
+def test_lc_sector_count_kepler_is_none():
+    # Kepler has no sectors — the field is meaningless there.
+    assert hunt.lc_sector_count(11446443, "kepler") is None
+
+
+def test_lc_sector_count_missing_cache_is_none():
+    # No cached TESS LC → degrade to None, never guess.
+    assert hunt.lc_sector_count(999000222, "tess") is None
+
+
+def test_lc_sector_count_reads_cached_payload():
+    tic = 999000333
+    p = hunt._tic_lc_cache_path(tic)
+    p.write_text(json.dumps({"kic_id": tic, "sector_count": 3}), encoding="utf-8")
+    try:
+        assert hunt.lc_sector_count(tic, "tess") == 3
+    finally:
+        p.unlink(missing_ok=True)

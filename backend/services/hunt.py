@@ -252,6 +252,26 @@ def fetch_lc_by_tic(tic_id: int) -> dict:
     return data
 
 
+def lc_sector_count(star_id: int, mission: str = "kepler") -> int | None:
+    """Sectors recorded when the TESS light curve was fetched; None for Kepler.
+
+    Read from the cached LC payload (_build_tess_payload stores sector_count) so the
+    vetter can report how many TESS sectors the gates actually saw (honesty nail 4).
+    Kepler has no sectors, and a missing/corrupt cache degrades to None rather than
+    guessing.
+    """
+    if mission.lower() != "tess":
+        return None
+    path = _tic_lc_cache_path(star_id)
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return data.get("sector_count")
+
+
 def _load_koi_catalog() -> list[dict]:
     global _koi_cache
     if _koi_cache is None:

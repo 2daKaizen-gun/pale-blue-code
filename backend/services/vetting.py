@@ -401,6 +401,8 @@ def vet(star_id: int, mission: str = "kepler") -> VettingReport:
         return VettingReport.model_validate_json(cache_path.read_text(encoding="utf-8"))
 
     time, flux, best = _load_vetting_input(star_id, mission)
-    report = build_report(star_id, time, flux, best, mission=mission)
+    sector_count = hunt_service.lc_sector_count(star_id, mission)
+    report = build_report(star_id, time, flux, best, mission=mission,
+                          sector_count=sector_count)
     cache_path.write_text(report.model_dump_json(), encoding="utf-8")
     return report
