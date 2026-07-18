@@ -199,3 +199,46 @@ def test_lc_sector_count_reads_cached_payload():
         assert hunt.lc_sector_count(tic, "tess") == 3
     finally:
         p.unlink(missing_ok=True)
+
+
+# --- sub-10-2 Light 3: baseline/sector exposed on the LC response ----------------
+
+def _as_lc_response(data):
+    """Mirror the router: map a payload dict onto HuntLCResponse tolerantly."""
+    from models.hunt import HuntLCResponse
+    return HuntLCResponse(**{k: data[k] for k in HuntLCResponse.model_fields if k in data})
+
+
+def test_build_kepler_payload_records_baseline_and_no_sectors():
+    time = np.array([100.0, 101.0, 1560.0])   # a ~4-year Kepler span
+    flux = np.array([1.0, 0.99, 1.0])
+    err = np.array([0.0, 0.0, 0.0])
+    payload = hunt._build_kepler_payload(7, time, flux, err)
+    assert payload["mission"] == "Kepler"
+    assert payload["hostname"] == "KIC 7"
+    assert payload["baseline_days"] == 1460.0   # 1560 - 100
+    assert payload["sector_count"] is None       # Kepler has no sectors
+    assert payload["original_count"] == 3
+
+
+def test_tess_payload_exposes_baseline_and_sectors_on_response():
+    time = np.array([100.0, 101.0, 127.0])
+    flux = np.array([1.0, 0.99, 1.0])
+    err = np.array([0.0, 0.0, 0.0])
+    resp = _as_lc_response(hunt._build_tess_payload(42, time, flux, err, sector_count=2))
+    assert resp.mission == "TESS"
+    assert resp.baseline_days == 27.0
+    assert resp.sector_count == 2
+
+
+def test_lc_response_tolerates_legacy_payload_without_nail4_fields():
+    # A pre-Phase-10 cached payload (no baseline/sector/mission) must still map,
+    # falling back to model defaults rather than KeyError-ing at the router.
+    legacy = {
+        "kic_id": 123, "time": [1.0], "flux": [1.0], "flux_err": [0.0],
+        "point_count": 1, "original_count": 1,
+    }
+    resp = _as_lc_response(legacy)
+    assert resp.mission == "kepler"
+    assert resp.baseline_days == 0.0
+    assert resp.sector_count is None

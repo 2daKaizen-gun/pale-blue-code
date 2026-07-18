@@ -127,6 +127,40 @@ def _purge_mast_cache(kic_id: int) -> None:
             shutil.rmtree(d, ignore_errors=True)
 
 
+def _build_kepler_payload(
+    kic_id: int,
+    time_arr: np.ndarray,
+    flux_arr: np.ndarray,
+    err_arr: np.ndarray,
+) -> dict:
+    """Assemble the cached Kepler LC payload (pure — no network). Sibling of
+    _build_tess_payload.
+
+    Records baseline_days from the FULL (undecimated) series for symmetry with TESS
+    (honesty nail 4). Kepler's multi-year baseline clears the vetter's transit-count
+    threshold trivially, but the field is reported for both missions. Kepler has no
+    sectors, so sector_count is None.
+    """
+    original_count = len(time_arr)
+    baseline_days = float(time_arr[-1] - time_arr[0]) if original_count else 0.0
+    time_d, flux_d, err_d = _decimate(time_arr, flux_arr, err_arr)
+    star = f"KIC {kic_id}"
+    return {
+        "kic_id": kic_id,
+        "planet_name": star,
+        "hostname": star,
+        "mission": "Kepler",
+        "time": time_d.tolist(),
+        "flux": flux_d.tolist(),
+        "flux_err": err_d.tolist(),
+        "period": None,
+        "point_count": len(time_d),
+        "original_count": original_count,
+        "baseline_days": baseline_days,
+        "sector_count": None,
+    }
+
+
 def fetch_lc_by_kic(kic_id: int) -> dict:
     """Fetch and cache a Kepler light curve by KIC number.
 
@@ -157,21 +191,7 @@ def fetch_lc_by_kic(kic_id: int) -> dict:
     flux_arr = lc.flux.value.astype(float)
     err_arr = lc.flux_err.value.astype(float) if lc.flux_err is not None else np.zeros_like(flux_arr)
 
-    original_count = len(time_arr)
-    time_d, flux_d, err_d = _decimate(time_arr, flux_arr, err_arr)
-
-    data = {
-        "kic_id": kic_id,
-        "planet_name": star_name,
-        "hostname": star_name,
-        "mission": "Kepler",
-        "time": time_d.tolist(),
-        "flux": flux_d.tolist(),
-        "flux_err": err_d.tolist(),
-        "period": None,
-        "point_count": len(time_d),
-        "original_count": original_count,
-    }
+    data = _build_kepler_payload(kic_id, time_arr, flux_arr, err_arr)
     cache_path.write_text(json.dumps(data), encoding="utf-8")
     return data
 

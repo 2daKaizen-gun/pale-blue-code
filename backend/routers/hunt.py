@@ -33,7 +33,9 @@ async def get_hunt_lc(kic_id: int, mission: str = Query("kepler")):
         data = await run_in_threadpool(fetch, kic_id)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    return HuntLCResponse(**{k: data[k] for k in HuntLCResponse.model_fields})
+    # `if k in data` keeps pre-Phase-10 cached payloads valid: they predate
+    # baseline_days/sector_count/mission, so those fall back to model defaults.
+    return HuntLCResponse(**{k: data[k] for k in HuntLCResponse.model_fields if k in data})
 
 
 @router.get("/hunt/bls/{kic_id}", response_model=BLSResponse)

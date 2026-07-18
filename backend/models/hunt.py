@@ -16,12 +16,16 @@ class KOIMatch(BaseModel):
 
 
 class HuntLCResponse(BaseModel):
-    kic_id: int
+    kic_id: int                       # generic star id — KIC for Kepler, TIC for TESS
     time: list[float]
     flux: list[float]
     flux_err: list[float]
     point_count: int
     original_count: int
+    # Phase 10, honesty nail 4 — how much sky-time this curve actually covers.
+    mission: str = "kepler"
+    baseline_days: float = 0.0        # observed span (undecimated); short = blunt vetter
+    sector_count: int | None = None   # TESS sectors stitched (None for Kepler)
 
 
 class FrontierPick(BaseModel):
