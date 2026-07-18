@@ -54,8 +54,13 @@ def _get_full_lc(planet_name: str, lc_meta: dict) -> tuple[np.ndarray, np.ndarra
 
     hostname = lc_meta.get("hostname", planet_name)
     mission = lc_meta.get("mission", "Kepler")
+    # author/exptime default to the Kepler convention (author == mission, long
+    # cadence) but are overridden by whatever fetch stored — TESS caches author
+    # "SPOC" + exptime "short" because author="TESS" is not a valid MAST author.
+    author = lc_meta.get("author", mission)
+    exptime = lc_meta.get("exptime", "long")
 
-    search = lk.search_lightcurve(hostname, mission=mission, author=mission, exptime="long")
+    search = lk.search_lightcurve(hostname, mission=mission, author=author, exptime=exptime)
     if len(search) == 0:
         raise FileNotFoundError(f"No light curve found for '{planet_name}' via {mission}")
 

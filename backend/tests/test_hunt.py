@@ -114,6 +114,15 @@ def test_fetch_lc_by_tic_returns_cache_without_network():
         p.unlink(missing_ok=True)
 
 
+# --- Light 3: mission wiring (star_name) ----------------------------------------
+
+def test_star_name_switches_on_mission():
+    assert hunt.star_name(123, "kepler") == "KIC 123"
+    assert hunt.star_name(123, "tess") == "TIC 123"
+    assert hunt.star_name(123, "TESS") == "TIC 123"   # case-insensitive
+    assert hunt.star_name(123) == "KIC 123"           # default is Kepler
+
+
 def test_frontier_pool_invariant_all_unrecorded():
     """The core promise: every seeded KIC is genuinely unrecorded."""
     kics = hunt._load_frontier()

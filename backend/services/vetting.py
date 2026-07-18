@@ -20,6 +20,7 @@ import numpy as np
 
 from models.vetting import VettingCheck, VettingReport
 from services import bls as bls_service
+from services import hunt as hunt_service
 
 _CACHE_DIR = Path(__file__).parent.parent / "cache"
 
@@ -335,9 +336,9 @@ def build_report(kic_id: int, time: np.ndarray, flux: np.ndarray, best: dict) ->
 
 # ── cache loader + entry point ───────────────────────────────────────────────
 
-def _load_vetting_input(kic_id: int) -> tuple[np.ndarray, np.ndarray, dict]:
+def _load_vetting_input(star_id: int, mission: str = "kepler") -> tuple[np.ndarray, np.ndarray, dict]:
     """Reconstruct the exact detrended curve BLS saw, plus its `best` block."""
-    name = f"KIC {kic_id}"
+    name = hunt_service.star_name(star_id, mission)
     bls = bls_service.run_bls(name)   # cache hit; FileNotFoundError → 424 at router
     full_path = _CACHE_DIR / f"bls_lc_{bls_service._slug(name)}.json"
     if not full_path.exists():
@@ -351,15 +352,18 @@ def _load_vetting_input(kic_id: int) -> tuple[np.ndarray, np.ndarray, dict]:
     return time, flux, bls["best"]
 
 
-def vet(kic_id: int) -> VettingReport:
+def vet(star_id: int, mission: str = "kepler") -> VettingReport:
     """Vet a cached BLS result. Cached as vet_{slug}.json — the computation is ~50ms
-    but reconstructing the detrended curve is not, so we memoize the report."""
-    name = f"KIC {kic_id}"
+    but reconstructing the detrended curve is not, so we memoize the report.
+
+    mission="tess" only swaps the star's name (KIC->TIC) so the same four gates
+    read a TESS curve; the gate math is identical."""
+    name = hunt_service.star_name(star_id, mission)
     cache_path = _CACHE_DIR / f"vet_{bls_service._slug(name)}.json"
     if cache_path.exists():
         return VettingReport.model_validate_json(cache_path.read_text(encoding="utf-8"))
 
-    time, flux, best = _load_vetting_input(kic_id)
-    report = build_report(kic_id, time, flux, best)
+    time, flux, best = _load_vetting_input(star_id, mission)
+    report = build_report(star_id, time, flux, best)
     cache_path.write_text(report.model_dump_json(), encoding="utf-8")
     return report

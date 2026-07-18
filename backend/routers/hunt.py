@@ -23,17 +23,22 @@ async def get_hunt_targets():
 
 
 @router.get("/hunt/lc/{kic_id}", response_model=HuntLCResponse)
-async def get_hunt_lc(kic_id: int):
+async def get_hunt_lc(kic_id: int, mission: str = Query("kepler")):
+    fetch = (
+        hunt_service.fetch_lc_by_tic
+        if mission.lower() == "tess"
+        else hunt_service.fetch_lc_by_kic
+    )
     try:
-        data = await run_in_threadpool(hunt_service.fetch_lc_by_kic, kic_id)
+        data = await run_in_threadpool(fetch, kic_id)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return HuntLCResponse(**{k: data[k] for k in HuntLCResponse.model_fields})
 
 
 @router.get("/hunt/bls/{kic_id}", response_model=BLSResponse)
-async def get_hunt_bls(kic_id: int):
-    planet_name = f"KIC {kic_id}"
+async def get_hunt_bls(kic_id: int, mission: str = Query("kepler")):
+    planet_name = hunt_service.star_name(kic_id, mission)
     try:
         data = await run_in_threadpool(bls_service.run_bls, planet_name)
     except FileNotFoundError:
@@ -49,9 +54,9 @@ async def get_hunt_bls(kic_id: int):
 
 
 @router.get("/hunt/vet/{kic_id}", response_model=VettingReport)
-async def get_hunt_vet(kic_id: int):
+async def get_hunt_vet(kic_id: int, mission: str = Query("kepler")):
     try:
-        report = await run_in_threadpool(vetting_service.vet, kic_id)
+        report = await run_in_threadpool(vetting_service.vet, kic_id, mission)
     except FileNotFoundError:
         raise HTTPException(
             status_code=424,
@@ -81,14 +86,20 @@ async def get_frontier_random():
 
 
 @router.get("/hunt/recorded/{kic_id}", response_model=RecordedCheck)
-async def get_recorded(kic_id: int):
-    """Is this star already on file? Period-independent KOI membership check."""
-    entries = hunt_service.koi_entries(kic_id)
-    return RecordedCheck(
-        kic_id=kic_id,
-        recorded=len(entries) > 0,
-        entries=[
+async def get_recorded(kic_id: int, mission: str = Query("kepler")):
+    """Is this star already on file? Period-independent catalog membership check.
+
+    Kepler -> KOI membership (by kepid); TESS -> TOI membership (by tid). Either
+    way, a star with any catalog entry is not undiscovered hunting ground.
+    """
+    if mission.lower() == "tess":
+        entries = [
+            {"kepoi_name": f"TOI {e['toi']}", "disposition": e["tfopwg_disp"]}
+            for e in hunt_service.toi_entries(kic_id)
+        ]
+    else:
+        entries = [
             {"kepoi_name": e["kepoi_name"], "disposition": e["koi_disposition"]}
-            for e in entries
-        ],
-    )
+            for e in hunt_service.koi_entries(kic_id)
+        ]
+    return RecordedCheck(kic_id=kic_id, recorded=len(entries) > 0, entries=entries)

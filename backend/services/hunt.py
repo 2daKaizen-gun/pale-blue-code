@@ -70,6 +70,16 @@ def _slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
+def star_name(star_id: int, mission: str = "kepler") -> str:
+    """Canonical star label per mission — the one place KIC/TIC naming forks.
+
+    Everything downstream (BLS cache slug, vet cache, LC re-search) keys off this
+    string, so switching the prefix here is all it takes to point the same
+    four-gate pipeline at a different survey.
+    """
+    return f"TIC {star_id}" if mission.lower() == "tess" else f"KIC {star_id}"
+
+
 def _lc_cache_path(kic_id: int) -> Path:
     slug = _slug(f"KIC {kic_id}")
     return _CACHE_DIR / f"lc_{slug}_kepler.json"
@@ -192,6 +202,7 @@ def _build_tess_payload(
         "hostname": star,
         "mission": "TESS",
         "author": "SPOC",          # BLS re-search reads this (author="TESS" is invalid)
+        "exptime": "short",        # 2-min SPOC cadence — BLS re-search must match
         "time": time_d.tolist(),
         "flux": flux_d.tolist(),
         "flux_err": err_d.tolist(),
