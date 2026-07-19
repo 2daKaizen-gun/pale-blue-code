@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Projects\\pale-blue-code\\.claude\\hooks\\session-briefing.ps1\""
+          }
+        ]
+      }
+    ]
+  }
+}

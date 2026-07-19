@@ -155,3 +155,6 @@ logs/
 tmp/
 temp/
 .local/
+
+# Claude Code local (personal permissions/overrides)
+.claude/settings.local.json
