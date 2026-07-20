@@ -80,6 +80,25 @@ export default function AppLayout() {
             <span>{phase.path === '/' ? 'Home' : phase.title}</span>
           </NavLink>
         ))}
+
+        {/* Frontier — deliberately a SEPARATE nav element, NOT derived from
+            PHASES (constants/phases.ts). The real solo hunt is its own track
+            (Skyward, Phase 10), so it must not sit inside the numbered phase nav;
+            this hand-placed link gives it discoverability without that coupling. */}
+        <NavLink
+          to="/hunt/frontier"
+          onClick={closeNav}
+          className={({ isActive }) =>
+            `mt-1 px-3 py-2 rounded text-sm transition-colors flex items-center gap-2 border-t border-cosmos-border pt-3 ${
+              isActive
+                ? 'bg-cosmos-elevated text-cosmos-text'
+                : 'text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-elevated'
+            }`
+          }
+        >
+          <span>🛰️</span>
+          <span>Frontier</span>
+        </NavLink>
       </nav>
 
       {/* 메인 콘텐츠 */}

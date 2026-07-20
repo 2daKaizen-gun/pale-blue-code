@@ -33,6 +33,7 @@ const ExoplanetPage = lazy(() => import('./pages/ExoplanetPage'))
 const DataPage = lazy(() => import('./pages/DataPage'))
 const SignalPage = lazy(() => import('./pages/SignalPage'))
 const HuntPage = lazy(() => import('./pages/HuntPage'))
+const FrontierHubPage = lazy(() => import('./pages/FrontierHubPage'))
 const FrontierHuntPage = lazy(() => import('./pages/FrontierHuntPage'))
 
 export const router = createBrowserRouter([
@@ -49,8 +50,8 @@ export const router = createBrowserRouter([
       { path: 'signal',    element: <SignalPage /> },
       { path: 'hunt',                   element: <HuntPage /> },
       // /hunt/frontier is the mission hub (Phase 10); the hunt itself carries the
-      // sky in :mission. The param-less path defaults to Kepler for back-compat.
-      { path: 'hunt/frontier',          element: <FrontierHuntPage /> },
+      // chosen sky in :mission (kepler|tess).
+      { path: 'hunt/frontier',          element: <FrontierHubPage /> },
       { path: 'hunt/frontier/:mission', element: <FrontierHuntPage /> },
     ],
   },
