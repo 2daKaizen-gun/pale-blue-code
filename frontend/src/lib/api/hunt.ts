@@ -1,6 +1,12 @@
 import type { BLSData } from './bls'
 import { API_BASE_URL } from './base'
 
+// Phase 10 — Skyward. Which sky a frontier hunt draws from. Every hunt endpoint
+// takes `?mission=` (default kepler, backward compatible); we omit it for Kepler
+// so pre-Phase-10 URLs are unchanged and only tag TESS explicitly.
+export type Mission = 'kepler' | 'tess'
+const missionQuery = (m: Mission) => (m === 'tess' ? '?mission=tess' : '')
+
 export interface HuntTarget {
   kic_id: number
   label: string
@@ -57,20 +63,20 @@ export async function fetchHuntTargets(): Promise<HuntTarget[]> {
   return getJSON<HuntTarget[]>('/api/hunt/targets')
 }
 
-export async function fetchHuntLC(kicId: number): Promise<HuntLCData> {
-  return getJSON<HuntLCData>(`/api/hunt/lc/${kicId}`)
+export async function fetchHuntLC(kicId: number, mission: Mission = 'kepler'): Promise<HuntLCData> {
+  return getJSON<HuntLCData>(`/api/hunt/lc/${kicId}${missionQuery(mission)}`)
 }
 
-export async function fetchHuntBLS(kicId: number): Promise<BLSData> {
-  return getJSON<BLSData>(`/api/hunt/bls/${kicId}`)
+export async function fetchHuntBLS(kicId: number, mission: Mission = 'kepler'): Promise<BLSData> {
+  return getJSON<BLSData>(`/api/hunt/bls/${kicId}${missionQuery(mission)}`)
 }
 
 export async function fetchKOICheck(kicId: number, period: number): Promise<KOIMatch[]> {
   return getJSON<KOIMatch[]>(`/api/hunt/koi-check?kic_id=${kicId}&period=${period}`)
 }
 
-export async function fetchVetting(kicId: number): Promise<VettingReport> {
-  return getJSON<VettingReport>(`/api/hunt/vet/${kicId}`)
+export async function fetchVetting(kicId: number, mission: Mission = 'kepler'): Promise<VettingReport> {
+  return getJSON<VettingReport>(`/api/hunt/vet/${kicId}${missionQuery(mission)}`)
 }
 
 // ── Phase 9-B: the frontier (real solo hunt of unrecorded stars) ──────────────
@@ -91,12 +97,14 @@ export interface RecordedCheck {
   entries: RecordedEntry[]
 }
 
-// Draw one unrecorded KIC from the pre-verified frontier seed pool.
-export async function frontierRandom(): Promise<FrontierPick> {
-  return getJSON<FrontierPick>('/api/hunt/frontier/random')
+// Draw one unrecorded star from the pre-verified frontier seed pool.
+// Kepler → unrecorded KIC; TESS → unrecorded TIC.
+export async function frontierRandom(mission: Mission = 'kepler'): Promise<FrontierPick> {
+  return getJSON<FrontierPick>(`/api/hunt/frontier/random${missionQuery(mission)}`)
 }
 
-// Is this star already on file? Period-independent KOI membership + its entries.
-export async function checkRecorded(kicId: number): Promise<RecordedCheck> {
-  return getJSON<RecordedCheck>(`/api/hunt/recorded/${kicId}`)
+// Is this star already on file? Period-independent catalog membership + its
+// entries — KOI (by kepid) for Kepler, TOI (by tid) for TESS.
+export async function checkRecorded(kicId: number, mission: Mission = 'kepler'): Promise<RecordedCheck> {
+  return getJSON<RecordedCheck>(`/api/hunt/recorded/${kicId}${missionQuery(mission)}`)
 }

@@ -47,8 +47,11 @@ export const router = createBrowserRouter([
       { path: 'exoplanet', element: <ExoplanetPage /> },
       { path: 'data',      element: <DataPage /> },
       { path: 'signal',    element: <SignalPage /> },
-      { path: 'hunt',          element: <HuntPage /> },
-      { path: 'hunt/frontier', element: <FrontierHuntPage /> },
+      { path: 'hunt',                   element: <HuntPage /> },
+      // /hunt/frontier is the mission hub (Phase 10); the hunt itself carries the
+      // sky in :mission. The param-less path defaults to Kepler for back-compat.
+      { path: 'hunt/frontier',          element: <FrontierHuntPage /> },
+      { path: 'hunt/frontier/:mission', element: <FrontierHuntPage /> },
     ],
   },
 ])

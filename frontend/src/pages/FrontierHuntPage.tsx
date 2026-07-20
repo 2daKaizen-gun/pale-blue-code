@@ -1,15 +1,16 @@
 import { useState, useCallback } from 'react'
+import { useParams, Link } from 'react-router-dom'
 import {
   fetchHuntLC,
   fetchHuntBLS,
   fetchVetting,
   checkRecorded,
   frontierRandom,
+  type Mission,
   type VettingReport,
   type RecordedCheck,
 } from '../lib/api/hunt'
 import type { BLSData } from '../lib/api/bls'
-import { Link } from 'react-router-dom'
 import {
   loadHuntLog,
   recordHunt,
@@ -27,15 +28,54 @@ import PeriodogramChart from '../components/signal/PeriodogramChart'
 import BLSResultCard from '../components/signal/BLSResultCard'
 
 /**
- * Phase 9-B — the frontier. A real solo hunt of stars with NO KOI entry
- * (honesty nail #3), separate from the educational demo hunt (HuntPage).
+ * The frontier — a real solo hunt of stars with NO catalog entry (honesty nail
+ * #3), separate from the educational demo hunt (HuntPage). Phase 10 makes it
+ * mission-aware: the same flow hunts Kepler (KIC / KOI) or TESS (TIC / TOI),
+ * chosen at the hub and carried in the `:mission` route param.
  *
- * Flow: pick a KIC → recorded gate (checkRecorded):
+ * Flow: pick a star → recorded gate (checkRecorded):
  *   - already on file  → "이미 기록된 천체" card, hunt not entered
  *   - unrecorded       → lc → bls → vet (9-A engine, reused unchanged)
- * No KOI cross-check here — by construction the star has no KOI entry.
+ * No catalog cross-check here — by construction the star has no entry.
  */
+interface MissionCopy {
+  phaseLabel: string
+  survey: string // human survey name
+  idLabel: string // KIC | TIC
+  catalog: string // KOI | TOI
+  intro: string
+  lcLoading: string
+  noLcHint: string // shown when the survey never observed this star
+}
+
+const MISSION: Record<Mission, MissionCopy> = {
+  kepler: {
+    phaseLabel: 'FRONTIER · KEPLER',
+    survey: '케플러',
+    idLabel: 'KIC',
+    catalog: 'KOI',
+    intro:
+      '아무도 기록하지 않은 별을 실제로 사냥한다 — KOI 카탈로그에 없는 별을 골라, 우리 판별기로 직접 거른다. 케플러는 하늘의 0.25%를 4년간 깊게 응시했다. 대부분은 빈손이고, 그 빈손도 정직한 결과다.',
+    lcLoading: '케플러 광도곡선 수신 중…',
+    noLcHint: '이 별은 케플러가 관측하지 않았어요 — 광도곡선이 없습니다. 다른 KIC로 시도해보세요.',
+  },
+  tess: {
+    phaseLabel: 'FRONTIER · TESS',
+    survey: 'TESS',
+    idLabel: 'TIC',
+    catalog: 'TOI',
+    intro:
+      '아무도 기록하지 않은 별을 실제로 사냥한다 — TOI 카탈로그에 없는 별을 골라, 우리 판별기로 직접 거른다. TESS는 하늘의 ~85%를 훑지만 한 구역을 겨우 ~27일만 본다. 얕게 보는 만큼 판별도 겸손해야 한다 — 그 정직함이 아래에 배지로 드러난다.',
+    lcLoading: 'TESS 광도곡선 수신 중…',
+    noLcHint: '이 별은 TESS가 관측하지 않았어요 — SPOC 광도곡선이 없습니다. 다른 TIC로 시도해보세요.',
+  },
+}
+
 export default function FrontierHuntPage() {
+  const { mission: missionParam } = useParams<{ mission?: string }>()
+  const mission: Mission = missionParam === 'tess' ? 'tess' : 'kepler'
+  const m = MISSION[mission]
+
   const [selectedKic, setSelectedKic] = useState<number | null>(null)
 
   const [checkLoading, setCheckLoading] = useState(false)
@@ -63,19 +103,16 @@ export default function FrontierHuntPage() {
     // Prime the LC cache so BLS won't 424. LC itself isn't displayed.
     setLcLoading(true)
     try {
-      await fetchHuntLC(kicId)
+      await fetchHuntLC(kicId, mission)
     } catch (e) {
-      // A free-input star Kepler never observed lands here.
+      // A free-input star the survey never observed lands here.
       const msg = e instanceof Error ? e.message : ''
-      if (msg.includes('No Kepler light curve')) {
+      const noLc = msg.includes('light curve') // "No Kepler/TESS ... light curve found"
+      if (noLc) {
         // No light curve = never hunted; logged apart from the hunt count.
         setStats(computeStats(recordHunt(kicId, 'no_lc')))
       }
-      setError(
-        msg.includes('No Kepler light curve')
-          ? '이 별은 케플러가 관측하지 않았어요 — 광도곡선이 없습니다. 다른 KIC로 시도해보세요.'
-          : msg || 'Unknown error',
-      )
+      setError(noLc ? m.noLcHint : msg || 'Unknown error')
       return
     } finally {
       setLcLoading(false)
@@ -84,7 +121,7 @@ export default function FrontierHuntPage() {
     setBlsLoading(true)
     let bls: BLSData
     try {
-      bls = await fetchHuntBLS(kicId)
+      bls = await fetchHuntBLS(kicId, mission)
       setBlsData(bls)
     } catch (e) {
       fail(e)
@@ -96,7 +133,7 @@ export default function FrontierHuntPage() {
     // The four-gate vetting — the whole point of the frontier. Isolated to
     // vetError so a vet miss never blanks the BLS result.
     setVetLoading(true)
-    await fetchVetting(kicId)
+    await fetchVetting(kicId, mission)
       .then((report) => {
         setVetReport(report)
         // The hunt ran to a verdict — tally it by trust (the honest outcome).
@@ -104,7 +141,7 @@ export default function FrontierHuntPage() {
       })
       .catch((e) => setVetError(e instanceof Error ? e.message : 'Unknown error'))
       .finally(() => setVetLoading(false))
-  }, [])
+  }, [mission, m])
 
   const onPick = useCallback(
     async (kicId: number) => {
@@ -119,7 +156,7 @@ export default function FrontierHuntPage() {
       setCheckLoading(true)
       let rec: RecordedCheck
       try {
-        rec = await checkRecorded(kicId)
+        rec = await checkRecorded(kicId, mission)
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Unknown error')
         return
@@ -134,7 +171,7 @@ export default function FrontierHuntPage() {
       }
       await runHunt(kicId)
     },
-    [runHunt],
+    [runHunt, mission],
   )
 
   const clearLog = () => setStats(computeStats(clearHuntLog()))
@@ -152,12 +189,12 @@ export default function FrontierHuntPage() {
   // will be empty hands — that repetition is the honest texture of the frontier.
   const huntAgain = useCallback(async () => {
     try {
-      const pick = await frontierRandom()
+      const pick = await frontierRandom(mission)
       await onPick(pick.kic_id)
     } catch (e) {
       setError(e instanceof Error ? e.message : '무작위 별을 뽑지 못했습니다')
     }
-  }, [onPick])
+  }, [onPick, mission])
 
   // A terminal state has been reached — offer to hunt again.
   const done =
@@ -166,26 +203,28 @@ export default function FrontierHuntPage() {
     (recorded !== null || vetReport !== null || vetError !== null || error !== null)
 
   const loadingMessage = checkLoading
-    ? 'KOI 카탈로그와 대조 중 — 이미 기록된 별인지 확인…'
+    ? `${m.catalog} 카탈로그와 대조 중 — 이미 기록된 별인지 확인…`
     : lcLoading
-      ? '케플러 광도곡선 수신 중…'
-      : '65,000개 밝기 측정값에서 반복 신호 탐색 중…'
+      ? m.lcLoading
+      : '밝기 측정값에서 반복 신호 탐색 중…'
 
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <p className="mb-1 font-mono text-xs tracking-widest text-cosmos-muted">PHASE 09-B</p>
-        <h1 className="mb-1 text-3xl font-semibold text-cosmos-text">Frontier</h1>
-        <p className="text-sm text-cosmos-muted">
-          아무도 기록하지 않은 별을 실제로 사냥한다 — KOI 카탈로그에 <span className="text-cosmos-text">없는</span> 별을
-          골라, 우리 판별기로 직접 거른다. 대부분은 빈손이고, 그 빈손도 정직한 결과다.
-        </p>
+        <div className="mb-1 flex items-center gap-3">
+          <Link to="/hunt/frontier" className="font-mono text-xs text-cosmos-nebula hover:text-cosmos-text">
+            ← 하늘 고르기
+          </Link>
+          <p className="font-mono text-xs tracking-widest text-cosmos-muted">{m.phaseLabel}</p>
+        </div>
+        <h1 className="mb-1 text-3xl font-semibold text-cosmos-text">Frontier · {m.survey}</h1>
+        <p className="text-sm text-cosmos-muted">{m.intro}</p>
       </header>
 
       <HuntLog stats={stats} onClear={clearLog} />
 
       {selectedKic === null ? (
-        <FrontierTargetPicker onPick={onPick} busy={busy} />
+        <FrontierTargetPicker onPick={onPick} busy={busy} mission={mission} />
       ) : (
         <div className="flex flex-col gap-6">
           <button
@@ -220,8 +259,8 @@ export default function FrontierHuntPage() {
                   이미 기록된 천체
                 </p>
                 <p className="text-sm text-cosmos-muted">
-                  <span className="font-mono text-cosmos-text">KIC {recorded.kic_id}</span>
-                  은(는) 이미 KOI 카탈로그에 기록되어 있습니다 — 단독 탐색 대상이 아닙니다.
+                  <span className="font-mono text-cosmos-text">{m.idLabel} {recorded.kic_id}</span>
+                  은(는) 이미 {m.catalog} 카탈로그에 기록되어 있습니다 — 단독 탐색 대상이 아닙니다.
                   이 별의 항목:
                 </p>
                 <ul className="flex flex-col gap-1 font-mono text-xs text-cosmos-muted">
@@ -265,10 +304,11 @@ export default function FrontierHuntPage() {
               )}
 
               {/* Discovery record only for the earned find: strong + unrecorded
-                  (9B-PLAN §6). matches=[] — no KOI entry exists by construction,
-                  so the exported record honestly reads in_catalog: false and
-                  carries the four-gate vetting evidence (discovery@2). Weak/empty
-                  hands are tallied in the log, not exported as a "발견". */}
+                  (9B-PLAN §6). matches=[] — no catalog entry exists by
+                  construction, so the exported record honestly reads
+                  in_catalog: false and carries the four-gate vetting evidence
+                  (discovery@2). Weak/empty hands are tallied in the log, not
+                  exported as a "발견". */}
               {vetReport?.trust === 'strong' && selectedKic !== null && (
                 <Reveal delay={80}>
                   <DiscoveryActions
