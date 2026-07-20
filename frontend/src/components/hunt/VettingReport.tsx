@@ -79,6 +79,48 @@ function aliasNote(report: VettingReport): string | null {
   return `BLS는 ${report.bls_period.toFixed(3)}일 신호에 반응했지만, 반복 구조가 진짜 주기는 그 ${rel}인 ${report.period.toFixed(3)}일임을 드러냈습니다 — 이 진짜 주기 위에서 판별했습니다.`
 }
 
+// Nail 4 — a wide sky is seen shallowly. TESS watches ~27 days per sector, so the
+// gates (which rest on repeated transits) can be blunt. We say how much we saw and,
+// when a `strong` was earned on too few transits, mark it provisional. The gate
+// math and the verdict are untouched; this is only how much we trust them.
+const ID_LABEL: Record<VettingReport['mission'], string> = { kepler: 'KIC', tess: 'TIC' }
+
+function Footprint({ report }: Props) {
+  const idLabel = ID_LABEL[report.mission] ?? 'KIC'
+  const cells: { label: string; value: string }[] = [
+    { label: '관측선', value: `${report.baseline_days.toFixed(1)}일` },
+    { label: '통과 횟수', value: `~${report.transit_count}회` },
+  ]
+  if (report.sector_count != null) {
+    cells.push({ label: 'TESS 구역', value: `${report.sector_count}개` })
+  }
+  return (
+    <div className="mb-4 rounded border border-cosmos-subtle bg-cosmos-surface p-3">
+      <p className="font-mono text-xs tracking-widest text-cosmos-muted">
+        얼마나 보았나 — {report.mission.toUpperCase()}
+      </p>
+      <dl className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+        {cells.map((c) => (
+          <div key={c.label} className="flex flex-col">
+            <dt className="font-mono text-[10px] tracking-widest text-cosmos-subtle">{c.label}</dt>
+            <dd className="font-mono text-sm text-cosmos-text">{c.value}</dd>
+          </div>
+        ))}
+      </dl>
+      {report.provisional && (
+        <p className="mt-2 text-xs text-amber-300/90">
+          관측선이 짧아 통과를 몇 번밖에 보지 못했습니다 — 홀·짝과 반대편 검사가 무뎌질 수 있어,
+          강한 신호라도 <span className="font-semibold">잠정(provisional)</span>으로 낮춰 표시합니다.
+          판정 자체는 그대로입니다.
+        </p>
+      )}
+      <p className="mt-1 font-mono text-[10px] text-cosmos-subtle">
+        얕게 본 하늘일수록 확신은 겸손해야 합니다 (nail 4) · {idLabel} {report.kic_id}
+      </p>
+    </div>
+  )
+}
+
 export default function VettingReportCard({ report }: Props) {
   const trust = TRUST[report.trust]
   const alias = aliasNote(report)
@@ -86,7 +128,7 @@ export default function VettingReportCard({ report }: Props) {
   return (
     <div className="rounded-lg border border-cosmos-border bg-cosmos-elevated p-5">
       <p className="mb-1 font-mono text-xs tracking-widest text-cosmos-muted">
-        VETTING — KIC {report.kic_id}
+        VETTING — {ID_LABEL[report.mission] ?? 'KIC'} {report.kic_id}
       </p>
       <p className="mb-1 text-lg font-semibold text-cosmos-text">
         이 신호를 네 가지로 심문했습니다
@@ -103,6 +145,8 @@ export default function VettingReportCard({ report }: Props) {
           <p className="mt-1 text-sm text-cosmos-text">{alias}</p>
         </div>
       )}
+
+      <Footprint report={report} />
 
       <ul className="flex flex-col gap-3">
         {report.checks.map((check) => {
@@ -147,9 +191,13 @@ export default function VettingReportCard({ report }: Props) {
         <span
           className={`inline-block rounded border px-2 py-0.5 font-mono text-xs tracking-widest ${trust.badge}`}
         >
-          {trust.label}
+          {report.provisional ? `PROVISIONAL · ${trust.label}` : trust.label}
         </span>
-        <p className="mt-2 text-sm text-cosmos-text">{trust.line}</p>
+        <p className="mt-2 text-sm text-cosmos-text">
+          {report.provisional
+            ? '네 검사를 모두 통과했지만, 관측선이 짧아 통과를 몇 번밖에 보지 못했습니다 — 신뢰할 만한 잠정 후보입니다. 더 긴 관측이 이 확신을 굳혀줄 것입니다.'
+            : trust.line}
+        </p>
       </div>
     </div>
   )

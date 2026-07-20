@@ -38,6 +38,10 @@ const FRAME: Record<
 
 export default function FrontierVerdict({ report }: Props) {
   const frame = FRAME[report.trust]
+  // Nail 4 — a strong verdict earned on too few transits (short TESS baseline) is
+  // real but thin. Soften the framing to "잠정" so the headline never over-claims;
+  // the report card below spells out how much we actually saw.
+  const provisional = report.trust === 'strong' && report.provisional
 
   return (
     <div className="flex flex-col gap-4">
@@ -45,9 +49,13 @@ export default function FrontierVerdict({ report }: Props) {
         <span
           className={`inline-block rounded border px-2 py-0.5 font-mono text-xs tracking-widest ${frame.badge}`}
         >
-          {frame.kicker}
+          {provisional ? '★ 잠정 신뢰 후보 — 얕게 본 하늘' : frame.kicker}
         </span>
-        <p className="mt-3 text-sm text-cosmos-text">{frame.body}</p>
+        <p className="mt-3 text-sm text-cosmos-text">
+          {provisional
+            ? '아무도 기록하지 않은 별에서 네 관문을 모두 통과한 신호를 찾았습니다 — 다만 관측선이 짧아 통과를 몇 번밖에 보지 못했습니다. 신뢰할 만하되 잠정적인 후보입니다. 아래 판별 근거와 "얼마나 보았나"가 그 이유입니다.'
+            : frame.body}
+        </p>
       </div>
 
       <VettingReportCard report={report} />
