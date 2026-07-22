@@ -66,7 +66,11 @@ export default function AppLayout() {
           <NavLink
             key={phase.path}
             to={phase.path}
-            end={phase.path === '/'}
+            // `end` on every phase link: each is a leaf route, so it should be
+            // active only on its exact path. Without it, /hunt lights up on the
+            // /hunt/frontier* child routes too (the separate Frontier link below
+            // deliberately omits `end` so it stays active across its :mission children).
+            end
             onClick={closeNav}
             className={({ isActive }) =>
               `px-3 py-2 rounded text-sm transition-colors flex items-center gap-2 ${
