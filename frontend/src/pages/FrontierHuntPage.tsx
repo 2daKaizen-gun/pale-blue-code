@@ -9,6 +9,7 @@ import {
   type Mission,
   type VettingReport,
   type RecordedCheck,
+  type FrontierStar,
 } from '../lib/api/hunt'
 import type { BLSData } from '../lib/api/bls'
 import {
@@ -19,6 +20,7 @@ import {
   type HuntStats,
 } from '../lib/huntLog'
 import Spinner from '../components/ui/Spinner'
+import FrontierFeed from '../components/hunt/FrontierFeed'
 import FrontierTargetPicker from '../components/hunt/FrontierTargetPicker'
 import FrontierVerdict from '../components/hunt/FrontierVerdict'
 import HuntLog from '../components/hunt/HuntLog'
@@ -77,6 +79,9 @@ export default function FrontierHuntPage() {
   const m = MISSION[mission]
 
   const [selectedKic, setSelectedKic] = useState<number | null>(null)
+  // The enriched identity of the picked star (feed / TESS random), so we can play a
+  // first-look reveal. Free-input picks have no enrichment → null.
+  const [pickedStar, setPickedStar] = useState<FrontierStar | null>(null)
 
   const [checkLoading, setCheckLoading] = useState(false)
   const [recorded, setRecorded] = useState<RecordedCheck | null>(null)
@@ -144,8 +149,9 @@ export default function FrontierHuntPage() {
   }, [mission, m])
 
   const onPick = useCallback(
-    async (kicId: number) => {
+    async (kicId: number, star: FrontierStar | null = null) => {
       setSelectedKic(kicId)
+      setPickedStar(star)
       setError(null)
       setRecorded(null)
       setBlsData(null)
@@ -178,6 +184,7 @@ export default function FrontierHuntPage() {
 
   const reset = () => {
     setSelectedKic(null)
+    setPickedStar(null)
     setRecorded(null)
     setBlsData(null)
     setVetReport(null)
@@ -190,7 +197,7 @@ export default function FrontierHuntPage() {
   const huntAgain = useCallback(async () => {
     try {
       const pick = await frontierRandom(mission)
-      await onPick(pick.kic_id)
+      await onPick(pick.kic_id, pick.star)
     } catch (e) {
       setError(e instanceof Error ? e.message : '무작위 별을 뽑지 못했습니다')
     }
@@ -224,7 +231,13 @@ export default function FrontierHuntPage() {
       <HuntLog stats={stats} onClear={clearLog} />
 
       {selectedKic === null ? (
-        <FrontierTargetPicker onPick={onPick} busy={busy} mission={mission} />
+        <div className="flex flex-col gap-6">
+          {/* The fresh-sky feed (TESS) — browse real stars instead of typing a
+              number. Renders nothing for Kepler. The picker (random + free input)
+              stays below as the expert path. */}
+          <FrontierFeed mission={mission} onPick={onPick} busy={busy} />
+          <FrontierTargetPicker onPick={onPick} busy={busy} mission={mission} />
+        </div>
       ) : (
         <div className="flex flex-col gap-6">
           <button
@@ -234,6 +247,14 @@ export default function FrontierHuntPage() {
           >
             ← 타깃 선택으로
           </button>
+
+          {/* First look — this star's identity before the verdict. Upgraded to an
+              animated reveal in L4; here it simply names where we're pointing. */}
+          {pickedStar?.constellation && (
+            <p className="font-mono text-xs text-cosmos-nebula">
+              🛰️ {pickedStar.constellation} 방향의 별 — 처음 들여다봅니다
+            </p>
+          )}
 
           {busy && (
             <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3">

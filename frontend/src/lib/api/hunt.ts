@@ -87,9 +87,38 @@ export async function fetchVetting(kicId: number, mission: Mission = 'kepler'): 
 
 // ── Phase 9-B: the frontier (real solo hunt of unrecorded stars) ──────────────
 
+// Phase 10 sub-10-4 — one enriched frontier target: a real place in the sky, not a
+// bare number. Every field is *stellar* (never planetary), so browsing never leaks
+// whether a planet is there (honesty nail #3). Fields are nullable (uneven coverage).
+export interface FrontierStar {
+  tic: number
+  observed_at: string | null // YYYY-MM-DD TESS saw it (drives "N일 전 도착")
+  constellation: string | null // where in the sky
+  tmag: number | null // TESS-band brightness (smaller = brighter)
+  teff: number | null // effective temperature (K) → "sun-like"
+  radius: number | null // stellar radius (R_sun)
+  distance_pc: number | null // distance (parsecs)
+}
+
 export interface FrontierPick {
   kic_id: number
   recorded: boolean // the seed pool holds only unrecorded KICs (always false here)
+  star: FrontierStar | null // enriched identity of the pick (TESS); null for Kepler
+}
+
+// The frontier feed — the freshest unrecorded stars, newest-observed first, plus
+// how current the pool is (latest_sector / built_at). TESS only; Kepler returns empty.
+export interface FrontierPool {
+  mission: Mission
+  latest_sector: number | null
+  built_at: string | null
+  count: number // full pool size (stars may be a limited window)
+  stars: FrontierStar[]
+}
+
+// Browse the fresh sky: a recency-sorted window over the seed pool.
+export async function frontierPool(mission: Mission = 'tess', limit = 60): Promise<FrontierPool> {
+  return getJSON<FrontierPool>(`/api/hunt/frontier/pool?mission=${mission}&limit=${limit}`)
 }
 
 export interface RecordedEntry {
