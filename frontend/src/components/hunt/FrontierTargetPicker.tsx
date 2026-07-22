@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { frontierRandom, type Mission } from '../../lib/api/hunt'
+import { frontierRandom, type FrontierStar, type Mission } from '../../lib/api/hunt'
 import Spinner from '../ui/Spinner'
 
 interface Props {
-  onPick: (kicId: number) => void
+  // star carries the enriched pick (TESS random) so the page can play a first-look
+  // reveal; free input has no enrichment and omits it.
+  onPick: (kicId: number, star?: FrontierStar | null) => void
   busy: boolean // a hunt is already running — lock both entry points
   mission: Mission // which sky (Kepler: KIC/KOI, TESS: TIC/TOI)
 }
@@ -33,7 +35,7 @@ export default function FrontierTargetPicker({ onPick, busy, mission }: Props) {
     setRandomLoading(true)
     try {
       const pick = await frontierRandom(mission)
-      onPick(pick.kic_id)
+      onPick(pick.kic_id, pick.star)
     } catch (e) {
       setError(e instanceof Error ? e.message : '무작위 별을 뽑지 못했습니다')
     } finally {

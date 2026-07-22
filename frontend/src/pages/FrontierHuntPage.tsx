@@ -21,6 +21,7 @@ import {
 } from '../lib/huntLog'
 import Spinner from '../components/ui/Spinner'
 import FrontierFeed from '../components/hunt/FrontierFeed'
+import FirstLook from '../components/hunt/FirstLook'
 import FrontierTargetPicker from '../components/hunt/FrontierTargetPicker'
 import FrontierVerdict from '../components/hunt/FrontierVerdict'
 import HuntLog from '../components/hunt/HuntLog'
@@ -248,13 +249,10 @@ export default function FrontierHuntPage() {
             ← 타깃 선택으로
           </button>
 
-          {/* First look — this star's identity before the verdict. Upgraded to an
-              animated reveal in L4; here it simply names where we're pointing. */}
-          {pickedStar?.constellation && (
-            <p className="font-mono text-xs text-cosmos-nebula">
-              🛰️ {pickedStar.constellation} 방향의 별 — 처음 들여다봅니다
-            </p>
-          )}
+          {/* First look — this star's identity, framed in time ("N일 전 도착, 아무도
+              안 봤다"), before any verdict. key remounts it per pick so the reveal
+              replays. Only for enriched picks (feed / TESS random); free input → none. */}
+          {pickedStar && <FirstLook key={pickedStar.tic} star={pickedStar} />}
 
           {busy && (
             <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3">
