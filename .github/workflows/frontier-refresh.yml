@@ -1,0 +1,62 @@
+name: Refresh frontier pool
+
+# Keep the TESS fresh-sky pool tracking the newest sector (Phase 10 sub-10-4).
+# TESS releases a new sector ~every 27 days; this reruns the builder twice a month
+# and commits only when the pool's *content* actually changed (a new sector or a
+# different star set) — never for a build-timestamp-only diff.
+on:
+  schedule:
+    - cron: '0 6 1,15 * *'   # 06:00 UTC on the 1st and 15th (~biweekly)
+  workflow_dispatch: {}       # allow a manual run from the Actions tab
+
+permissions:
+  contents: write             # to commit + push the refreshed pool
+
+concurrency:
+  group: frontier-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install builder deps
+        run: pip install astroquery
+
+      - name: Rebuild pool from the newest SPOC sector
+        run: python scripts/build_frontier_seeds_tess.py
+
+      - name: Commit only if the pool content changed
+        run: |
+          POOL=backend/data/frontier_seeds_tess.json
+          # Compare meaningful content (sector + star ids) against HEAD, ignoring the
+          # built_at timestamp, so a no-op rebuild leaves the tree clean.
+          changed=$(python - "$POOL" <<'PY'
+          import json, subprocess, sys
+          path = sys.argv[1]
+          new = json.load(open(path, encoding="utf-8"))
+          try:
+              old = json.loads(subprocess.check_output(["git", "show", f"HEAD:{path}"]))
+          except Exception:
+              old = {}
+          key = lambda p: (p.get("latest_sector"), p.get("tics"))
+          print("yes" if key(new) != key(old) else "no")
+          PY
+          )
+          if [ "$changed" = "no" ]; then
+            echo "Pool content unchanged — discarding timestamp-only diff."
+            git checkout -- "$POOL"
+            exit 0
+          fi
+          sector=$(python -c "import json;print(json.load(open('$POOL',encoding='utf-8'))['latest_sector'])")
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$POOL"
+          git commit -m "chore(frontier): refresh fresh-sky pool → sector ${sector}"
+          git push

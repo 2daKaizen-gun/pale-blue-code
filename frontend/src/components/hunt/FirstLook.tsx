@@ -5,9 +5,11 @@ import Reveal from '../ui/Reveal'
 /**
  * The first-look moment (Phase 10 sub-10-4). When a frontier star is picked, before
  * any verdict, name what we're about to look at — where it sits, how bright, sun-like
- * or not, how far — and the whole point: how many days ago its light reached TESS with
- * nobody having looked. This is the novelty framed in *time*, not space. Every line is
- * strictly stellar (via starCopy), so the reveal never hints at a planet (nail #3).
+ * or not, how far — and the honest hook: it is absent from the TOI planet catalog, and
+ * its newest TESS data landed N days ago, so you can be the first to vet it and call it
+ * a candidate. NB (nail #3): a bright unrecorded star has usually been *observed* across
+ * many sectors — so we claim "not yet flagged as a candidate," never "never seen." Every
+ * line is strictly stellar (via starCopy), so the reveal never hints at a planet.
  *
  * Rendered with a `key={star.tic}` upstream so each new pick remounts and replays the
  * reveal animation.
@@ -30,22 +32,20 @@ export default function FirstLook({ star }: Props) {
     <Reveal>
       <div className="flex flex-col gap-3 rounded-lg border border-cosmos-nebula bg-cosmos-elevated p-5">
         <span className="font-mono text-xs tracking-widest text-cosmos-nebula">
-          첫 관측 · FIRST LOOK
+          첫 판별 · FIRST VET
         </span>
         <p className="font-mono text-lg text-cosmos-text">TIC {star.tic}</p>
         {facts.length > 0 && (
           <p className="text-sm text-cosmos-muted">{facts.join(' · ')}</p>
         )}
         <p className="text-sm text-cosmos-text">
-          {d != null ? (
+          이 별은 아직 어떤 행성 카탈로그(TOI)에도 오르지 않았습니다.
+          {d != null && (
             <>
-              이 별빛은 <span className="text-cosmos-nebula">{d}일 전</span> TESS에 도착했고,
-              아직 아무도 들여다보지 않았습니다.
+              {' '}가장 최근 TESS 관측은 <span className="text-cosmos-nebula">{d}일 전</span>.
             </>
-          ) : (
-            <>이 별은 아직 어떤 카탈로그에도 없습니다.</>
           )}{' '}
-          지금부터는 당신이 처음입니다.
+          직접 판별해, 당신이 처음으로 후보에 올릴 수 있습니다.
         </p>
       </div>
     </Reveal>

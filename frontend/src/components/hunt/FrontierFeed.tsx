@@ -7,10 +7,12 @@ import Spinner from '../ui/Spinner'
  * "갓 내린 하늘" — the fresh-sky feed (Phase 10 sub-10-4). The frontier's answer to
  * "how would a non-expert ever pick a star?": instead of typing a TIC, browse the
  * newest TESS sector as a recency-sorted list of *real places in the sky* — where
- * each star sits, how bright it is, whether it's sun-like, and how many days ago its
- * light reached TESS. The hook is time, not space: this light just arrived and nobody
- * has looked. Every field is stellar, never planetary, so the feed never hints at an
- * answer (honesty nail #3). Clicking a card hands its id (and identity) to the hunt.
+ * each star sits, how bright it is, whether it's sun-like, and how recently TESS
+ * observed it. The hook is time: this is the freshest data on a star that is still
+ * absent from the TOI catalog. NB (nail #3): a bright unrecorded star has usually been
+ * observed across many sectors, so we say "not yet flagged as a candidate," never
+ * "never seen." Every field is stellar, never planetary, so the feed never hints at an
+ * answer. Clicking a card hands its id (and identity) to the hunt.
  *
  * TESS only — Kepler has no dated pool, so the feed renders nothing there.
  */
@@ -34,7 +36,7 @@ function StarCard({ star, onPick, busy }: { star: FrontierStar; onPick: Props['o
       <div className="flex items-baseline justify-between gap-2">
         <span className="font-mono text-sm text-cosmos-text">TIC {star.tic}</span>
         {d != null && (
-          <span className="font-mono text-xs text-cosmos-nebula">{d}일 전 도착</span>
+          <span className="font-mono text-xs text-cosmos-nebula">{d}일 전 관측</span>
         )}
       </div>
       <div className="flex flex-col gap-0.5 text-xs text-cosmos-muted">
@@ -46,7 +48,7 @@ function StarCard({ star, onPick, busy }: { star: FrontierStar; onPick: Props['o
         )}
         {ly != null && <span>📏 약 {ly.toLocaleString()}광년 거리</span>}
       </div>
-      <span className="mt-1 font-mono text-xs text-cosmos-subtle">아직 아무도 안 봤어요 →</span>
+      <span className="mt-1 font-mono text-xs text-cosmos-subtle">아직 후보로 지목되지 않았어요 →</span>
     </button>
   )
 }
@@ -95,7 +97,7 @@ export default function FrontierFeed({ mission, onPick, busy }: Props) {
           갓 내린 하늘{pool.latest_sector != null && <span className="text-cosmos-muted"> — TESS 섹터 {pool.latest_sector}</span>}
         </h2>
         <p className="text-xs text-cosmos-muted">
-          이 별빛들은 최근 TESS에 막 도착했고, 아직 어떤 카탈로그에도 없습니다. 하나를 골라 처음으로 들여다보세요.
+          TESS 최신 섹터의 데이터로, 아직 어떤 행성 카탈로그(TOI)에도 오르지 않은 별들입니다. 하나를 골라 직접 판별해보세요.
           {built && <span className="text-cosmos-subtle"> · 마지막 갱신 {built}</span>}
         </p>
       </div>
