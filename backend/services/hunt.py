@@ -23,6 +23,7 @@ _koi_cache: list[dict] | None = None
 _toi_cache: list[dict] | None = None
 _frontier_cache: list[int] | None = None
 _tess_frontier_cache: list[int] | None = None
+_tess_frontier_payload: dict | None = None
 
 # Demonstration targets — every one is a KNOWN, catalogued Kepler Object of
 # Interest, not an undiscovered signal. They exist to learn the vetter against a
@@ -420,3 +421,44 @@ def _load_frontier_tess() -> list[int]:
 def pick_frontier_tess(rng: random.Random | None = None) -> int:
     """Pick one unrecorded TIC from the TESS seed pool. RNG injectable for tests."""
     return (rng or random.Random()).choice(_load_frontier_tess())
+
+
+_STAR_FIELDS = ("tic", "observed_at", "constellation", "tmag", "teff", "radius",
+                "distance_pc")
+
+
+def _load_frontier_tess_payload() -> dict:
+    """The full TESS seed payload (schema @2), cached. Runtime reads JSON only."""
+    global _tess_frontier_payload
+    if _tess_frontier_payload is None:
+        _tess_frontier_payload = json.loads(
+            _TESS_FRONTIER_JSON.read_text(encoding="utf-8"))
+    return _tess_frontier_payload
+
+
+def frontier_tess_stars() -> list[dict]:
+    """Enriched star records from the pool, back-compatible with schema @1.
+
+    @2 carries a `stars` list of enriched records (the fresh-sky feed). An older @1
+    payload has only a flat `tics` list, so we degrade to minimal records — the feed
+    still lists the stars, just without identity — rather than crashing.
+    """
+    payload = _load_frontier_tess_payload()
+    stars = payload.get("stars")
+    if stars:
+        return [{k: s.get(k) for k in _STAR_FIELDS} for s in stars]
+    return [{"tic": int(t)} for t in payload.get("tics", [])]
+
+
+def frontier_tess_meta() -> dict:
+    """Freshness metadata (newest sector, build time) for the feed header."""
+    payload = _load_frontier_tess_payload()
+    return {
+        "latest_sector": payload.get("latest_sector"),
+        "built_at": payload.get("built_at"),
+    }
+
+
+def pick_frontier_tess_star(rng: random.Random | None = None) -> dict:
+    """Pick one enriched unrecorded star from the TESS pool (for the reveal)."""
+    return (rng or random.Random()).choice(frontier_tess_stars())

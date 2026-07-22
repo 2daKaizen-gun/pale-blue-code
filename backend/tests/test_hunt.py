@@ -191,6 +191,34 @@ def test_lc_sector_count_missing_cache_is_none():
     assert hunt.lc_sector_count(999000222, "tess") is None
 
 
+# --- sub-10-4: enriched fresh-sky pool (schema @2) ------------------------------
+
+def test_frontier_tess_stars_are_enriched_and_unrecorded():
+    """Every feed record is a real, unrecorded star with a place in the sky."""
+    stars = hunt.frontier_tess_stars()
+    tics = hunt._load_frontier_tess()
+    assert len(stars) == len(tics)                      # one record per pooled TIC
+    assert all(isinstance(s["tic"], int) and s["tic"] > 0 for s in stars)
+    assert all(hunt.is_recorded_tess(s["tic"]) is False for s in stars)
+    # @2 carries identity — at least brightness and constellation, never a planet.
+    assert any(s.get("tmag") is not None for s in stars)
+    assert any(s.get("constellation") for s in stars)
+    assert all("period" not in s and "depth" not in s for s in stars)  # no answer leak
+
+
+def test_frontier_tess_meta_reports_freshness():
+    meta = hunt.frontier_tess_meta()
+    assert isinstance(meta["latest_sector"], int) and meta["latest_sector"] > 0
+    assert isinstance(meta["built_at"], str) and meta["built_at"]
+
+
+def test_pick_frontier_tess_star_is_deterministic_pool_member():
+    a = hunt.pick_frontier_tess_star(random.Random(7))
+    b = hunt.pick_frontier_tess_star(random.Random(7))
+    assert a == b
+    assert a["tic"] in hunt._load_frontier_tess()
+
+
 def test_lc_sector_count_reads_cached_payload():
     tic = 999000333
     p = hunt._tic_lc_cache_path(tic)

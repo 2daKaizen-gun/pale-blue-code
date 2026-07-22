@@ -6,6 +6,8 @@ from models.hunt import (
     KOIMatch,
     HuntLCResponse,
     FrontierPick,
+    FrontierStar,
+    FrontierPool,
     RecordedCheck,
 )
 from models.bls import BLSResponse
@@ -85,14 +87,44 @@ async def get_frontier_random(mission: str = Query("kepler")):
     """Draw one unrecorded star from the pre-verified frontier seed pool.
 
     Kepler -> unrecorded KIC; TESS -> unrecorded TIC. The pool holds only
-    unrecorded stars by construction, so recorded is always False.
+    unrecorded stars by construction, so recorded is always False. For TESS the
+    pick is returned enriched (its place in the sky) so the UI can play a first-look
+    reveal; Kepler has no dated enrichment and returns a bare id.
     """
-    pick = (
-        hunt_service.pick_frontier_tess
-        if mission.lower() == "tess"
-        else hunt_service.pick_frontier
+    if mission.lower() == "tess":
+        star = hunt_service.pick_frontier_tess_star()
+        return FrontierPick(
+            kic_id=int(star["tic"]), recorded=False, star=FrontierStar(**star)
+        )
+    return FrontierPick(kic_id=hunt_service.pick_frontier(), recorded=False)
+
+
+@router.get("/hunt/frontier/pool", response_model=FrontierPool)
+async def get_frontier_pool(
+    mission: str = Query("tess"),
+    limit: int = Query(60, ge=1, le=200),
+):
+    """The frontier feed — the freshest unrecorded stars, newest-observed first.
+
+    A recency-sorted window over the seed pool: each card is a real star (where it
+    sits, how bright, how long ago TESS saw it), so a hunter browses a place in the
+    sky instead of typing a number. TESS only — Kepler has no dated pool, so it
+    returns an empty feed (the feed is a Phase 10 "fresh sky" feature).
+    """
+    if mission.lower() != "tess":
+        return FrontierPool(mission="kepler", count=0, stars=[])
+    raw = hunt_service.frontier_tess_stars()
+    meta = hunt_service.frontier_tess_meta()
+    # Newest observation first; undated records (schema @1) sink to the bottom.
+    ordered = sorted(raw, key=lambda s: s.get("observed_at") or "", reverse=True)
+    stars = [FrontierStar(**s) for s in ordered[:limit]]
+    return FrontierPool(
+        mission="tess",
+        latest_sector=meta["latest_sector"],
+        built_at=meta["built_at"],
+        count=len(raw),
+        stars=stars,
     )
-    return FrontierPick(kic_id=pick(), recorded=False)
 
 
 @router.get("/hunt/recorded/{kic_id}", response_model=RecordedCheck)

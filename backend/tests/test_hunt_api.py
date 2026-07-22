@@ -30,6 +30,47 @@ def test_frontier_random_tess_returns_unrecorded_pool_member():
     assert body["kic_id"] in hunt._load_frontier_tess()   # kic_id carries the TIC
 
 
+def test_frontier_random_tess_includes_enriched_star():
+    r = client.get("/api/hunt/frontier/random?mission=tess")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["star"] is not None
+    assert body["star"]["tic"] == body["kic_id"]   # the enriched pick is the pick
+
+
+def test_frontier_random_kepler_has_no_enriched_star():
+    r = client.get("/api/hunt/frontier/random")
+    assert r.status_code == 200
+    assert r.json()["star"] is None               # Kepler has no dated enrichment
+
+
+def test_frontier_pool_tess_is_recency_sorted_feed():
+    r = client.get("/api/hunt/frontier/pool?mission=tess")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["mission"] == "tess"
+    assert body["count"] > 0
+    assert len(body["stars"]) > 0
+    assert isinstance(body["latest_sector"], int)
+    dates = [s["observed_at"] for s in body["stars"] if s["observed_at"]]
+    assert dates == sorted(dates, reverse=True)   # newest-observed first
+
+
+def test_frontier_pool_respects_limit():
+    r = client.get("/api/hunt/frontier/pool?mission=tess&limit=5")
+    assert r.status_code == 200
+    assert len(r.json()["stars"]) <= 5
+
+
+def test_frontier_pool_kepler_is_empty_feed():
+    r = client.get("/api/hunt/frontier/pool?mission=kepler")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["mission"] == "kepler"
+    assert body["count"] == 0
+    assert body["stars"] == []
+
+
 def test_recorded_endpoint_flags_a_known_koi():
     r = client.get(f"/api/hunt/recorded/{_KNOWN_KOI_KIC}")
     assert r.status_code == 200
