@@ -58,5 +58,39 @@ The backend must be up, reachable, and CORS-allow the frontend origin.
 |---|---|
 | Site loads, every data page empty, red "설정 오류" banner | `VITE_API_BASE_URL` unset/localhost in the prod build → set it, redeploy |
 | Red "연결할 수 없어요" banner | backend down, wrong URL, or CORS blocking → check `/api/health` + allow_origins |
-| Amber "오류를 응답" banner | backend reachable but 5xx → check Railway logs |
+| Amber "오류를 응답" banner | backend reachable but non-2xx — usually `VITE_API_BASE_URL` has a trailing `/api` or `/`, so requests double up to `/api/api/…` → 404. Value must be the **bare origin** |
 | Works locally, broken only when deployed | almost always the env var — it is build-time, so a local `.env` never reaches Vercel |
+
+---
+
+## Operating the live site (first deployed 2026-07-23)
+
+Concrete facts from the first real deploy, so future-me doesn't re-derive them:
+
+- **Backend URL:** `https://pale-blue-code-production.up.railway.app`
+  (Railway service under GitHub account `2daKaizen-gun`).
+- **Railway build gotchas that actually bit us:** the repo is a monorepo, so the
+  service needs **Root Directory = `backend`** and a **Custom Start Command**
+  `uvicorn main:app --host 0.0.0.0 --port $PORT` (Railpack won't infer the uvicorn
+  entrypoint). With those, the Python app builds from `backend/requirements.txt`.
+- **The `VITE_API_BASE_URL` value is the bare origin** — no `/api`, no trailing `/`.
+  A trailing `/api` gives the amber "오류를 응답" banner (404 via `/api/api/…`).
+
+### Cost model — run local by default, Railway on demand
+
+Railway does **not** sleep on idle; it runs 24/7 and bills compute, and it has no
+free tier (Trial ~$5 credit, then Hobby ~$5/mo). So the standing plan:
+
+- **Everyday dev / solo viewing:** run everything **local** — `uvicorn main:app
+  --reload` (backend) + `npm run dev` (frontend). Local frontend has no
+  `VITE_API_BASE_URL`, so it auto-targets `localhost:8000`. $0.
+- **Live demo where someone clicks the public link:** turn Railway **on** just for
+  that window.
+  - **On:** Railway → service → Deployments → ⋯ → **Redeploy** (~1 min with cache).
+  - **Off:** Railway → active deployment → ⋯ → **Remove** (stops compute billing).
+- While Railway is off, the public Vercel site correctly shows the "연결할 수 없어요"
+  banner — the frontend stays up (free); only the backend toggles.
+- ⚠️ **Auto-redeploy:** a push to `main` (including the biweekly `frontier-refresh`
+  Action when a new TESS sector lands) auto-starts Railway again. To keep it fully
+  off, disconnect GitHub auto-deploy on the service (then only manual Redeploy runs).
+
