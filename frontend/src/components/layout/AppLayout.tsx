@@ -2,6 +2,7 @@ import { Suspense, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { PHASES } from '../../constants/phases'
 import Spinner from '../ui/Spinner'
+import BackendStatusBanner from '../system/BackendStatusBanner'
 
 // Phase 0, 1은 둘 다 path='/' 이므로 네비에서는 1개만 (Home)
 const navPhases = PHASES.filter((p, i, arr) =>
@@ -106,7 +107,10 @@ export default function AppLayout() {
       </nav>
 
       {/* 메인 콘텐츠 */}
-      <main className="flex-1 min-w-0 p-4 md:p-8">
+      <main className="flex-1 min-w-0">
+        {/* 백엔드가 죽었거나 잘못 설정되면 조용한 빈 화면 대신 여기서 알림 */}
+        <BackendStatusBanner />
+        <div className="p-4 md:p-8">
         <Suspense
           fallback={
             <div className="flex min-h-[60vh] items-center justify-center">
@@ -116,6 +120,7 @@ export default function AppLayout() {
         >
           <Outlet />
         </Suspense>
+        </div>
       </main>
     </div>
   )
