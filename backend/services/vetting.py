@@ -51,9 +51,16 @@ _PERIOD_MAX = 600.0
 # repeated transits — odd/even needs several to compare, secondary needs cycle
 # coverage — so a "strong" earned on only a handful of transits is only
 # provisionally strong. Kepler's multi-year baseline clears this trivially; a
-# single 27-day TESS sector on a longer-period planet may not. We do NOT touch the
-# gate math or the trust verdict; provisional is a separate, honest flag alongside.
-_N_MIN_TRANSITS = 5
+# single 27-day TESS sector on a longer-period planet may not. The trust verdict is
+# untouched; provisional is a separate, honest flag alongside it.
+#
+# Measured, not guessed (sub-10-3 L4d, scripts/calibrate_min_transits.py): binaries
+# with a 40% odd/even depth mismatch were injected into two real single-sector TESS
+# light curves and recovered through the live pipeline. The odd/even gate catches
+# them >= 90% of the time only from 8 transits (TIC 7318157) and 7 (TIC 7187543);
+# below that a binary escapes as a candidate often enough to matter. 8 covers both.
+# The earlier value of 5 predated the fix to _transit_depths and was a guess.
+_N_MIN_TRANSITS = 8
 
 
 def transit_count(baseline_days: float, period: float) -> int:
@@ -85,14 +92,23 @@ def _signed_phase(time: np.ndarray, t0: float, period: float) -> np.ndarray:
     return ((time - t0 + 0.5 * period) % period) - 0.5 * period
 
 
-def _group_depth(flux_in: np.ndarray) -> tuple[float, float, int]:
-    """Depth (1 - median) and its standard error for one group of in-transit points."""
-    n = len(flux_in)
-    if n == 0:
-        return 0.0, 0.0, 0
-    depth = 1.0 - float(np.median(flux_in))
-    err = _mad_std(flux_in) / np.sqrt(n)
-    return depth, float(err), n
+def _transit_depths(flux_in: np.ndarray, epoch_in: np.ndarray) -> np.ndarray:
+    """One depth measurement per transit, rather than per sample.
+
+    The distinction decides whether the odd/even gate can be trusted. Samples inside
+    a single transit share the same spot pattern and the same instrumental state, so
+    they are not independent draws: averaging them shrinks the *apparent* error
+    without shrinking the real one. A 0.15 d transit is ~108 samples at TESS 2-min
+    cadence against ~22 at Kepler long cadence, which is why treating samples as
+    independent understated the error badly enough to reject clean planets on TESS
+    (measured 25-83% of the time — scripts/calibrate_min_transits.py) while Kepler's
+    quiet, coarsely sampled anchors looked fine.
+
+    Collapsing each transit to one number first makes the scatter *between* transits
+    — which is what the gate actually asks about — the thing that sets the error.
+    """
+    epochs = np.unique(epoch_in)
+    return np.array([1.0 - float(np.median(flux_in[epoch_in == e])) for e in epochs])
 
 
 # ── gate 1: odd/even depth ───────────────────────────────────────────────────
@@ -104,24 +120,47 @@ def check_odd_even(time: np.ndarray, flux: np.ndarray, best: dict) -> VettingChe
 
     in_t = np.abs(_signed_phase(time, t0, period)) < dur / 2
     n = np.round((time - t0) / period).astype(int)
-    d_odd, e_odd, n_odd = _group_depth(flux[in_t & (n % 2 != 0)])
-    d_even, e_even, n_even = _group_depth(flux[in_t & (n % 2 == 0)])
+    odd_m = in_t & (n % 2 != 0)
+    even_m = in_t & (n % 2 == 0)
+    n_odd, n_even = int(odd_m.sum()), int(even_m.sum())
 
-    if n_odd < _MIN_PTS or n_even < _MIN_PTS:
-        # too few transits to compare — hold judgment (pass, soft)
+    odd_depths = _transit_depths(flux[odd_m], n[odd_m])
+    even_depths = _transit_depths(flux[even_m], n[even_m])
+    k_odd, k_even = len(odd_depths), len(even_depths)
+    d_odd = float(odd_depths.mean()) if k_odd else 0.0
+    d_even = float(even_depths.mean()) if k_even else 0.0
+
+    def _held(sigma: float = 0.0) -> VettingCheck:
         return VettingCheck(
             name="odd_even", passed=True, hard=False,
-            metrics={"depth_odd": d_odd, "depth_even": d_even, "sigma": 0.0,
-                     "n_odd": float(n_odd), "n_even": float(n_even)},
+            metrics={"depth_odd": d_odd, "depth_even": d_even, "sigma": sigma,
+                     "n_odd": float(n_odd), "n_even": float(n_even),
+                     "transits_odd": float(k_odd), "transits_even": float(k_even)},
         )
 
-    denom = np.hypot(e_odd, e_even)
-    sigma = abs(d_odd - d_even) / denom if denom > 0 else 0.0
+    # Two transits per side is the floor for a hard call: with one, there is no
+    # transit-to-transit scatter to measure, and asserting a mismatch from a single
+    # pair of numbers is exactly the overconfidence this gate is meant to avoid.
+    if n_odd < _MIN_PTS or n_even < _MIN_PTS or k_odd < 2 or k_even < 2:
+        return _held()
+
+    # Pooled two-sample t statistic on the per-transit depths: the scatter is
+    # measured around each side's own mean, so a genuine odd/even offset raises the
+    # numerator without inflating the error that judges it.
+    resid = np.concatenate([odd_depths - d_odd, even_depths - d_even])
+    dof = k_odd + k_even - 2
+    scatter = float(np.sqrt(np.sum(resid ** 2) / dof))
+    denom = scatter * np.sqrt(1.0 / k_odd + 1.0 / k_even)
+    if denom <= 0:
+        return _held()
+
+    sigma = abs(d_odd - d_even) / denom
     passed = sigma < _ODD_EVEN_SIGMA
     return VettingCheck(
         name="odd_even", passed=passed, hard=not passed,
         metrics={"depth_odd": d_odd, "depth_even": d_even, "sigma": float(sigma),
-                 "n_odd": float(n_odd), "n_even": float(n_even)},
+                 "n_odd": float(n_odd), "n_even": float(n_even),
+                 "transits_odd": float(k_odd), "transits_even": float(k_even)},
     )
 
 

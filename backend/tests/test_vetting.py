@@ -90,6 +90,48 @@ def test_eb_odd_even_fails_hard():
     assert c.metrics["sigma"] > 3.0
 
 
+def test_odd_even_error_scales_with_transits_not_samples():
+    """A planet on a spotted star must survive (sub-10-3 L4d regression).
+
+    Each transit sits on its own local flux level, as stellar variability makes it.
+    The depths differ from transit to transit but not systematically between odd and
+    even, so this is a planet and the gate must say so.
+
+    The old code divided the in-transit scatter by sqrt(number of samples), treating
+    108 correlated points inside one transit as 108 independent measurements. That
+    shrank the claimed error until ordinary variability read as a hard binary
+    signature — measured at up to 83% false rejection on real TESS data. Sampling
+    finer must not manufacture confidence, so the same curve is checked at Kepler
+    and TESS cadence: the verdict has to be the same.
+    """
+    for cadence in (_CADENCE, 2.0 / 60 / 24):
+        rng = np.random.default_rng(7)
+        time = np.arange(0.0, _SPAN, cadence)
+        flux = np.ones_like(time)
+        in_transit = np.abs(_phase(time, _T0, _PERIOD)) < _DURATION / 2
+        epoch = np.round((time - _T0) / _PERIOD).astype(int)
+        # per-transit offsets: same size as the transit itself, no odd/even pattern
+        for e in np.unique(epoch[in_transit]):
+            flux[in_transit & (epoch == e)] -= 0.01 * (1.0 + rng.normal(0.0, 0.15))
+        flux += rng.normal(0.0, _NOISE, size=time.shape)
+        best = {"period": _PERIOD, "duration": _DURATION, "depth": 0.01,
+                "transit_time": _T0}
+
+        c = vet.check_odd_even(time, flux, best)
+        assert c.passed is True, f"clean planet rejected at cadence {cadence}"
+        assert c.metrics["transits_odd"] >= 2
+
+
+def test_odd_even_holds_judgment_on_one_transit_per_side():
+    """Two transits cannot reveal transit-to-transit scatter — so do not rule."""
+    time, flux, best = make_planet()
+    keep = time < _T0 + 1.5 * _PERIOD          # one odd + one even transit
+    c = vet.check_odd_even(time[keep], flux[keep], best)
+    assert c.passed is True
+    assert c.hard is False
+    assert c.metrics["sigma"] == 0.0           # explicitly held, not measured
+
+
 def test_planet_secondary_passes():
     time, flux, best = make_planet()
     c = vet.check_secondary(time, flux, best)
