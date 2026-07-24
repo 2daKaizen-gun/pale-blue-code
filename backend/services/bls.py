@@ -12,9 +12,13 @@ _PERIOD_MAX = 500.0
 _PERIOD_GRID = 10_000
 _DURATIONS = [0.1, 0.3, 0.5]  # days — covers hot Jupiter to Earth-like transits
 
-_KEPLER_CADENCE_DAYS = 0.0204   # 29.4 min long-cadence
 _DETREND_WINDOW_DAYS = 30.0     # SG window — long enough to remove 430d systematic,
                                  # >> transit duration (0.46d) so transits are preserved
+_MIN_WINDOW_DAYS = 5.0          # floor: 10x the longest duration in _DURATIONS. Below
+                                 # this the SG curve starts following the transit and
+                                 # divides it out — measured at 96% depth kept at 5d,
+                                 # 82% at 2d (scripts/measure_detrend_window.py).
+_POLYORDER = 2
 
 
 def _slug(planet_name: str) -> str:
@@ -77,36 +81,73 @@ def _get_full_lc(planet_name: str, lc_meta: dict) -> tuple[np.ndarray, np.ndarra
     return time, flux
 
 
+def _cadence_days(sorted_time: np.ndarray) -> float:
+    """Sampling interval measured from the data (median step, robust to gaps)."""
+    if len(sorted_time) < 2:
+        return 0.0
+    step = float(np.median(np.diff(sorted_time)))
+    return step if np.isfinite(step) and step > 0 else 0.0
+
+
 def _detrend(time: np.ndarray, flux: np.ndarray) -> np.ndarray:
     """Per-segment Savitzky-Golay detrend to remove long-term systematics.
 
-    Splits at gaps > 1 day (Kepler quarter boundaries), then applies a 30-day
-    SG polynomial to each segment. This removes the ~430-day instrumental
-    systematic seen in Kepler-452 data while preserving the 0.46-day transit.
+    Splits at gaps > 1 day (Kepler quarter boundaries, TESS mid-sector downlinks),
+    then divides each segment by a ~30-day SG polynomial. That removes the ~430-day
+    instrumental systematic seen in Kepler-452 data while preserving the 0.46-day
+    transit.
+
+    The window is measured in *days* and converted using the cadence of the data at
+    hand, not a mission constant. It used to be a fixed 1470 points — 30 days only at
+    Kepler's 29.4-min long cadence, but 2.04 days on TESS 2-min data, where the SG
+    curve follows the transit and divides ~18% of its depth away.
+
+    Two guards keep the conversion honest on short data (see
+    scripts/measure_detrend_window.py for the injection-recovery measurements):
+
+      * a segment shorter than the window shrinks the window to fit rather than
+        skipping the segment. 30 days of TESS 2-min data is 21,599 points, longer
+        than either half of a sector, so the old `continue` would have left a
+        single-sector light curve entirely undetrended.
+      * a window that would fall below _MIN_WINDOW_DAYS skips that segment instead.
+        Below the floor the detrend costs more transit depth than the trend it
+        removes, and an uncorrected slope is the lesser harm — BLS tolerates a slow
+        trend, but it cannot recover depth that was already divided out.
+
+    Kepler is unaffected: at 0.0204 d cadence the window is the same 1470 points, and
+    quarter-length segments comfortably exceed it.
     """
     from scipy.signal import savgol_filter
-
-    win = int(_DETREND_WINDOW_DAYS / _KEPLER_CADENCE_DAYS)
-    if win % 2 == 0:
-        win += 1
 
     sort_idx = np.argsort(time)
     t = time[sort_idx]
     f = flux[sort_idx]
+
+    cadence = _cadence_days(t)
+    if cadence == 0.0:
+        return flux.copy()
+    desired = int(_DETREND_WINDOW_DAYS / cadence)
+    floor = int(_MIN_WINDOW_DAYS / cadence)
 
     gap_idx = np.where(np.diff(t) > 1.0)[0] + 1
     segments = np.split(np.arange(len(t)), gap_idx)
 
     flat = f.copy()
     for seg in segments:
-        n = len(seg)
-        if n < win:
+        win = min(desired, len(seg))
+        if win % 2 == 0:
+            win -= 1
+        if win < floor or win <= _POLYORDER:
             continue
-        trend = savgol_filter(f[seg], window_length=win, polyorder=2)
+        trend = savgol_filter(f[seg], window_length=win, polyorder=_POLYORDER)
         # avoid dividing by near-zero trend
         flat[seg] = np.where(np.abs(trend) > 1e-9, f[seg] / trend, f[seg])
 
-    return flat
+    # Restore the caller's ordering: callers keep their own `time` array and pair it
+    # with this flux, so returning it sorted would silently mismatch the two.
+    out = np.empty_like(flat)
+    out[sort_idx] = flat
+    return out
 
 
 def run_bls(planet_name: str) -> dict:

@@ -30,6 +30,10 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 
+# What _detrend used to assume for every mission, kept here purely so the report can
+# show the size of the old mistake at the cadence actually in hand.
+_LEGACY_KEPLER_CADENCE = 0.0204
+
 from services import bls as bls_service  # noqa: E402
 from services import hunt as hunt_service  # noqa: E402
 
@@ -108,12 +112,14 @@ def main() -> int:
     print(f"  cadence       {cadence * 24 * 60:.2f} min  ({cadence:.6f} d)")
     print(f"  segments      {gaps + 1} (split at gaps > 1 d)")
 
-    current_win = int(bls_service._DETREND_WINDOW_DAYS / bls_service._KEPLER_CADENCE_DAYS)
-    print(f"\n  _detrend's fixed window: {current_win} points")
-    print(f"    = {current_win * bls_service._KEPLER_CADENCE_DAYS:.1f} d at Kepler cadence"
-          f"  (what the docstring promises)")
-    print(f"    = {current_win * cadence:.2f} d at this star's cadence"
-          f"  (what actually happens)")
+    legacy_win = int(bls_service._DETREND_WINDOW_DAYS / _LEGACY_KEPLER_CADENCE)
+    derived_win = int(bls_service._DETREND_WINDOW_DAYS / cadence)
+    print(f"\n  legacy fixed window   {legacy_win} points"
+          f" = {legacy_win * cadence:.2f} d at this cadence  (the bug)")
+    print(f"  cadence-derived       {derived_win} points"
+          f" = {bls_service._DETREND_WINDOW_DAYS:.1f} d, clamped to segment length")
+    print(f"  floor                 {bls_service._MIN_WINDOW_DAYS:.1f} d"
+          f"  (below this a segment is left undetrended)")
 
     injected, in_transit = inject_transit(
         time, flux, args.period, args.depth, args.duration)
@@ -129,8 +135,8 @@ def main() -> int:
     # The real function first, then a sweep in days to expose the knee.
     flat = bls_service._detrend(time, injected)
     d = measured_depth(flat, in_transit)
-    print(f"{'CURRENT':>10}  {current_win:>7}  {'?':>7}  {d * 100:>7.3f}%  "
-          f"{d / raw * 100:>5.1f}%   <- shipped code")
+    print(f"{'SHIPPED':>10}  {'auto':>7}  {'-':>7}  {d * 100:>7.3f}%  "
+          f"{d / raw * 100:>5.1f}%   <- bls._detrend as it stands")
 
     for wd in (0.5, 1.0, 2.0, 3.0, 5.0, 10.0, 15.0, 20.0, 30.0):
         flat, win, applied, total = detrend_with_window(time, injected, wd, cadence)
