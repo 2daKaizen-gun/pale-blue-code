@@ -143,10 +143,25 @@ pale-blue-code/
 ├── README.md
 ├── LICENSE                          AGPL-3.0
 │
+├── .github/workflows/
+│   └── frontier-refresh.yml         개척지 씨드 풀 2주마다 자동 갱신 (Phase 10)
+│
+├── scripts/                         오프라인 도구 — 런타임은 커밋된 결과만 읽음
+│   ├── download_koi_catalog.py      KOI 스냅샷 내려받기
+│   ├── build_frontier_seeds.py      미기록 KIC 씨드 풀 (배치 MAST 질의)
+│   ├── build_frontier_seeds_tess.py 미기록 TIC 씨드 풀 (최신 섹터 자동 감지)
+│   ├── find_single_sector_targets.py 단일섹터 미기록 TIC 탐색 (보정용 사냥터)
+│   ├── measure_detrend_window.py    디트렌드 창 ↔ 트랜짓 깊이 주입-회수 측정
+│   └── calibrate_min_transits.py    _N_MIN_TRANSITS 실측 보정 (행성/쌍성 주입)
+│
 ├── docs/
 │   ├── COLLABORATION.md             📜 협업 헌장 (약속)
 │   ├── WORKFLOW.md                  🔄 PCTC 사이클 (작업)
 │   ├── HANDOFF.md                   🛰️ 인수인계 템플릿 (인계)
+│   ├── deploy.md                    배포·운영·비용 런북
+│   │
+│   ├── vision/                      북극성 문서 (spec 아님, 방향과 가드레일)
+│   │   └── finding-our-own-planet.md
 │   │
 │   ├── phase-handoffs/              Phase 종료 시 작성
 │   │   └── phase-{N}-to-{M}.md
@@ -184,6 +199,12 @@ pale-blue-code/
     │   ├── bls.py
     │   ├── hunt.py
     │   └── vetting.py
+    ├── tests/                       pytest — 순수 계산 경계를 못박음
+    │   ├── test_archive.py
+    │   ├── test_bls.py              디트렌드 창·cadence 유도·세그먼트 clamp
+    │   ├── test_hunt.py             KOI/TOI 게이트 · 씨드 풀 불변식 · 섹터 계수
+    │   ├── test_hunt_api.py         HTTP 계약
+    │   └── test_vetting.py          4관문 · de-alias · 관측 트랜짓 계수
     ├── data/
     │   ├── koi_catalog.csv          KOI 스냅샷 (kepid/kepoi/disposition/period)
     │   ├── toi_catalog.csv          TOI 스냅샷 (tid/toi/disposition/period, Phase 10)
@@ -218,15 +239,26 @@ python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload        # http://localhost:8000
+
+# 테스트
+cd backend && pip install -r requirements-dev.txt && python -m pytest
+cd frontend && npm run build && npx vitest run
 ```
 
 ### 환경 변수
 
-`.env.example` 참고하여 `.env` 생성:
+`frontend/.env.example` 참고하여 `.env` 생성:
 
 ```env
 VITE_NASA_API_KEY=your_api_key_here    # https://api.nasa.gov 무료 발급
+# VITE_API_BASE_URL=                   # 로컬은 비워두세요 (localhost:8000으로 기본값)
 ```
+
+> ⚠️ **배포에서는 `VITE_API_BASE_URL`이 반드시 설정돼야 합니다.** Vite는 빌드 시점에
+> 이 값을 번들에 박아넣기 때문에, 비어 있으면 배포된 사이트가 방문자의 `localhost:8000`을
+> 부르고 **백엔드 기능 전부가 조용히 죽습니다**(행성 목록·광도곡선·BLS·판별·사냥). 실제로
+> 한동안 그 상태였습니다. 값은 **끝에 `/api`나 `/`를 붙이지 않은 순수 origin**이어야 합니다.
+> 앱은 이 상황을 감지해 배너로 알립니다 — 자세한 건 [`docs/deploy.md`](./docs/deploy.md).
 
 <br/>
 
