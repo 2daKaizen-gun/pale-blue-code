@@ -259,6 +259,39 @@ def test_tess_payload_exposes_baseline_and_sectors_on_response():
     assert resp.sector_count == 2
 
 
+class _FakeSearch:
+    """Minimal stand-in for a lightkurve SearchResult (table + row count)."""
+
+    def __init__(self, sequence_numbers):
+        self.table = {"sequence_number": sequence_numbers}
+        self._n = len(sequence_numbers)
+
+    def __len__(self):
+        return self._n
+
+
+def test_distinct_sectors_counts_sectors_not_products():
+    """SPOC serves 20 s and 120 s for the same pointing — that is one sector.
+
+    len(search) counted each cadence as extra sky-time, so a single-sector star was
+    reported as two sectors on the very badge that says how thin the look was.
+    """
+    assert hunt.distinct_sectors(_FakeSearch([104, 104])) == 1
+    assert hunt.distinct_sectors(_FakeSearch([14, 40, 41])) == 3
+    assert hunt.distinct_sectors(_FakeSearch([])) == 0
+
+
+def test_distinct_sectors_degrades_to_row_count_without_the_column():
+    """An unexpected table shape must not crash the fetch — count rows instead."""
+    class _NoColumn:
+        table = {}
+
+        def __len__(self):
+            return 2
+
+    assert hunt.distinct_sectors(_NoColumn()) == 2
+
+
 def test_lc_response_tolerates_legacy_payload_without_nail4_fields():
     # A pre-Phase-10 cached payload (no baseline/sector/mission) must still map,
     # falling back to model defaults rather than KeyError-ing at the router.

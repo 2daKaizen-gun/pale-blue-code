@@ -202,6 +202,21 @@ def _tic_lc_cache_path(tic_id: int) -> Path:
     return _CACHE_DIR / f"lc_{slug}_tess.json"
 
 
+def distinct_sectors(search) -> int:
+    """How many TESS sectors a search result covers — sectors, not rows.
+
+    One sector can yield several products: SPOC serves the same pointing at both
+    20-second and 120-second cadence, so len(search) counts cadences as if they were
+    extra sky-time. That number is what the vetting report shows as "TESS 구역", and
+    it is the basis for judging how thin the observation was, so counting products
+    there quietly inflates our apparent coverage.
+    """
+    try:
+        return len({int(s) for s in search.table["sequence_number"]})
+    except (KeyError, TypeError, ValueError):
+        return int(len(search))
+
+
 def _build_tess_payload(
     tic_id: int,
     time_arr: np.ndarray,
@@ -253,7 +268,11 @@ def fetch_lc_by_tic(tic_id: int) -> dict:
         return json.loads(cache_path.read_text(encoding="utf-8"))
 
     star_name = f"TIC {tic_id}"
-    search = lk.search_lightcurve(star_name, mission="TESS", author="SPOC")
+    # exptime must match what the payload advertises and what _get_full_lc re-searches
+    # with. Unfiltered, MAST also returns the 20-second product for the same sector,
+    # so the stitched curve mixed two cadences while claiming to be the 2-minute one.
+    search = lk.search_lightcurve(star_name, mission="TESS", author="SPOC",
+                                  exptime="short")
     if len(search) == 0:
         raise FileNotFoundError(f"No TESS SPOC light curve found for {star_name}")
 
@@ -268,7 +287,8 @@ def fetch_lc_by_tic(tic_id: int) -> dict:
     flux_arr = lc.flux.value.astype(float)
     err_arr = lc.flux_err.value.astype(float) if lc.flux_err is not None else np.zeros_like(flux_arr)
 
-    data = _build_tess_payload(tic_id, time_arr, flux_arr, err_arr, sector_count=len(search))
+    data = _build_tess_payload(tic_id, time_arr, flux_arr, err_arr,
+                               sector_count=distinct_sectors(search))
     cache_path.write_text(json.dumps(data), encoding="utf-8")
     return data
 
