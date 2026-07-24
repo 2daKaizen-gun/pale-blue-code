@@ -89,7 +89,9 @@ function Footprint({ report }: Props) {
   const idLabel = ID_LABEL[report.mission] ?? 'KIC'
   const cells: { label: string; value: string }[] = [
     { label: '관측선', value: `${report.baseline_days.toFixed(1)}일` },
-    { label: '통과 횟수', value: `~${report.transit_count}회` },
+    // an actual count of transits with data, so no "~" hedge — a long baseline with
+    // sparse coverage (TESS revisits) shows the few transits we really saw.
+    { label: '실제 통과', value: `${report.transit_count}회` },
   ]
   if (report.sector_count != null) {
     cells.push({ label: 'TESS 구역', value: `${report.sector_count}개` })

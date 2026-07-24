@@ -23,7 +23,9 @@ class VettingReport(BaseModel):
     trust: Literal["strong", "weak", "unlikely"]
     # Phase 10, honesty nail 4 — confidence must scale with how much we watched.
     mission: str = "kepler"           # which survey named the star
-    baseline_days: float = 0.0        # observed span time[-1]-time[0] the gates saw
-    transit_count: int = 0            # floor(baseline / period): transit epochs observed
+    baseline_days: float = 0.0        # observed span (max-min) the gates saw
+    transit_count: int = 0            # transit epochs actually carrying data — NOT
+                                      # floor(baseline/period), which counts epochs
+                                      # that fell in gaps (see observed_transits)
     sector_count: int | None = None   # TESS sectors stitched (None for Kepler)
     provisional: bool = False         # strong, but on too few transits → "provisional strong"

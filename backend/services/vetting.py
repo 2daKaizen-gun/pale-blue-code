@@ -63,11 +63,29 @@ _PERIOD_MAX = 600.0
 _N_MIN_TRANSITS = 8
 
 
-def transit_count(baseline_days: float, period: float) -> int:
-    """How many transit epochs fit in the observed span: floor(baseline / period)."""
-    if period <= 0 or baseline_days <= 0:
+def observed_transits(time: np.ndarray, best: dict, min_pts: int = _MIN_PTS) -> int:
+    """How many transit epochs the data actually covers.
+
+    Not floor(baseline / period), which counts every epoch the star *would* have
+    transited — including all the ones that fell in a gap where nothing was
+    recorded. Kepler stares continuously, so the two agree closely and the
+    distinction never mattered. TESS breaks it wide open: a target revisited across
+    9 sectors spans 2850 days but is only pointed at for a few weeks of them, so a
+    30-day period yields 93 nominal epochs and, in the actual light curve, one.
+
+    Counting the nominal epochs let a verdict resting on a single observed transit
+    call itself well-supported (provisional=False), which is precisely backwards.
+    An epoch counts here only if it carries enough samples to measure at all.
+    """
+    period = best.get("period", 0.0)
+    if period <= 0 or len(time) == 0:
         return 0
-    return int(baseline_days // period)
+    in_t = np.abs(_signed_phase(time, best["transit_time"], period)) < best["duration"] / 2
+    if not in_t.any():
+        return 0
+    epochs = np.round((time[in_t] - best["transit_time"]) / period).astype(int)
+    _, counts = np.unique(epochs, return_counts=True)
+    return int((counts >= min_pts).sum())
 
 
 def is_provisional(trust: str, n_transits: int) -> bool:
@@ -391,8 +409,9 @@ def build_report(
         check_size(time, flux, corrected),
     ]
     trust = synthesize(checks)
-    baseline_days = float(time[-1] - time[0]) if len(time) >= 2 else 0.0
-    n_transits = transit_count(baseline_days, corrected["period"])
+    # min/max rather than last-minus-first: callers hand us their own ordering.
+    baseline_days = float(time.max() - time.min()) if len(time) >= 2 else 0.0
+    n_transits = observed_transits(time, corrected)
     return VettingReport(
         kic_id=star_id,
         period=corrected["period"],

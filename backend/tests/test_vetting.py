@@ -278,11 +278,28 @@ def test_synthesize_two_soft_fails_is_unlikely():
 
 # ── honesty nail 4 (Phase 10): confidence scales with how much we watched ──────
 
-def test_transit_count_is_floor_baseline_over_period():
-    assert vet.transit_count(27.0, 3.0) == 9      # a hot Jupiter in one TESS sector
-    assert vet.transit_count(27.0, 13.0) == 2     # a longer period → only 2 epochs
-    assert vet.transit_count(0.0, 3.0) == 0
-    assert vet.transit_count(27.0, 0.0) == 0      # guards against divide-by-zero
+def test_observed_transits_counts_epochs_with_data():
+    """Continuous coverage: every epoch in the span really is observed."""
+    time, _, best = make_planet()                 # 60 d at P=3 d
+    assert vet.observed_transits(time, best) == 20
+    assert vet.observed_transits(np.array([]), best) == 0
+    assert vet.observed_transits(time, {**best, "period": 0.0}) == 0
+
+
+def test_observed_transits_ignores_epochs_that_fell_in_gaps():
+    """The distinction TESS forces: a long span is not the same as long coverage.
+
+    Two short visits far apart span 40 days — floor(40/3) would claim 13 transits —
+    but the star was only watched across four of those epochs. Counting the other
+    nine, which happened where no data exists, is how a verdict resting on almost
+    nothing called itself well-supported.
+    """
+    time, _, best = make_planet()
+    visit_a = time[time < 6.0]                    # 2 transits
+    visit_b = time[(time > 33.5) & (time < 39.0)] # 2 more, a month later
+    sparse = np.concatenate([visit_a, visit_b])
+    assert sparse.max() - sparse.min() > 34.0
+    assert vet.observed_transits(sparse, best) == 4
 
 
 def test_is_provisional_only_downgrades_thin_strong():
