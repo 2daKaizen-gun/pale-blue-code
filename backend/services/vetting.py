@@ -62,6 +62,59 @@ _PERIOD_MAX = 600.0
 # The earlier value of 5 predated the fix to _transit_depths and was a guess.
 _N_MIN_TRANSITS = 8
 
+# Honesty nail 5 (Phase 11): the four gates ask whether a signal *looks* planetary,
+# never whether it is a real detection. A marginal BLS peak can pass all four — TIC
+# 7318157 did, strong 4/4 on a dip that lived only in the even epochs (sub-10-3). So a
+# precondition runs first: fold the transits, measure the depth against the scatter
+# BETWEEN transits (not within — that manufactures confidence, sub-10-3 L4e), and if
+# the signal is not significant, stop before vetting and report "insignificant".
+#
+# Measured, not guessed (sub-11-1 L1, scripts/measure_detection_significance.py): on the
+# three anchors plus the noise case, the periodogram SDE could NOT separate them — TIC
+# 102029734, a real single-transit anchor, scored at or below the noise, because BLS
+# rewards repetition and is blind to a monotransit. The between-transit S/N did: noise
+# sat at 3.02-3.23, every real multi-transit signal at 6.00 or above. 4.0 is the gap.
+_SIG_MIN = 4.0
+
+
+def detection_significance(time: np.ndarray, flux: np.ndarray, best: dict) -> float | None:
+    """Is there a real detection here at all, before the gates judge its shape?
+
+    Collapse each well-sampled transit at the (de-aliased) period to one depth, then
+    take the t-statistic that the mean depth exceeds zero, using the scatter *between*
+    transits as the error. A real planet dims by the same amount every transit, so the
+    depths agree and the statistic is large; a noise peak that BLS latched onto (like
+    TIC 7318157's even-epoch-only dip) has wildly inconsistent per-transit depths and
+    collapses to noise level.
+
+    Returns None for fewer than two observed transits: a single transit has no
+    transit-to-transit scatter to measure, so judgment is held rather than made, and
+    single-event significance is left to sub-11-2+ (monotransits). This means a
+    single-transit *noise* case is not caught here — the honest boundary of what one
+    can say without repetition.
+    """
+    period = best["period"]
+    t0 = best["transit_time"]
+    dur = best["duration"]
+    if period <= 0 or len(time) == 0:
+        return None
+
+    in_t = np.abs(_signed_phase(time, t0, period)) < dur / 2
+    epoch = np.round((time - t0) / period).astype(int)
+    depths = []
+    for e in np.unique(epoch[in_t]):
+        sel = in_t & (epoch == e)
+        if int(sel.sum()) >= _MIN_PTS:
+            depths.append(1.0 - float(np.median(flux[sel])))
+    if len(depths) < 2:
+        return None                    # single transit — held; sub-11-2+ owns this
+
+    d = np.array(depths)
+    sd = float(d.std(ddof=1))
+    if sd <= 0:
+        return float("inf")            # identical depths — maximally coherent
+    return float(d.mean() / (sd / np.sqrt(len(d))))
+
 
 def observed_transits(time: np.ndarray, best: dict, min_pts: int = _MIN_PTS) -> int:
     """How many transit epochs the data actually covers.
@@ -402,6 +455,34 @@ def build_report(
     sector_count: int | None = None,
 ) -> VettingReport:
     corrected, factor = _dealias(time, flux, best)
+    # min/max rather than last-minus-first: callers hand us their own ordering.
+    baseline_days = float(time.max() - time.min()) if len(time) >= 2 else 0.0
+    n_transits = observed_transits(time, corrected)
+
+    # Nail 5 — before judging the shape, ask whether there is a real detection at all.
+    # A signal below the bar never reaches the four gates: no gate runs, no trust is
+    # claimed. "insignificant" is a different axis from strong/weak/unlikely, so we do
+    # not synthesize a verdict here — checks stays empty to show nothing was vetted.
+    significance = detection_significance(time, flux, corrected)
+    if significance is not None and significance < _SIG_MIN:
+        return VettingReport(
+            kic_id=star_id,
+            period=corrected["period"],
+            bls_period=best["period"],
+            alias_factor=factor,
+            checks=[],
+            passed_count=0,
+            total=0,
+            trust="insignificant",
+            mission=mission,
+            baseline_days=baseline_days,
+            transit_count=n_transits,
+            sector_count=sector_count,
+            provisional=False,
+            significance=significance,
+            significant=False,
+        )
+
     checks = [
         check_odd_even(time, flux, corrected),
         check_secondary(time, flux, corrected),
@@ -409,9 +490,6 @@ def build_report(
         check_size(time, flux, corrected),
     ]
     trust = synthesize(checks)
-    # min/max rather than last-minus-first: callers hand us their own ordering.
-    baseline_days = float(time.max() - time.min()) if len(time) >= 2 else 0.0
-    n_transits = observed_transits(time, corrected)
     return VettingReport(
         kic_id=star_id,
         period=corrected["period"],
@@ -426,6 +504,8 @@ def build_report(
         transit_count=n_transits,
         sector_count=sector_count,
         provisional=is_provisional(trust, n_transits),
+        significance=significance,
+        significant=True,
     )
 
 

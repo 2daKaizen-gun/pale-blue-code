@@ -334,3 +334,91 @@ def test_short_baseline_strong_is_provisional():
     assert report.mission == "tess"
     assert report.sector_count == 1
     assert report.baseline_days == pytest.approx(time[m][-1] - time[m][0])
+
+
+# ── detection significance (nail 5) ──────────────────────────────────────────
+
+def make_noise(seed=1):
+    """Flat curve, no transit injected — BLS latched onto nothing real. `best` still
+    points at a period, as it would after run_bls picked a spurious peak."""
+    rng = np.random.default_rng(seed)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = np.ones_like(time) + rng.normal(0.0, _NOISE, size=time.shape)
+    best = {"period": _PERIOD, "duration": _DURATION, "depth": 0.005, "transit_time": _T0}
+    return time, flux, best
+
+
+def make_single_transit(seed=0):
+    """A span holding exactly one transit — no transit-to-transit scatter to measure."""
+    rng = np.random.default_rng(seed)
+    time = np.arange(0.0, 2.5, _CADENCE)          # < 2 periods → one transit at _T0
+    flux = np.ones_like(time)
+    flux[np.abs(_phase(time, _T0, _PERIOD)) < _DURATION / 2] -= 0.01
+    flux += rng.normal(0.0, _NOISE, size=time.shape)
+    best = {"period": _PERIOD, "duration": _DURATION, "depth": 0.01, "transit_time": _T0}
+    return time, flux, best
+
+
+def test_significance_high_for_coherent_planet():
+    # Every transit dims by the same amount → the between-transit statistic is large.
+    time, flux, best = make_planet()
+    sig = vet.detection_significance(time, flux, best)
+    assert sig is not None and sig >= vet._SIG_MIN
+
+
+def test_significance_low_for_noise():
+    # No real signal → per-transit "depths" are just scatter, statistic near zero.
+    time, flux, best = make_noise()
+    sig = vet.detection_significance(time, flux, best)
+    assert sig is not None and sig < vet._SIG_MIN
+
+
+def test_significance_held_on_single_transit():
+    # One transit has no transit-to-transit scatter — judgment is held, not made.
+    time, flux, best = make_single_transit()
+    assert vet.detection_significance(time, flux, best) is None
+
+
+def test_insignificant_report_skips_the_four_gates():
+    # A signal below the bar never reaches the gates: nothing is vetted, no trust claimed.
+    time, flux, best = make_noise()
+    report = vet.build_report(7318157, time, flux, best, mission="tess", sector_count=1)
+    assert report.trust == "insignificant"
+    assert report.checks == []                      # no gate ran
+    assert report.passed_count == 0 and report.total == 0
+    assert report.significant is False
+    assert report.significance is not None and report.significance < vet._SIG_MIN
+    assert report.provisional is False              # never invents confidence
+
+
+def test_significant_report_still_runs_the_gates():
+    # A real detection passes the precondition and is vetted exactly as before.
+    time, flux, best = make_planet()
+    report = vet.build_report(11446443, time, flux, best)
+    assert report.trust == "strong"
+    assert len(report.checks) == 4
+    assert report.significant is True
+    assert report.significance is not None and report.significance >= vet._SIG_MIN
+
+
+def test_single_transit_is_vetted_not_gated_out():
+    # Held significance (k<2) must not be mistaken for a failure — the gates still run,
+    # and single-event significance is deferred to sub-11-2+ (monotransits).
+    time, flux, best = make_single_transit()
+    report = vet.build_report(102029734, time, flux, best, mission="tess", sector_count=1)
+    assert report.trust != "insignificant"
+    assert report.significance is None
+    assert report.significant is True
+    assert len(report.checks) == 4
+
+
+def test_legacy_vetting_report_defaults_to_significant():
+    # A vet_*.json written before nail 5 has neither field — it must still validate,
+    # defaulting to significant so old caches are not silently voided.
+    from models.vetting import VettingReport
+    legacy = VettingReport(
+        kic_id=1, period=3.0, bls_period=3.0, alias_factor=1.0, checks=[],
+        passed_count=4, total=4, trust="strong",
+    )
+    assert legacy.significant is True
+    assert legacy.significance is None
