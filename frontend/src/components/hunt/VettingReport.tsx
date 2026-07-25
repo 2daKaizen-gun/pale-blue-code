@@ -32,7 +32,12 @@ const COPY: Record<CheckName, { pass: string; fail: string }> = {
   },
 }
 
-const TRUST: Record<VettingReport['trust'], { ring: string; badge: string; label: string; line: string }> = {
+// "insignificant" never reaches this map — it is handled by an early return before
+// the gate list, since no gate ran (nail 5). The other three read here as before.
+const TRUST: Record<
+  Exclude<VettingReport['trust'], 'insignificant'>,
+  { ring: string; badge: string; label: string; line: string }
+> = {
   strong: {
     ring: 'border-emerald-500/50 bg-emerald-500/10',
     badge: 'border-emerald-400/50 bg-emerald-500/10 text-emerald-300',
@@ -123,7 +128,46 @@ function Footprint({ report }: Props) {
   )
 }
 
+// Nail 5 — a signal that did not clear the significance precondition never reached the
+// four gates, so there is no gate list to show. Report why it stopped instead: this is
+// the window into the vetting for the case where vetting never began.
+function InsignificantCard({ report }: Props) {
+  const idLabel = ID_LABEL[report.mission] ?? 'KIC'
+  const sig = report.significance
+  return (
+    <div className="rounded-lg border border-cosmos-border bg-cosmos-elevated p-5">
+      <p className="mb-1 font-mono text-xs tracking-widest text-cosmos-muted">
+        VETTING — {idLabel} {report.kic_id}
+      </p>
+      <p className="mb-1 text-lg font-semibold text-cosmos-text">
+        먼저 물었습니다 — 이게 진짜 검출인가?
+      </p>
+      <p className="mb-4 text-sm text-cosmos-muted">
+        {report.period.toFixed(3)}일 주기 신호를 네 관문에 올리기 전에, 애초에 실재하는
+        검출인지부터 확인합니다. 모양을 심문하는 건 그다음입니다.
+      </p>
+
+      <Footprint report={report} />
+
+      <div className="rounded-lg border border-cosmos-border bg-cosmos-bg p-4">
+        <span className="inline-block rounded border border-cosmos-subtle bg-cosmos-bg px-2 py-0.5 font-mono text-xs tracking-widest text-cosmos-muted">
+          NO DETECTION
+        </span>
+        <p className="mt-2 text-sm text-cosmos-text">
+          트랜짓마다 깊이가 제각각이라 — 진짜 행성은 매번 똑같이 어두워집니다 — 이 봉우리는
+          광도곡선의 잡음 바닥과 구별되지 않았습니다
+          {sig != null && ` (트랜짓-간 신호 세기 ${sig.toFixed(1)})`}. 감식할 지문이 아니라
+          번진 얼룩이었습니다. 그래서 네 관문은 돌리지 않았습니다 — 없는 신호를 판별할
+          수는 없으니까요. 실패가 아니라 정직한 결과입니다.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function VettingReportCard({ report }: Props) {
+  if (report.trust === 'insignificant') return <InsignificantCard report={report} />
+
   const trust = TRUST[report.trust]
   const alias = aliasNote(report)
 

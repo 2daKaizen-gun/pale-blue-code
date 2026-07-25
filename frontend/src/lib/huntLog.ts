@@ -16,7 +16,7 @@
 // verdicts of a hunt that actually ran; `recorded` (already on file) and `no_lc`
 // (Kepler never observed it) are turned away BEFORE the vetter, so they are not
 // hunts — the stats keep them apart from the honest "N번 사냥" count.
-export type HuntOutcome = 'strong' | 'weak' | 'unlikely' | 'recorded' | 'no_lc'
+export type HuntOutcome = 'strong' | 'weak' | 'unlikely' | 'insignificant' | 'recorded' | 'no_lc'
 
 export interface HuntLogEntry {
   kic_id: number
@@ -25,10 +25,11 @@ export interface HuntLogEntry {
 }
 
 export interface HuntStats {
-  hunts: number // vetter actually ran: strong + weak + unlikely
+  hunts: number // vetter actually ran: strong + weak + unlikely + insignificant
   candidates: number // strong verdicts — the earned "후보" (nail #3)
   weak: number // ambiguous, needs another look
-  emptyHands: number // unlikely — noise/binary, the honest majority
+  emptyHands: number // unlikely (vetted as noise/binary) or insignificant (no real
+  //   detection to vet) — the honest majority. Both are empty hands from the hunt.
   recorded: number // already-on-file stars turned away at the gate
   noLc: number // stars Kepler never observed
 }
@@ -60,6 +61,10 @@ export function computeStats(entries: HuntLogEntry[]): HuntStats {
         break
       case 'unlikely':
         stats.emptyHands++
+        stats.hunts++
+        break
+      case 'insignificant':
+        stats.emptyHands++    // no real detection — empty hands, but the vetter did run
         stats.hunts++
         break
       case 'recorded':
@@ -99,7 +104,7 @@ export function parseLog(raw: string | null): HuntLogEntry[] {
   }
 }
 
-const OUTCOMES: readonly HuntOutcome[] = ['strong', 'weak', 'unlikely', 'recorded', 'no_lc']
+const OUTCOMES: readonly HuntOutcome[] = ['strong', 'weak', 'unlikely', 'insignificant', 'recorded', 'no_lc']
 function isOutcome(v: unknown): v is HuntOutcome {
   return typeof v === 'string' && (OUTCOMES as readonly string[]).includes(v)
 }

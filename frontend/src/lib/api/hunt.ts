@@ -47,13 +47,16 @@ export interface VettingReport {
   checks: VettingCheck[]
   passed_count: number
   total: number
-  trust: 'strong' | 'weak' | 'unlikely'
+  trust: 'strong' | 'weak' | 'unlikely' | 'insignificant'
   // Phase 10, honesty nail 4 — confidence scaled to how much sky-time we saw.
   mission: Mission // which survey named the star (KIC vs TIC labelling)
   baseline_days: number // observed span the gates saw; short = blunt vetter
   transit_count: number // transit epochs that actually carry data, gaps excluded
   sector_count: number | null // TESS sectors stitched (null for Kepler)
   provisional: boolean // strong, but on too few transits → "provisional strong"
+  // Phase 11, honesty nail 5 — is there a real detection at all, before judging shape?
+  significance: number | null // transit S/N between transits; null = held (single transit)
+  significant: boolean // false only when the precondition stopped before the four gates
 }
 
 async function getJSON<T>(path: string): Promise<T> {

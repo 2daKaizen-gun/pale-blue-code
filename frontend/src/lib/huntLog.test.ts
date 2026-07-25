@@ -53,6 +53,19 @@ describe('computeStats', () => {
     expect(stats.noLc).toBe(1)
   })
 
+  it('insignificant is a hunt with empty hands (nail 5), never a candidate', () => {
+    // The precondition ran and found no real detection — the vetter did run, so it
+    // counts as a hunt, but it is empty hands, not a candidate.
+    const stats = computeStats([
+      entry(1, 'strong'),
+      entry(2, 'insignificant'),
+      entry(3, 'insignificant'),
+    ])
+    expect(stats.hunts).toBe(3)
+    expect(stats.candidates).toBe(1)
+    expect(stats.emptyHands).toBe(2)
+  })
+
   it('the honest frontier majority: many hunts, zero candidates', () => {
     const empties = Array.from({ length: 37 }, (_, i) => entry(i, 'unlikely'))
     const stats = computeStats(empties)

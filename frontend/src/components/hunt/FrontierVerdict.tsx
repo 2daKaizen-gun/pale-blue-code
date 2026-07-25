@@ -34,6 +34,15 @@ const FRAME: Record<
     kicker: '빈손 — 그것도 답입니다',
     body: '이 별에는 행성이라 부를 신호가 없습니다. 노이즈이거나 쌍성입니다. 실패가 아니라 결과입니다 — "여기엔 행성이 없다"도 과학입니다. 개척은 원래 대부분 이렇습니다.',
   },
+  // Nail 5 — the signal never cleared the detection precondition, so no gate ran.
+  // A different empty hand from `unlikely`: not "vetted and it's a binary" but
+  // "there was nothing real to vet". The card below spells out the significance.
+  insignificant: {
+    ring: 'border-cosmos-border bg-cosmos-bg',
+    badge: 'border-cosmos-subtle bg-cosmos-bg text-cosmos-muted',
+    kicker: '검출 아님 — 판정할 신호가 없습니다',
+    body: 'BLS가 봉우리 하나를 골랐지만, 네 관문에 올리기 전에 물었습니다 — 이게 진짜 검출인가? 잡음 바닥과 구별되지 않아, 감식할 신호가 없다고 판단했습니다. 빈손이지만 정직한 빈손입니다 — 개척지에서 대부분의 별이 이렇습니다.',
+  },
 }
 
 export default function FrontierVerdict({ report }: Props) {

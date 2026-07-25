@@ -16,6 +16,9 @@ const TRUST_BADGE: Record<VettingReport['trust'], { badge: string; label: string
   strong: { badge: 'border-emerald-400/50 bg-emerald-500/10 text-emerald-300', label: '신뢰 후보' },
   weak: { badge: 'border-amber-400/50 bg-amber-500/10 text-amber-300', label: '검토 필요' },
   unlikely: { badge: 'border-cosmos-subtle bg-cosmos-bg text-cosmos-muted', label: '행성 아닐 가능성' },
+  // Export is offered only on strong (FrontierHuntPage), so this never renders; it
+  // exists to keep the verdict map exhaustive after nail 5 added "insignificant".
+  insignificant: { badge: 'border-cosmos-subtle bg-cosmos-bg text-cosmos-muted', label: '검출 아님' },
 }
 
 // Shown after every hunt regardless of the KOI verdict: a hunter may want to
