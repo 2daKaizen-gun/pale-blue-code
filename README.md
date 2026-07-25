@@ -162,7 +162,8 @@ pale-blue-code/
 │   ├── build_frontier_seeds_tess.py 미기록 TIC 씨드 풀 (최신 섹터 자동 감지)
 │   ├── find_single_sector_targets.py 단일섹터 미기록 TIC 탐색 (보정용 사냥터)
 │   ├── measure_detrend_window.py    디트렌드 창 ↔ 트랜짓 깊이 주입-회수 측정
-│   └── calibrate_min_transits.py    _N_MIN_TRANSITS 실측 보정 (행성/쌍성 주입)
+│   ├── calibrate_min_transits.py    _N_MIN_TRANSITS 실측 보정 (행성/쌍성 주입)
+│   └── measure_detection_significance.py  검출 유의성 지표 실측 (SDE·트랜짓 S/N, Phase 11)
 │
 ├── docs/
 │   ├── COLLABORATION.md             📜 협업 헌장 (약속)
