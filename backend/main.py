@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import planets, lightcurves, bls, hunt
+from routers import planets, lightcurves, bls, hunt, monotransit
 
 
 @asynccontextmanager
@@ -27,6 +27,7 @@ app.include_router(planets.router, prefix="/api")
 app.include_router(lightcurves.router, prefix="/api")
 app.include_router(bls.router, prefix="/api")
 app.include_router(hunt.router, prefix="/api")
+app.include_router(monotransit.router, prefix="/api")
 
 
 @app.get("/api/health")

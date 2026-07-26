@@ -360,3 +360,49 @@ def discriminators(
     checks.append({"name": "symmetry", "passed": asym < _ASYM_MAX, "value": round(asym, 3)})
 
     return {"checks": checks, "passed": all(c["passed"] for c in checks)}
+
+
+# --- reachable entry point (Light 5) ------------------------------------------
+
+def run_monotransit(planet_name: str) -> dict:
+    """Full single-transit pass on a cached light curve: lc -> detrend -> search ->
+    significance -> discriminators.
+
+    Reuses the BLS light-curve loader and detrend verbatim, then runs the monotransit
+    search this module adds. Each ranked event is annotated with its red-noise
+    significance and the lone-event discriminators; ``candidate`` is True only when the
+    event both clears the measured significance floor and passes every discriminator.
+    Every event is returned, passing or not, so the report can show *why* — the same
+    "window into the vetting" the four gates give.
+    """
+    from services import bls as bls_service
+
+    lc_meta = bls_service._find_lc_cache(planet_name)
+    if lc_meta is None:
+        raise FileNotFoundError(f"No light curve cache found for '{planet_name}'")
+
+    time, flux = bls_service._get_full_lc(planet_name, lc_meta)
+    flux = bls_service._detrend(time, flux)
+    med = float(np.median(flux))
+    if med != 0:
+        flux = flux / med                       # baseline to 1 for depth/significance
+    sigma = estimate_noise(flux)
+
+    candidates = []
+    for e in search(time, flux, sigma=sigma):
+        z = significance_red(time, flux, e["t0"], e["duration"])
+        disc = discriminators(time, flux, e, sigma=sigma)
+        significant = z is not None and z >= _SIG_MIN_MONO
+        candidates.append({
+            "t0": e["t0"],
+            "duration": e["duration"],
+            "depth": e["depth"],
+            "ses": e["ses"],
+            "significance": z,
+            "significant": significant,
+            "checks": disc["checks"],
+            "passed": disc["passed"],
+            "candidate": significant and disc["passed"],
+        })
+
+    return {"planet_name": planet_name, "candidates": candidates}
