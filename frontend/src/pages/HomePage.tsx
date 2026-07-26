@@ -1,5 +1,6 @@
 import ApodWidget from '../components/apod/ApodWidget'
 import PhaseCard from '../components/phases/PhaseCard'
+import FrontierCTA from '../components/phases/FrontierCTA'
 import { PHASES } from '../constants/phases'
 
 export default function HomePage() {
@@ -48,6 +49,10 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* The real hunt — deliberately outside the roadmap grid (separation
+          invariant): the frontier is not another lesson, it is leaving the lesson. */}
+      <FrontierCTA />
     </div>
   )
 }
