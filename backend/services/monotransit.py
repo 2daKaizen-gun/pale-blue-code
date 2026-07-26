@@ -124,3 +124,90 @@ def matched_filter_score(
     depth_hat = ds / ss
     ses = ds / (sigma * np.sqrt(ss))
     return {"depth": depth_hat, "ses": float(ses), "n_in": n_in}
+
+
+# The search grid. A single-sector planet can leave anything from a grazing few-hour
+# dip to a near-day-long central transit; these durations bracket that range. The
+# grid steps t0 at duration/OVERSAMPLE so no dip falls between trial centers.
+_DURATIONS = [0.1, 0.2, 0.4, 0.8]   # days, total first-to-last contact
+_OVERSAMPLE = 4
+_MIN_IN_TRANSIT = 3                 # a dip resting on < 3 points is a spike, not a transit
+
+# A dip surfaces at several neighboring (t0, duration) grid points; we keep only the
+# strongest and merge anything within DEDUP_FACTOR * duration of it in time.
+_DEDUP_FACTOR = 1.0
+
+# Repetition is BLS's job. If a candidate has a comparable-depth twin elsewhere in the
+# light curve, the two form a repeating pair a folded search would already catch, so we
+# drop them from the *mono*transit list. "Comparable" = the shallower is at least this
+# fraction of the deeper; unrelated noise peaks are far shallower and survive as noise,
+# not as twins.
+_REPEAT_DEPTH_RATIO = 0.5
+
+
+def _scan(time, flux, durations, sigma, ingress_frac):
+    """Every scored (t0, duration) position on the grid with a real, resting dip."""
+    hits = []
+    t_lo, t_hi = float(time.min()), float(time.max())
+    for dur in durations:
+        half = 0.5 * dur
+        step = dur / _OVERSAMPLE
+        t0s = np.arange(t_lo + half, t_hi - half, step)
+        for t0 in t0s:
+            out = matched_filter_score(time, flux, t0, dur, sigma, ingress_frac)
+            if out["depth"] > 0 and out["n_in"] >= _MIN_IN_TRANSIT:
+                hits.append({"t0": float(t0), "duration": dur, **out})
+    return hits
+
+
+def _dedup(hits):
+    """Collapse neighboring grid hits for the same dip, keeping the strongest SES."""
+    kept = []
+    for h in sorted(hits, key=lambda x: x["ses"], reverse=True):
+        window = _DEDUP_FACTOR * h["duration"]
+        if any(abs(h["t0"] - k["t0"]) < max(window, _DEDUP_FACTOR * k["duration"]) for k in kept):
+            continue
+        kept.append(h)
+    return kept
+
+
+def _is_repeating(event, others):
+    """True if a comparable-depth dip sits elsewhere — a pair BLS would fold."""
+    for o in others:
+        if o is event:
+            continue
+        hi, lo = max(event["depth"], o["depth"]), min(event["depth"], o["depth"])
+        if hi > 0 and lo / hi >= _REPEAT_DEPTH_RATIO:
+            return True
+    return False
+
+
+def search(
+    time: np.ndarray,
+    flux: np.ndarray,
+    durations: list[float] | None = None,
+    sigma: float | None = None,
+    ingress_frac: float = _INGRESS_FRAC,
+    top_k: int = 10,
+) -> list[dict]:
+    """Find isolated, transit-shaped single dips a folded search would discard.
+
+    Slides the matched filter over a (duration x t0) grid, keeps the strongest hit
+    per dip, then drops any dip that has a comparable-depth twin — those repeat, and
+    catching repetition is BLS's job, not ours. What is left is the monotransit list:
+    events that appear *once*, ranked by single-event statistic.
+
+    No significance cut is applied here (that is Light 3); only structural floors —
+    a dip must rest on at least a few points and be a dimming, not a brightening.
+    Returns up to ``top_k`` candidates as dicts of (t0, duration, depth, ses, n_in).
+    """
+    time = np.asarray(time, dtype=float)
+    flux = np.asarray(flux, dtype=float)
+    durations = durations or _DURATIONS
+    if sigma is None:
+        sigma = estimate_noise(flux)
+
+    peaks = _dedup(_scan(time, flux, durations, sigma, ingress_frac))
+    singles = [p for p in peaks if not _is_repeating(p, peaks)]
+    singles.sort(key=lambda x: x["ses"], reverse=True)
+    return singles[:top_k]

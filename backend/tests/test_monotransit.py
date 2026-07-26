@@ -86,3 +86,38 @@ def test_template_off_the_data_scores_zero():
     time, flux = _lc()
     out = mt.matched_filter_score(time, flux, _SPAN + 5.0, _DURATION)
     assert out["ses"] == 0.0 and out["n_in"] == 0
+
+
+# ---- search: isolated single-transit recovery --------------------------------
+
+def test_finds_the_single_injected_dip():
+    time, flux = _lc(depth=_DEPTH, seed=10)
+    events = mt.search(time, flux)
+    assert len(events) >= 1
+    top = events[0]                      # strongest single event
+    assert abs(top["t0"] - _T0) < 0.1    # located to within a fraction of a day
+    assert abs(top["depth"] - _DEPTH) < 0.3 * _DEPTH
+    assert top["ses"] > 20.0
+
+
+def test_excludes_a_repeating_pair():
+    # two dips of equal depth, half a sector apart — a folded search would catch
+    # this, so the monotransit list must not claim it as a single event
+    rng = np.random.default_rng(11)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = mt.transit_model(time, 8.0, _DURATION, _DEPTH)
+    flux *= mt.transit_model(time, 20.0, _DURATION, _DEPTH)
+    flux = flux + rng.normal(0.0, _NOISE, size=time.shape)
+    events = mt.search(time, flux)
+    # neither equal-depth dip survives as a "single" transit
+    assert not any(
+        abs(e["t0"] - 8.0) < 0.5 or abs(e["t0"] - 20.0) < 0.5 for e in events
+    )
+
+
+def test_lone_dip_survives_among_shallow_noise():
+    # one real dip; the rest is noise. The dip has no comparable-depth twin, so it
+    # is not mistaken for a repeating series and remains the top candidate.
+    time, flux = _lc(depth=_DEPTH, seed=12)
+    events = mt.search(time, flux)
+    assert events and abs(events[0]["t0"] - _T0) < 0.1
