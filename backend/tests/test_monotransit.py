@@ -121,3 +121,44 @@ def test_lone_dip_survives_among_shallow_noise():
     time, flux = _lc(depth=_DEPTH, seed=12)
     events = mt.search(time, flux)
     assert events and abs(events[0]["t0"] - _T0) < 0.1
+
+
+# ---- significance_red: red-noise-aware single-event significance --------------
+
+def test_clean_dip_clears_threshold():
+    time, flux = _lc(depth=_DEPTH, seed=20)
+    z = mt.significance_red(time, flux, _T0, _DURATION)
+    assert z is not None and z > mt._SIG_MIN_MONO
+
+
+def test_noise_epoch_stays_below_threshold():
+    rng = np.random.default_rng(21)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = 1.0 + rng.normal(0.0, _NOISE, size=time.shape)
+    z = mt.significance_red(time, flux, _T0, _DURATION)   # no dip here
+    assert z is not None and z < mt._SIG_MIN_MONO
+
+
+def test_red_noise_deflates_significance():
+    # the same dip, same depth, on a flat star vs a slowly wobbling (red) one. The
+    # wobble makes same-duration control windows scatter wider, so the honest
+    # significance is lower on the restless star even though the dip is identical.
+    rng = np.random.default_rng(22)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    dip = mt.transit_model(time, _T0, _DURATION, _DEPTH)
+
+    white = dip + rng.normal(0.0, _NOISE, size=time.shape)
+    wobble = 0.003 * np.sin(2 * np.pi * time / 2.5)       # ~2.5-day correlated drift
+    red = dip + wobble + rng.normal(0.0, _NOISE, size=time.shape)
+
+    z_white = mt.significance_red(time, white, _T0, _DURATION)
+    z_red = mt.significance_red(time, red, _T0, _DURATION)
+    assert z_white > z_red
+
+
+def test_too_short_baseline_is_held():
+    # only a couple of days: not enough control windows to form a null → held (None)
+    time = np.arange(0.0, 2.0, _CADENCE)
+    flux = mt.transit_model(time, 1.0, _DURATION, _DEPTH)
+    z = mt.significance_red(time, flux, 1.0, _DURATION)
+    assert z is None

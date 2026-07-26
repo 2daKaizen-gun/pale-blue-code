@@ -211,3 +211,72 @@ def search(
     singles = [p for p in peaks if not _is_repeating(p, peaks)]
     singles.sort(key=lambda x: x["ses"], reverse=True)
     return singles[:top_k]
+
+
+# --- single-event significance, red-noise aware (Light 3) ---------------------
+#
+# The matched-filter SES above divides by *white* sigma. On a real light curve that
+# overstates a lone dip, because stellar variability and instrumental drift leave
+# *correlated* (red) noise: slow wobbles that, at the transit timescale, mimic a
+# single dip. sub-11-1 could lean on the scatter BETWEEN transits to sidestep this,
+# but a monotransit has no second transit to compare against. So we measure the noise
+# the honest way — empirically, at the candidate's own duration.
+#
+# Slide the same-duration template across the rest of the light curve and read the
+# best-fit depth at each control position. Those control depths are what noise alone
+# produces at this timescale, red noise included: on a wobbly star they scatter wide,
+# on a flat one they cluster at zero. The candidate's depth over that scatter is its
+# significance. A calm-looking dip on a restless star is correctly deflated.
+_SIG_EXCLUDE_FACTOR = 1.5   # skip controls within this * duration of the candidate
+_SIG_MIN_CONTROLS = 8       # too few control windows → no baseline → judgment held
+
+# Threshold: measured by injection-recovery on real single-sector TESS light curves,
+# not asserted (scripts/measure_monotransit_significance.py, run on TIC 7318157, the
+# sub-10-3 noise case). Noise alone tops out at 2.86 over 300 control epochs (99th
+# pct 2.14); an injected 0.4%-deep transit that the search recovers scores 6.5+ (p10
+# 6.52), and a 0.8% one 13.8+. Between the noise ceiling and the signal floor is an
+# empty gap, and 5.0 sits in it: ~2 above the loudest noise (false alarms ~nil) and
+# below anything the search can actually recover. Re-run and recorded live in Light 6.
+_SIG_MIN_MONO = 5.0
+
+
+def significance_red(
+    time: np.ndarray,
+    flux: np.ndarray,
+    t0: float,
+    duration: float,
+    ingress_frac: float = _INGRESS_FRAC,
+) -> float | None:
+    """Single-event significance of a dip, normalized against correlated noise.
+
+    Returns the candidate depth in units of the empirical scatter of same-duration
+    matched-filter depths elsewhere in the light curve (red noise and all), or
+    ``None`` when there is too little baseline to form that null — judgment held,
+    the honest answer rather than a fabricated number.
+    """
+    time = np.asarray(time, dtype=float)
+    flux = np.asarray(flux, dtype=float)
+    depth = matched_filter_score(time, flux, t0, duration, sigma=1.0, ingress_frac=ingress_frac)["depth"]
+
+    half = 0.5 * duration
+    t_lo, t_hi = float(time.min()) + half, float(time.max()) - half
+    controls = []
+    for tc in np.arange(t_lo, t_hi, duration):   # non-overlapping control windows
+        if abs(tc - t0) < _SIG_EXCLUDE_FACTOR * duration:
+            continue
+        out = matched_filter_score(time, flux, tc, duration, sigma=1.0, ingress_frac=ingress_frac)
+        if out["n_in"] >= _MIN_IN_TRANSIT:
+            controls.append(out["depth"])
+
+    controls = np.asarray(controls)
+    if controls.size < _SIG_MIN_CONTROLS:
+        return None
+
+    med = float(np.median(controls))
+    mad = float(np.median(np.abs(controls - med)))
+    scatter = 1.4826 * mad
+    if scatter <= 0:
+        scatter = float(np.std(controls))
+    if scatter <= 0:
+        return None
+    return float((depth - med) / scatter)
