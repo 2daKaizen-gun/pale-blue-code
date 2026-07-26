@@ -75,6 +75,25 @@ function metricHint(check: VettingCheck): string | null {
   }
 }
 
+// Nail 5 (Phase 11) — the window into the *precondition*, shown even when the signal
+// cleared it. Before the four gates judged shape, we asked whether this was a real
+// detection at all; this says how firmly it passed that bar. Not a black box (sub-9-2
+// inheritance): the very number that let this signal onto the vetting table is put on
+// the table. `significance == null` means a lone observed transit — no transit-to-
+// transit consistency to measure, so the question was held (sub-11-2+ owns it).
+function significanceNote(report: VettingReport): { label: string; body: string } {
+  if (report.significance == null) {
+    return {
+      label: '검출 유의성 — 보류',
+      body: '관측된 통과가 하나뿐이라 트랜짓 사이의 일관성을 잴 수 없었습니다 — 유의성 판단은 보류하고 네 관문으로 넘어갔습니다. 단일 통과의 유의성은 다음 단계(단일 트랜짓 탐지)의 몫입니다.',
+    }
+  }
+  return {
+    label: '검출 유의성 — 통과',
+    body: `이 봉우리는 트랜짓마다 같은 깊이로 어두워져, 잡음 바닥 위로 ${report.significance.toFixed(1)}만큼 솟았습니다 — 감식대에 올릴 만한 진짜 검출입니다. 그래서 네 관문을 돌렸고, 아래 판정은 그 위에서 내린 것입니다.`,
+  }
+}
+
 // The de-aliasing teaching note: BLS often locks onto a ½×/2×/4× harmonic; the
 // gates recover the true period first, so we show the correction as a "window".
 function aliasNote(report: VettingReport): string | null {
@@ -170,6 +189,7 @@ export default function VettingReportCard({ report }: Props) {
 
   const trust = TRUST[report.trust]
   const alias = aliasNote(report)
+  const sig = significanceNote(report)
 
   return (
     <div className="rounded-lg border border-cosmos-border bg-cosmos-elevated p-5">
@@ -191,6 +211,13 @@ export default function VettingReportCard({ report }: Props) {
           <p className="mt-1 text-sm text-cosmos-text">{alias}</p>
         </div>
       )}
+
+      {/* Nail 5 — the precondition that ran before the gates, shown so the verdict
+          is not a black box: this is why the signal earned a place on the table. */}
+      <div className="mb-4 rounded border border-cosmos-subtle bg-cosmos-surface p-3">
+        <p className="font-mono text-xs tracking-widest text-cosmos-nebula">{sig.label}</p>
+        <p className="mt-1 text-sm text-cosmos-text">{sig.body}</p>
+      </div>
 
       <Footprint report={report} />
 
