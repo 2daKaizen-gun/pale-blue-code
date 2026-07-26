@@ -162,3 +162,59 @@ def test_too_short_baseline_is_held():
     flux = mt.transit_model(time, 1.0, _DURATION, _DEPTH)
     z = mt.significance_red(time, flux, 1.0, _DURATION)
     assert z is None
+
+
+# ---- discriminators: the lone-event guard ------------------------------------
+
+def _check(result, name):
+    return next(c for c in result["checks"] if c["name"] == name)
+
+
+def _event(t0=_T0, depth=_DEPTH, duration=_DURATION):
+    return {"t0": t0, "duration": duration, "depth": depth}
+
+
+def test_real_transit_passes_every_discriminator():
+    time, flux = _lc(depth=_DEPTH, seed=30)
+    res = mt.discriminators(time, flux, _event())
+    assert res["passed"]
+    assert all(c["passed"] for c in res["checks"])
+
+
+def test_momentum_dump_fails_coherence():
+    # a single-cadence downward spike: the deficit is dumped into one point
+    rng = np.random.default_rng(31)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = 1.0 + rng.normal(0.0, _NOISE, size=time.shape)
+    flux[np.argmin(np.abs(time - _T0))] -= 0.05
+    res = mt.discriminators(time, flux, _event())
+    assert not _check(res, "coherence")["passed"]
+    assert not res["passed"]
+
+
+def test_stellar_flare_fails_flare_check():
+    # a bright spike beside the dip — a flare, not a body
+    rng = np.random.default_rng(32)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = mt.transit_model(time, _T0, _DURATION, _DEPTH) + rng.normal(0.0, _NOISE, size=time.shape)
+    flux[np.abs(time - (_T0 + 0.15)) < 0.02] += 0.03
+    res = mt.discriminators(time, flux, _event())
+    assert not _check(res, "flare")["passed"]
+    assert not res["passed"]
+
+
+def test_one_sided_ramp_fails_symmetry():
+    # deficit on the ingress side only — no real central transit looks like this
+    rng = np.random.default_rng(33)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = 1.0 + rng.normal(0.0, _NOISE, size=time.shape)
+    left = (time < _T0) & (time > _T0 - _DURATION / 2)
+    flux[left] -= _DEPTH
+    res = mt.discriminators(time, flux, _event())
+    assert not _check(res, "symmetry")["passed"]
+
+
+def test_event_on_a_segment_edge_fails_edge():
+    time, flux = _lc(depth=_DEPTH, seed=34)
+    res = mt.discriminators(time, flux, _event(t0=float(time[-1]) - 0.1))
+    assert not _check(res, "edge")["passed"]

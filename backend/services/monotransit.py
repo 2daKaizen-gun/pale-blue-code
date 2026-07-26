@@ -280,3 +280,83 @@ def significance_red(
     if scatter <= 0:
         return None
     return float((depth - med) / scatter)
+
+
+# --- lone-event discriminators (Light 4) --------------------------------------
+#
+# The four vetting gates (odd/even, secondary, shape, size) all assume the signal
+# repeats — a monotransit gives them nothing to work with. A single event needs its
+# own guard against the false positives that don't repeat either: instrument glitches
+# at data-segment edges (momentum dumps, downlink resets), single-cadence spikes,
+# stellar flares (a brightening, not a dimming), and one-sided ramps that no real
+# central transit would leave. Each is a named rule with a physical reason, so a
+# rejection can say *why*, never a bare number.
+_EDGE_CLEAR = 1.0        # reject if a segment edge sits within this * duration of t0
+_COHERENCE_MAX = 0.6     # deepest single cadence may carry at most this share of the dip
+_FLARE_DEPTH_MULT = 1.0  # a positive bump larger than the dip itself, and...
+_FLARE_SIGMA = 5.0       # ...louder than this many sigma, is a flare, not a transit
+_ASYM_MAX = 0.5          # |ingress depth - egress depth| / their sum, above this = asymmetric
+
+
+def _segment_edges(time: np.ndarray) -> np.ndarray:
+    """Times where a data segment begins or ends — gaps > 0.5 d, plus the two ends."""
+    gaps = np.where(np.diff(time) > 0.5)[0]
+    return np.concatenate([[time[0]], time[gaps], time[gaps + 1], [time[-1]]])
+
+
+def discriminators(
+    time: np.ndarray,
+    flux: np.ndarray,
+    event: dict,
+    sigma: float | None = None,
+    ingress_frac: float = _INGRESS_FRAC,
+) -> dict:
+    """Guard a single candidate event against non-repeating false positives.
+
+    Returns ``{"checks": [{name, passed, value}...], "passed": all-passed}``. This is
+    NOT the four gates — none of them is called here; a lone event is judged on its
+    own terms. The checks:
+
+      edge       t0 stands clear of any segment boundary (momentum dumps ring there)
+      coherence  the deficit is spread across the dip, not dumped into one cadence
+      flare      no brightening larger and louder than the dip beside it (stellar flare)
+      symmetry   ingress and egress depths agree (a real central transit is symmetric)
+    """
+    time = np.asarray(time, dtype=float)
+    flux = np.asarray(flux, dtype=float)
+    t0, dur, depth = event["t0"], event["duration"], event["depth"]
+    if sigma is None:
+        sigma = estimate_noise(flux)
+    half = 0.5 * dur
+    checks = []
+
+    # edge --------------------------------------------------------------------
+    edges = _segment_edges(time)
+    dist = float(np.min(np.abs(edges - t0)))
+    checks.append({"name": "edge", "passed": dist > _EDGE_CLEAR * dur, "value": round(dist, 4)})
+
+    # in-transit points, and their deficit below baseline ---------------------
+    base = float(np.median(flux))
+    in_tr = np.abs(time - t0) < half
+    d = np.clip(base - flux[in_tr], 0.0, None)   # deficit, >= 0
+    total = float(np.sum(d))
+
+    # coherence: no single cadence carries most of the dip --------------------
+    frac_deepest = float(np.max(d) / total) if total > 0 and d.size else 1.0
+    checks.append({"name": "coherence", "passed": frac_deepest < _COHERENCE_MAX,
+                   "value": round(frac_deepest, 3)})
+
+    # flare: a nearby brightening larger and louder than the dip --------------
+    win = np.abs(time - t0) < 1.5 * dur
+    max_pos = float(np.max(flux[win] - base)) if np.any(win) else 0.0
+    is_flare = max_pos > _FLARE_DEPTH_MULT * depth and max_pos > _FLARE_SIGMA * sigma
+    checks.append({"name": "flare", "passed": not is_flare, "value": round(max_pos, 5)})
+
+    # symmetry: ingress vs egress depth ---------------------------------------
+    t_in = time[in_tr]
+    left, right = d[t_in < t0], d[t_in >= t0]
+    dl, dr = (float(np.mean(left)) if left.size else 0.0), (float(np.mean(right)) if right.size else 0.0)
+    asym = abs(dl - dr) / (dl + dr) if (dl + dr) > 0 else 1.0
+    checks.append({"name": "symmetry", "passed": asym < _ASYM_MAX, "value": round(asym, 3)})
+
+    return {"checks": checks, "passed": all(c["passed"] for c in checks)}
