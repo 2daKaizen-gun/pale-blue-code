@@ -5,8 +5,11 @@ matched-filter single-event statistic. A synthetic single dip in white noise
 drives it — no folding, no repetition, one event.
 """
 
+import json
+
 import numpy as np
 
+from services import bls as bls_service
 from services import monotransit as mt
 
 _CADENCE = 0.0139          # TESS 2-minute cadence, days
@@ -218,3 +221,74 @@ def test_event_on_a_segment_edge_fails_edge():
     time, flux = _lc(depth=_DEPTH, seed=34)
     res = mt.discriminators(time, flux, _event(t0=float(time[-1]) - 0.1))
     assert not _check(res, "edge")["passed"]
+
+
+# ---- the hunt: many stars, one honest ledger (sub-11-3 Light 1) --------------
+
+def _cand(candidate=False, significant=False, significance=1.0, failed=()):
+    """A minimal run_monotransit-style event, for the pure classifier tests."""
+    checks = [{"name": n, "passed": n not in failed, "value": 0.0}
+              for n in ("edge", "coherence", "flare", "symmetry")]
+    return {"t0": _T0, "duration": _DURATION, "depth": _DEPTH, "ses": 10.0,
+            "significance": significance, "significant": significant,
+            "checks": checks, "passed": not failed, "candidate": candidate}
+
+
+def test_event_disposition_reads_each_outcome():
+    assert mt._event_disposition(_cand(candidate=True, significant=True, significance=9.0)) == "candidate"
+    assert mt._event_disposition(_cand(significant=True, significance=9.0, failed={"edge"})) == "rejected"
+    assert mt._event_disposition(_cand(significance=None)) == "held"
+    assert mt._event_disposition(_cand(significance=1.0)) == "insignificant"
+
+
+def test_classify_star_takes_the_furthest_reaching_event():
+    # a star with a rejected event and an insignificant one is reported "rejected",
+    # naming the discriminator that caught it — the more informative outcome wins
+    result = {"planet_name": "x", "candidates": [
+        _cand(significance=0.5),                                  # insignificant
+        _cand(significant=True, significance=8.0, failed={"edge"}),  # rejected
+    ]}
+    entry = mt._classify_star(result)
+    assert entry["disposition"] == "rejected"
+    assert entry["failed"] == ["edge"]
+    assert entry["n_events"] == 2
+
+
+def test_classify_star_with_no_events_is_no_event():
+    entry = mt._classify_star({"planet_name": "y", "candidates": []})
+    assert entry["disposition"] == "no_event" and entry["n_events"] == 0
+
+
+def _write_lc(slug, time, flux):
+    cache = bls_service._CACHE_DIR
+    (cache / f"bls_lc_{slug}.json").write_text(
+        json.dumps({"time": time.tolist(), "flux": flux.tolist()}), encoding="utf-8")
+    (cache / f"lc_{slug}_tess.json").write_text(
+        json.dumps({"hostname": slug, "mission": "tess"}), encoding="utf-8")
+
+
+def test_hunt_promotes_a_survivor_and_ledgers_every_star(tmp_path):
+    # three stars: one with a real injected transit (survives), one flat (no candidate),
+    # one never fetched. The hunt must promote the survivor and account for all three.
+    rng = np.random.default_rng(40)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    dip = mt.transit_model(time, 13.0, 0.3, 0.01) + rng.normal(0.0, 5e-4, size=time.shape)
+    flat = 1.0 + rng.normal(0.0, 5e-4, size=time.shape)
+
+    _write_lc("hunt-real", time, dip)
+    _write_lc("hunt-flat", time, flat)
+    try:
+        out = mt.hunt_monotransit(["hunt-real", "hunt-flat", "hunt-missing"])
+    finally:
+        for slug in ("hunt-real", "hunt-flat"):
+            (bls_service._CACHE_DIR / f"bls_lc_{slug}.json").unlink(missing_ok=True)
+            (bls_service._CACHE_DIR / f"lc_{slug}_tess.json").unlink(missing_ok=True)
+
+    ledger = {e["planet_name"]: e for e in out["ledger"]}
+    assert len(out["ledger"]) == 3
+    assert ledger["hunt-missing"]["disposition"] == "not_fetched"
+    assert ledger["hunt-real"]["disposition"] == "candidate"
+
+    assert len(out["survivors"]) == 1
+    assert out["survivors"][0]["planet_name"] == "hunt-real"
+    assert out["survivors"][0]["candidate"] is True

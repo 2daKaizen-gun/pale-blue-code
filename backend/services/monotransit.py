@@ -406,3 +406,69 @@ def run_monotransit(planet_name: str) -> dict:
         })
 
     return {"planet_name": planet_name, "candidates": candidates}
+
+
+# --- the hunt: many stars, one honest ledger (sub-11-3 Light 1) ----------------
+#
+# run_monotransit judges one star. A hunt runs it across the frontier pool and keeps
+# an honest ledger: every star gets a disposition, and "searched, nothing survived" is
+# a first-class result — an empty survivor list *with* an explanation for every star,
+# not a bare empty body. Only survivors (candidate=True) are promoted; near-misses are
+# recorded with the reason they fell, so the hunt reports what it saw, not just what it
+# kept. This is orchestration over the sub-11-2 brick — no new physics.
+
+# How close a single event came to being a real single-transit candidate. A star's
+# disposition is the furthest its events reached, read off this order.
+_DISPOSITION_ORDER = ["candidate", "rejected", "held", "insignificant"]
+
+
+def _event_disposition(c: dict) -> str:
+    """Where one scored event landed: survivor, guarded out, unjudged, or below floor."""
+    if c["candidate"]:
+        return "candidate"          # cleared significance and every discriminator
+    if c["significant"]:
+        return "rejected"           # significant, but a named discriminator caught it
+    if c["significance"] is None:
+        return "held"               # too little baseline to judge (the honest None)
+    return "insignificant"          # judged, and below the measured floor
+
+
+def _classify_star(result: dict) -> dict:
+    """Collapse one star's events into a single ledger entry with a named disposition."""
+    cands = result["candidates"]
+    if not cands:
+        return {"planet_name": result["planet_name"], "disposition": "no_event",
+                "n_events": 0, "significance": None, "failed": []}
+
+    # the event that reached furthest toward a candidate sets the star's disposition
+    top = min(cands, key=lambda c: _DISPOSITION_ORDER.index(_event_disposition(c)))
+    disp = _event_disposition(top)
+    failed = [ch["name"] for ch in top["checks"] if not ch["passed"]] if disp == "rejected" else []
+    return {"planet_name": result["planet_name"], "disposition": disp,
+            "n_events": len(cands), "significance": top["significance"], "failed": failed}
+
+
+def hunt_monotransit(planet_names: list[str]) -> dict:
+    """Run the single-transit search across many stars, keeping an honest ledger.
+
+    For each star, ``run_monotransit`` if its light curve is cached, else record
+    ``not_fetched`` — the tool never pretends to have looked where it did not. Every star
+    gets a disposition; survivors (``candidate=True``) are promoted to a list tagged with
+    their star and ranked by significance. Returns ``{"survivors": [...], "ledger": [...]}``.
+    """
+    survivors = []
+    ledger = []
+    for name in planet_names:
+        try:
+            result = run_monotransit(name)
+        except FileNotFoundError:
+            ledger.append({"planet_name": name, "disposition": "not_fetched",
+                           "n_events": 0, "significance": None, "failed": []})
+            continue
+        ledger.append(_classify_star(result))
+        for c in result["candidates"]:
+            if c["candidate"]:
+                survivors.append({"planet_name": name, **c})
+
+    survivors.sort(key=lambda c: c["significance"], reverse=True)
+    return {"survivors": survivors, "ledger": ledger}
