@@ -22,3 +22,23 @@ class MonotransitCandidate(BaseModel):
 class MonotransitResponse(BaseModel):
     planet_name: str
     candidates: list[MonotransitCandidate]
+
+
+class MonotransitSurvivor(MonotransitCandidate):
+    planet_name: str               # which star this survivor came from
+
+
+class MonotransitLedgerEntry(BaseModel):
+    planet_name: str
+    # candidate | rejected | held | insignificant | no_event | not_fetched
+    disposition: str
+    n_events: int
+    significance: float | None
+    failed: list[str]              # discriminators that caught a rejected event
+
+
+class MonotransitHunt(BaseModel):
+    mission: str
+    searched: int                  # stars with a cached light curve actually searched
+    survivors: list[MonotransitSurvivor]
+    ledger: list[MonotransitLedgerEntry]

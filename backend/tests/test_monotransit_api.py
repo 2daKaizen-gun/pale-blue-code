@@ -63,3 +63,62 @@ def test_monotransit_endpoint_missing_lc_returns_424():
     r = client.get("/api/monotransit/no-such-star-anywhere")
     assert r.status_code == 424
     assert r.json()["detail"]["planet"] == "no-such-star-anywhere"
+
+
+# --- the hunt endpoint (sub-11-3 Light 3) -------------------------------------
+
+def _write_star(tic, time, flux):
+    slug = f"tic-{tic}"
+    cache = bls_service._CACHE_DIR
+    (cache / f"bls_lc_{slug}.json").write_text(
+        json.dumps({"time": time.tolist(), "flux": flux.tolist()}), encoding="utf-8")
+    (cache / f"lc_{slug}_tess.json").write_text(
+        json.dumps({"hostname": slug, "mission": "tess"}), encoding="utf-8")
+
+
+def _remove_star(tic):
+    slug = f"tic-{tic}"
+    (bls_service._CACHE_DIR / f"bls_lc_{slug}.json").unlink(missing_ok=True)
+    (bls_service._CACHE_DIR / f"lc_{slug}_tess.json").unlink(missing_ok=True)
+
+
+@pytest.fixture
+def tiny_pool(monkeypatch):
+    """A three-star frontier pool: one with a real transit, one flat, one uncached."""
+    real, flat, missing = 99000001, 99000002, 99000003
+    time = np.arange(0.0, 27.0, _CADENCE)
+    rng = np.random.default_rng(1)
+    _write_star(real, time, mono.transit_model(time, _T0, 0.3, 0.01) + rng.normal(0, 5e-4, time.shape))
+    _write_star(flat, time, 1.0 + rng.normal(0, 5e-4, time.shape))
+    monkeypatch.setattr(
+        "services.hunt.frontier_tess_stars",
+        lambda: [{"tic": real}, {"tic": flat}, {"tic": missing}],
+    )
+    try:
+        yield real, flat, missing
+    finally:
+        _remove_star(real)
+        _remove_star(flat)
+
+
+def test_hunt_endpoint_promotes_survivor_and_ledgers_the_pool(tiny_pool):
+    real, flat, missing = tiny_pool
+    r = client.get("/api/monotransit/hunt")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["mission"] == "tess"
+    assert body["searched"] == 2                 # real + flat cached; missing is not
+    assert len(body["ledger"]) == 3
+
+    disp = {e["planet_name"]: e["disposition"] for e in body["ledger"]}
+    assert disp[f"TIC {missing}"] == "not_fetched"
+    assert disp[f"TIC {real}"] == "candidate"
+
+    assert len(body["survivors"]) == 1
+    assert body["survivors"][0]["planet_name"] == f"TIC {real}"
+    assert body["survivors"][0]["candidate"] is True
+
+
+def test_hunt_endpoint_rejects_non_tess():
+    r = client.get("/api/monotransit/hunt", params={"mission": "kepler"})
+    assert r.status_code == 400
