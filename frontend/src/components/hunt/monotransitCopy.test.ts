@@ -1,0 +1,54 @@
+import { describe, expect, it } from 'vitest'
+import type { MonotransitLedgerEntry } from '../../lib/api/monotransit'
+import { huntHeadline, summarizeLedger } from './monotransitCopy'
+
+const entry = (disposition: MonotransitLedgerEntry['disposition']): MonotransitLedgerEntry => ({
+  planet_name: 'TIC 1',
+  disposition,
+  n_events: 0,
+  significance: null,
+  failed: [],
+})
+
+describe('summarizeLedger', () => {
+  it('counts every star and orders closest-to-a-candidate first', () => {
+    const out = summarizeLedger([
+      entry('not_fetched'),
+      entry('candidate'),
+      entry('no_event'),
+      entry('candidate'),
+      entry('not_fetched'),
+    ])
+    expect(out.map((c) => c.disposition)).toEqual(['candidate', 'no_event', 'not_fetched'])
+    expect(out.find((c) => c.disposition === 'candidate')?.count).toBe(2)
+    expect(out.find((c) => c.disposition === 'not_fetched')?.count).toBe(2)
+  })
+
+  it('drops dispositions that never occurred', () => {
+    const out = summarizeLedger([entry('no_event')])
+    expect(out).toHaveLength(1)
+    expect(out[0].disposition).toBe('no_event')
+  })
+
+  it('accounts for all stars (counts sum to the ledger length)', () => {
+    const ledger = [entry('candidate'), entry('rejected'), entry('held'), entry('not_fetched')]
+    const total = summarizeLedger(ledger).reduce((s, c) => s + c.count, 0)
+    expect(total).toBe(ledger.length)
+  })
+})
+
+describe('huntHeadline', () => {
+  it('leads with the candidate count when something survived', () => {
+    expect(huntHeadline(12, 1)).toContain('후보 1개')
+  })
+
+  it('states the empty-handed result as honest, not a failure, when nothing survived', () => {
+    const line = huntHeadline(12, 0)
+    expect(line).toContain('12')
+    expect(line).toContain('정직한 결과')
+  })
+
+  it('tells the user to fetch light curves first when nothing was searched', () => {
+    expect(huntHeadline(0, 0)).toContain('빛을 받아오세요')
+  })
+})

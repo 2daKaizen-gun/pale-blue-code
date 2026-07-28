@@ -35,6 +35,7 @@ const SignalPage = lazy(() => import('./pages/SignalPage'))
 const HuntPage = lazy(() => import('./pages/HuntPage'))
 const FrontierHubPage = lazy(() => import('./pages/FrontierHubPage'))
 const FrontierHuntPage = lazy(() => import('./pages/FrontierHuntPage'))
+const MonotransitHuntPage = lazy(() => import('./pages/MonotransitHuntPage'))
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +54,9 @@ export const router = createBrowserRouter([
       // chosen sky in :mission (kepler|tess).
       { path: 'hunt/frontier',          element: <FrontierHubPage /> },
       { path: 'hunt/frontier/:mission', element: <FrontierHuntPage /> },
+      // Phase 11 — the single-transit hunt over the pool. Its own page, off the
+      // auto-derived phase nav, reached from the frontier hub.
+      { path: 'hunt/monotransit',       element: <MonotransitHuntPage /> },
     ],
   },
 ])
