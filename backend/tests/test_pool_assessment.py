@@ -53,3 +53,42 @@ def test_floor_on_a_dwarf_is_a_plausible_planet():
 def test_floor_on_a_giant_is_a_star_sized_companion():
     # an 11 R_sun giant at the same floor implies a many-R_jup object — not a planet
     assert pa.min_detectable_planet_radius(11.0) > 5.0
+
+
+# ---- assess_pool -------------------------------------------------------------
+
+_FAKE_POOL = [
+    {"tic": 1, "tmag": 8.0, "constellation": "Pavo", "radius": 1.0},      # dwarf -> plausible
+    {"tic": 2, "tmag": 5.0, "constellation": "Tucana", "radius": 40.0},   # giant -> too_big
+    {"tic": 3, "tmag": 7.0, "constellation": "Indus", "radius": None},    # no radius -> unknown
+    {"tic": 4, "tmag": 8.1, "constellation": "Phoenix", "radius": 0.8},   # dwarf -> plausible
+]
+
+
+def test_assess_pool_classifies_and_ranks_plausible_first():
+    out = pa.assess_pool(stars=_FAKE_POOL)
+    targets, summary = out["targets"], out["summary"]
+    # ranked: the two dwarfs (smallest planet first), then the giant, then the unknown
+    assert [t["tic"] for t in targets] == [4, 1, 2, 3]
+    assert [t["classification"] for t in targets] == ["plausible", "plausible", "too_big", "unknown"]
+    assert summary["total"] == 4
+    assert summary["plausible"] == 2 and summary["too_big"] == 1 and summary["unknown"] == 1
+    # a missing radius yields no planet radius, not a fabricated one
+    assert targets[-1]["min_planet_rjup"] is None
+
+
+def test_assess_pool_summary_accounts_for_every_star():
+    out = pa.assess_pool(stars=_FAKE_POOL)
+    s = out["summary"]
+    assert s["plausible"] + s["too_big"] + s["unknown"] == s["total"]
+
+
+def test_assess_pool_on_the_real_pool_is_mostly_giants():
+    # the honest finding: the fresh-sky pool is bright because it is full of giants, so most
+    # stars are too_big — a detection there would be a star, not a planet
+    out = pa.assess_pool()
+    s = out["summary"]
+    assert s["total"] == 50
+    assert s["plausible"] + s["too_big"] + s["unknown"] == 50
+    assert s["too_big"] > s["plausible"]          # the majority cannot host a detectable planet
+    assert out["targets"][0]["classification"] == "plausible"   # best target leads
