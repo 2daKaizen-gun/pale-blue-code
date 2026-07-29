@@ -472,3 +472,84 @@ def hunt_monotransit(planet_names: list[str]) -> dict:
 
     survivors.sort(key=lambda c: c["significance"], reverse=True)
     return {"survivors": survivors, "ledger": ledger}
+
+
+# --- completeness: injection + full-hunt recovery (sub-11-4 Light 1) -----------
+#
+# The false-alarm audit (sub-11-3) proved the hunt stays quiet on noise — specificity.
+# Its twin is completeness: press a transit of KNOWN depth into a real curve and ask
+# whether the full chain promotes it. Injecting into real data (not synthetic) keeps the
+# red noise, gaps, and segment joins the hunt actually fights, so a recovery number means
+# what it says. The recovery helper reports not just yes/no but WHERE a real transit dies —
+# search, significance, or a named discriminator — because that is the completeness cost of
+# each guard, the price paid for the specificity the false-alarm audit bought.
+
+# A recovered event must sit within this fraction of a duration of the injected t0 to count
+# as the same transit; farther off and the "recovery" is a different dip, not ours.
+_RECOVER_MATCH_FACTOR = 0.5
+
+
+def inject_transit(
+    time: np.ndarray,
+    flux: np.ndarray,
+    t0: float,
+    depth: float,
+    duration: float,
+    ingress_frac: float = _INGRESS_FRAC,
+) -> np.ndarray:
+    """Press one trapezoidal single transit of ``depth`` into a real (baseline-1) curve.
+
+    Multiplicative, the physical form: ``flux * (1 - depth * shape)`` dims the star by
+    ``depth`` on the flat floor and ramps across ingress/egress, riding on top of whatever
+    real noise the curve already carries. Returns a new array; the input is untouched.
+    """
+    return np.asarray(flux, dtype=float) * transit_model(time, t0, duration, depth, ingress_frac)
+
+
+def recover_through_hunt(
+    time: np.ndarray,
+    flux: np.ndarray,
+    t0: float,
+    duration: float,
+    sigma: float | None = None,
+    ingress_frac: float = _INGRESS_FRAC,
+) -> dict:
+    """Run the full chain on a curve and report the fate of the event near ``(t0, duration)``.
+
+    Returns ``{"recovered": bool, "stage": str, "significance": float | None}`` where
+    ``stage`` names where the injected transit ended up:
+
+      ``search``         the sliding search never surfaced a dip near t0 (too shallow to find)
+      ``held``           found, but too little baseline to judge significance (the honest None)
+      ``insignificant``  found and judged, but below the measured significance floor
+      ``edge``/``coherence``/``flare``/``symmetry``  found and significant, but a discriminator
+                         rejected it — the completeness cost of that guard
+      ``promoted``       cleared significance and every discriminator: a recovered candidate
+
+    This is the sensitivity counterpart to ``hunt_monotransit``: same chain, but pointed at a
+    transit we planted, so a miss tells us not just *that* the hunt is blind but *where*.
+    """
+    time = np.asarray(time, dtype=float)
+    flux = np.asarray(flux, dtype=float)
+    if sigma is None:
+        sigma = estimate_noise(flux)
+
+    window = _RECOVER_MATCH_FACTOR * duration
+    match = None
+    for e in search(time, flux, sigma=sigma, ingress_frac=ingress_frac):
+        if abs(e["t0"] - t0) <= window and (match is None or e["ses"] > match["ses"]):
+            match = e
+    if match is None:
+        return {"recovered": False, "stage": "search", "significance": None}
+
+    z = significance_red(time, flux, match["t0"], match["duration"], ingress_frac=ingress_frac)
+    if z is None:
+        return {"recovered": False, "stage": "held", "significance": None}
+    if z < _SIG_MIN_MONO:
+        return {"recovered": False, "stage": "insignificant", "significance": z}
+
+    disc = discriminators(time, flux, match, sigma=sigma, ingress_frac=ingress_frac)
+    if not disc["passed"]:
+        failed = next(c["name"] for c in disc["checks"] if not c["passed"])
+        return {"recovered": False, "stage": failed, "significance": z}
+    return {"recovered": True, "stage": "promoted", "significance": z}

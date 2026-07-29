@@ -292,3 +292,55 @@ def test_hunt_promotes_a_survivor_and_ledgers_every_star(tmp_path):
     assert len(out["survivors"]) == 1
     assert out["survivors"][0]["planet_name"] == "hunt-real"
     assert out["survivors"][0]["candidate"] is True
+
+
+# ---- completeness: injection + full-hunt recovery (sub-11-4 Light 1) ----------
+
+def test_inject_transit_presses_a_known_depth_and_leaves_input_untouched():
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = np.ones_like(time)
+    out = mt.inject_transit(time, flux, _T0, 0.01, _DURATION)
+    # the floor of the injected dip reaches the depth, the baseline is untouched
+    assert abs((1.0 - out[np.argmin(np.abs(time - _T0))]) - 0.01) < 1e-9
+    assert out[0] == 1.0
+    assert flux[np.argmin(np.abs(time - _T0))] == 1.0   # input array not mutated
+
+
+def test_recover_promotes_a_clean_injected_transit():
+    rng = np.random.default_rng(3)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = mt.inject_transit(time, 1.0 + rng.normal(0.0, 5e-4, size=time.shape),
+                             _T0, 0.01, _DURATION)
+    out = mt.recover_through_hunt(time, flux, _T0, _DURATION)
+    assert out["recovered"] is True
+    assert out["stage"] == "promoted"
+    assert out["significance"] >= mt._SIG_MIN_MONO
+
+
+def test_recover_reports_search_miss_when_far_below_the_noise():
+    # a transit far shallower than the scatter is not a promoted candidate; the chain
+    # drops it early (no dip surfaces near t0, or it is judged insignificant)
+    rng = np.random.default_rng(4)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = mt.inject_transit(time, 1.0 + rng.normal(0.0, 1e-3, size=time.shape),
+                             _T0, 1e-5, _DURATION)
+    out = mt.recover_through_hunt(time, flux, _T0, _DURATION)
+    assert out["recovered"] is False
+    assert out["stage"] != "promoted"
+
+
+def test_recover_names_the_edge_that_kills_a_transit_beside_a_gap():
+    # the completeness cost of the edge discriminator: a real, deep, significant transit
+    # planted just past a segment join is rejected for sitting on the edge — the same rule
+    # that catches the loudest false alarm also costs us this one.
+    rng = np.random.default_rng(5)
+    seg1 = np.arange(0.0, 13.0, _CADENCE)
+    seg2 = np.arange(15.0, 27.0, _CADENCE)          # a 2-day gap at 13 -> 15
+    time = np.concatenate([seg1, seg2])
+    t0 = 15.0 + 0.1                                 # just past the gap edge, within 1*dur
+    flux = mt.inject_transit(time, 1.0 + rng.normal(0.0, 3e-4, size=time.shape),
+                             t0, 0.02, _DURATION)
+    out = mt.recover_through_hunt(time, flux, t0, _DURATION)
+    assert out["recovered"] is False
+    assert out["stage"] == "edge"
+    assert out["significance"] >= mt._SIG_MIN_MONO   # it WAS significant; the edge cost it
