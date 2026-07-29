@@ -44,3 +44,27 @@ class MonotransitHunt(BaseModel):
     searched: int                  # stars with a cached light curve actually searched
     survivors: list[MonotransitSurvivor]
     ledger: list[MonotransitLedgerEntry]
+
+
+class PoolTarget(BaseModel):
+    tic: int
+    tmag: float | None
+    constellation: str | None
+    stellar_radius: float | None       # R_sun
+    min_planet_rjup: float | None      # smallest planet a detection here could reveal
+    min_planet_rearth: float | None
+    classification: str                # plausible | too_big | unknown
+
+
+class PoolSummary(BaseModel):
+    total: int
+    plausible: int                     # a detection could be a planet
+    too_big: int                       # a detection would be a star
+    unknown: int                       # no stellar radius on file
+    depth_floor: float                 # fiducial detection floor used
+    planet_max_rjup: float             # the planet / star size boundary
+
+
+class PoolAssessment(BaseModel):
+    targets: list[PoolTarget]
+    summary: PoolSummary

@@ -122,3 +122,20 @@ def test_hunt_endpoint_promotes_survivor_and_ledgers_the_pool(tiny_pool):
 def test_hunt_endpoint_rejects_non_tess():
     r = client.get("/api/monotransit/hunt", params={"mission": "kepler"})
     assert r.status_code == 400
+
+
+# --- the pool assessment endpoint (sub-11-5 Light 3) --------------------------
+
+def test_pool_endpoint_ranks_and_summarizes_the_real_pool():
+    r = client.get("/api/monotransit/pool")
+    assert r.status_code == 200
+    body = r.json()
+    summary, targets = body["summary"], body["targets"]
+
+    assert summary["total"] == len(targets)
+    assert summary["plausible"] + summary["too_big"] + summary["unknown"] == summary["total"]
+    assert summary["too_big"] > summary["plausible"]        # a giant-heavy pool
+    # ranked plausible-first, and a plausible target carries a real planet radius
+    assert targets[0]["classification"] == "plausible"
+    assert targets[0]["min_planet_rjup"] is not None
+    assert targets[0]["min_planet_rjup"] <= summary["planet_max_rjup"]

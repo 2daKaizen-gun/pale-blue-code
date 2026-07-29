@@ -1,11 +1,27 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.concurrency import run_in_threadpool
 
-from models.monotransit import MonotransitResponse, MonotransitHunt
+from models.monotransit import MonotransitResponse, MonotransitHunt, PoolAssessment
 from services import monotransit as mono_service
 from services import hunt as hunt_service
+from services import pool_assessment as pool_service
 
 router = APIRouter()
+
+
+# Declared before /monotransit/{planet_name} so "pool" is not swallowed as a star name.
+@router.get("/monotransit/pool", response_model=PoolAssessment)
+async def assess_the_pool():
+    """Rank the frontier pool by what a detectable dip would MEAN on each star.
+
+    A transit depth maps to a companion radius (R_planet = sqrt(depth) * R_star), so the
+    detection floor becomes a minimum detectable planet radius per star. Most of the pool
+    is bright giants where that floor implies a star-sized object, not a planet — this
+    endpoint says so honestly and ranks the few real targets first. Pure catalog geometry,
+    no fetch.
+    """
+    result = await run_in_threadpool(pool_service.assess_pool)
+    return PoolAssessment(**result)
 
 
 # Declared before /monotransit/{planet_name} so "hunt" is not swallowed as a star name.
