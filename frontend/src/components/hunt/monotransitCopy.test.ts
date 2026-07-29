@@ -1,13 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import type { MonotransitLedgerEntry } from '../../lib/api/monotransit'
-import { huntHeadline, summarizeLedger } from './monotransitCopy'
+import {
+  huntHeadline,
+  sensitivityCaption,
+  sensitivityFloor,
+  summarizeLedger,
+} from './monotransitCopy'
 
-const entry = (disposition: MonotransitLedgerEntry['disposition']): MonotransitLedgerEntry => ({
+const entry = (
+  disposition: MonotransitLedgerEntry['disposition'],
+  depth_floor: number | null = null,
+): MonotransitLedgerEntry => ({
   planet_name: 'TIC 1',
   disposition,
   n_events: 0,
   significance: null,
   failed: [],
+  depth_floor,
 })
 
 describe('summarizeLedger', () => {
@@ -34,6 +43,34 @@ describe('summarizeLedger', () => {
     const ledger = [entry('candidate'), entry('rejected'), entry('held'), entry('not_fetched')]
     const total = summarizeLedger(ledger).reduce((s, c) => s + c.count, 0)
     expect(total).toBe(ledger.length)
+  })
+})
+
+describe('sensitivityFloor', () => {
+  it('is the median per-star floor over the searched stars, ignoring the unfetched', () => {
+    const floor = sensitivityFloor([
+      entry('no_event', 0.002),
+      entry('insignificant', 0.004),
+      entry('rejected', 0.006),
+      entry('not_fetched', null), // no floor — must not drag the median
+    ])
+    expect(floor).toBeCloseTo(0.004, 6)
+  })
+
+  it('is null when nothing was searched (no floor to state)', () => {
+    expect(sensitivityFloor([entry('not_fetched'), entry('not_fetched')])).toBeNull()
+  })
+})
+
+describe('sensitivityCaption', () => {
+  it('states the floor as a floor, not as a completeness guarantee', () => {
+    const line = sensitivityCaption(0.004) as string
+    expect(line).toContain('0.40%')
+    expect(line).toContain('넘지 못합니다') // "cannot clear" — a floor, not "we would have found"
+  })
+
+  it('is null when there is no floor, so the caller omits the line', () => {
+    expect(sensitivityCaption(null)).toBeNull()
   })
 })
 

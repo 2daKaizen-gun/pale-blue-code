@@ -59,6 +59,32 @@ export function summarizeLedger(ledger: MonotransitLedgerEntry[]): DispositionCo
 }
 
 /**
+ * The representative detection floor of a finished hunt: the median of the per-star
+ * sensitivity floors, over the stars actually searched. `null` when nothing was searched
+ * (no floor to state). This is a floor, NOT a completeness guarantee — a single transit
+ * shallower than this could not have cleared the significance cut on these curves; it does
+ * not promise every deeper transit was recovered (the search must also surface the dip).
+ */
+export function sensitivityFloor(ledger: MonotransitLedgerEntry[]): number | null {
+  const floors = ledger
+    .map((e) => e.depth_floor)
+    .filter((d): d is number => d != null && Number.isFinite(d))
+  if (!floors.length) return null
+  const sorted = [...floors].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+}
+
+/**
+ * The honest sentence for the sensitivity floor — stated as a floor, never as "we would
+ * have found anything deeper." `null` floor yields `null` so the caller omits the line.
+ */
+export function sensitivityCaption(floor: number | null): string | null {
+  if (floor == null) return null
+  return `이 곡선들의 잡음이 허용하는 검출 바닥은 약 ${(floor * 100).toFixed(2)}% 깊이입니다 — 이보다 얕은 단일 트랜짓은 유의성 문턱조차 넘지 못합니다.`
+}
+
+/**
  * The honest headline for a finished hunt: a candidate count when something survived,
  * else the empty-handed truth — searched N, none survived — never framed as failure.
  */

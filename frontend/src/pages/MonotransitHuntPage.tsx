@@ -10,6 +10,8 @@ import {
   DISCRIMINATOR_LABEL,
   DISPOSITION_LABEL,
   huntHeadline,
+  sensitivityCaption,
+  sensitivityFloor,
   summarizeLedger,
 } from '../components/hunt/monotransitCopy'
 import Spinner from '../components/ui/Spinner'
@@ -99,6 +101,8 @@ export default function MonotransitHuntPage() {
   const nearMisses = (data?.ledger ?? []).filter(
     (e) => e.disposition === 'rejected' || e.disposition === 'held',
   )
+  // the detection floor the empty result rests on — what depth the hunt could have seen
+  const floorCaption = data ? sensitivityCaption(sensitivityFloor(data.ledger)) : null
 
   return (
     <div className="flex flex-col gap-6">
@@ -146,6 +150,12 @@ export default function MonotransitHuntPage() {
               </span>
             ))}
           </div>
+
+          {floorCaption && (
+            <p className="border-l-2 border-cosmos-nebula/40 pl-3 text-xs text-cosmos-subtle">
+              {floorCaption}
+            </p>
+          )}
 
           {survivors.length > 0 ? (
             <div className="flex flex-col gap-3">

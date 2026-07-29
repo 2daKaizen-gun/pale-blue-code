@@ -43,6 +43,7 @@ export interface MonotransitLedgerEntry {
   n_events: number
   significance: number | null
   failed: string[] // discriminators that caught a rejected event
+  depth_floor: number | null // shallowest transit this star's curve could have shown; null = not searched
 }
 
 export interface MonotransitHunt {
