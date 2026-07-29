@@ -22,6 +22,7 @@ class MonotransitCandidate(BaseModel):
 class MonotransitResponse(BaseModel):
     planet_name: str
     candidates: list[MonotransitCandidate]
+    depth_floor: float | None = None   # shallowest transit this curve's noise would admit
 
 
 class MonotransitSurvivor(MonotransitCandidate):
@@ -35,6 +36,7 @@ class MonotransitLedgerEntry(BaseModel):
     n_events: int
     significance: float | None
     failed: list[str]              # discriminators that caught a rejected event
+    depth_floor: float | None = None   # shallowest transit this star's curve could have shown
 
 
 class MonotransitHunt(BaseModel):

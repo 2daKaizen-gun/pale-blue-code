@@ -344,3 +344,46 @@ def test_recover_names_the_edge_that_kills_a_transit_beside_a_gap():
     assert out["recovered"] is False
     assert out["stage"] == "edge"
     assert out["significance"] >= mt._SIG_MIN_MONO   # it WAS significant; the edge cost it
+
+
+# ---- per-star sensitivity floor (sub-11-4 Light 3) ----------------------------
+
+def test_sensitivity_floor_is_a_positive_depth_on_a_noisy_curve():
+    rng = np.random.default_rng(6)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = 1.0 + rng.normal(0.0, 5e-4, size=time.shape)
+    floor = mt.sensitivity_depth_floor(time, flux)
+    assert floor is not None and floor > 0.0
+
+
+def test_sensitivity_floor_rises_with_noise():
+    # a noisier curve admits only deeper transits: its floor is higher
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    quiet = 1.0 + np.random.default_rng(7).normal(0.0, 3e-4, size=time.shape)
+    loud = 1.0 + np.random.default_rng(7).normal(0.0, 1.2e-3, size=time.shape)
+    assert mt.sensitivity_depth_floor(time, loud) > mt.sensitivity_depth_floor(time, quiet)
+
+
+def test_sensitivity_floor_held_when_baseline_too_short():
+    # a curve far shorter than one control window has no null to form → None (held)
+    time = np.arange(0.0, 0.5, _CADENCE)
+    flux = 1.0 + np.random.default_rng(8).normal(0.0, 5e-4, size=time.shape)
+    assert mt.sensitivity_depth_floor(time, flux) is None
+
+
+def test_hunt_ledger_carries_a_depth_floor_per_star(tmp_path):
+    rng = np.random.default_rng(41)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flat = 1.0 + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("floor-flat", time, flat)
+    try:
+        out = mt.hunt_monotransit(["floor-flat", "floor-missing"])
+    finally:
+        (bls_service._CACHE_DIR / "bls_lc_floor-flat.json").unlink(missing_ok=True)
+        (bls_service._CACHE_DIR / "lc_floor-flat_tess.json").unlink(missing_ok=True)
+
+    ledger = {e["planet_name"]: e for e in out["ledger"]}
+    # a searched star reports a real floor; an unfetched one reports None
+    assert ledger["floor-flat"]["depth_floor"] is not None
+    assert ledger["floor-flat"]["depth_floor"] > 0.0
+    assert ledger["floor-missing"]["depth_floor"] is None

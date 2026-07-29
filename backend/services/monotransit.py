@@ -240,6 +240,41 @@ _SIG_MIN_CONTROLS = 8       # too few control windows → no baseline → judgme
 _SIG_MIN_MONO = 5.0
 
 
+def _control_depths(
+    time: np.ndarray,
+    flux: np.ndarray,
+    duration: float,
+    ingress_frac: float = _INGRESS_FRAC,
+    exclude_t0: float | None = None,
+) -> np.ndarray:
+    """Best-fit depths of the same-duration template at non-overlapping control windows.
+
+    The empirical null at this timescale — what noise (white and red) alone produces —
+    optionally skipping windows near ``exclude_t0`` so a real dip does not pollute its own
+    baseline. Only windows resting on enough points are kept.
+    """
+    half = 0.5 * duration
+    t_lo, t_hi = float(time.min()) + half, float(time.max()) - half
+    controls = []
+    for tc in np.arange(t_lo, t_hi, duration):   # non-overlapping control windows
+        if exclude_t0 is not None and abs(tc - exclude_t0) < _SIG_EXCLUDE_FACTOR * duration:
+            continue
+        out = matched_filter_score(time, flux, tc, duration, sigma=1.0, ingress_frac=ingress_frac)
+        if out["n_in"] >= _MIN_IN_TRANSIT:
+            controls.append(out["depth"])
+    return np.asarray(controls)
+
+
+def _control_scatter(controls: np.ndarray) -> tuple[float, float]:
+    """Robust (median, scatter) of a control-depth null; MAD-scaled, std as fallback."""
+    med = float(np.median(controls))
+    mad = float(np.median(np.abs(controls - med)))
+    scatter = 1.4826 * mad
+    if scatter <= 0:
+        scatter = float(np.std(controls))
+    return med, scatter
+
+
 def significance_red(
     time: np.ndarray,
     flux: np.ndarray,
@@ -258,28 +293,47 @@ def significance_red(
     flux = np.asarray(flux, dtype=float)
     depth = matched_filter_score(time, flux, t0, duration, sigma=1.0, ingress_frac=ingress_frac)["depth"]
 
-    half = 0.5 * duration
-    t_lo, t_hi = float(time.min()) + half, float(time.max()) - half
-    controls = []
-    for tc in np.arange(t_lo, t_hi, duration):   # non-overlapping control windows
-        if abs(tc - t0) < _SIG_EXCLUDE_FACTOR * duration:
-            continue
-        out = matched_filter_score(time, flux, tc, duration, sigma=1.0, ingress_frac=ingress_frac)
-        if out["n_in"] >= _MIN_IN_TRANSIT:
-            controls.append(out["depth"])
-
-    controls = np.asarray(controls)
+    controls = _control_depths(time, flux, duration, ingress_frac, exclude_t0=t0)
     if controls.size < _SIG_MIN_CONTROLS:
         return None
 
-    med = float(np.median(controls))
-    mad = float(np.median(np.abs(controls - med)))
-    scatter = 1.4826 * mad
-    if scatter <= 0:
-        scatter = float(np.std(controls))
+    med, scatter = _control_scatter(controls)
     if scatter <= 0:
         return None
     return float((depth - med) / scatter)
+
+
+# The sensitivity floor is quoted at one representative central-transit duration, so an
+# empty hunt can state a single "shallowest transit we could have seen." 0.4 d sits mid-grid;
+# the completeness map (sub-11-4 Light 2) confirms recovery becomes reliable near the depth
+# this floor reports.
+_FLOOR_DURATION = 0.4
+
+
+def sensitivity_depth_floor(
+    time: np.ndarray,
+    flux: np.ndarray,
+    duration: float = _FLOOR_DURATION,
+    ingress_frac: float = _INGRESS_FRAC,
+) -> float | None:
+    """Shallowest single transit that would clear the significance floor on THIS curve.
+
+    Reads the same red-noise null ``significance_red`` builds and inverts it: the depth
+    that scores exactly ``_SIG_MIN_MONO`` is ``_SIG_MIN_MONO * scatter + median``. That is
+    the analytic sensitivity floor — the shallowest dip this curve's own noise would let
+    clear the cut — so a hunt that finds nothing can still say what depth it could have seen.
+    ``None`` when there is too little baseline to form the null (the honest held answer). The
+    completeness map validates this floor against what the full chain actually recovers.
+    """
+    time = np.asarray(time, dtype=float)
+    flux = np.asarray(flux, dtype=float)
+    controls = _control_depths(time, flux, duration, ingress_frac)
+    if controls.size < _SIG_MIN_CONTROLS:
+        return None
+    med, scatter = _control_scatter(controls)
+    if scatter <= 0:
+        return None
+    return float(_SIG_MIN_MONO * scatter + med)
 
 
 # --- lone-event discriminators (Light 4) --------------------------------------
@@ -387,6 +441,7 @@ def run_monotransit(planet_name: str) -> dict:
     if med != 0:
         flux = flux / med                       # baseline to 1 for depth/significance
     sigma = estimate_noise(flux)
+    depth_floor = sensitivity_depth_floor(time, flux)   # shallowest transit this curve admits
 
     candidates = []
     for e in search(time, flux, sigma=sigma):
@@ -405,7 +460,7 @@ def run_monotransit(planet_name: str) -> dict:
             "candidate": significant and disc["passed"],
         })
 
-    return {"planet_name": planet_name, "candidates": candidates}
+    return {"planet_name": planet_name, "candidates": candidates, "depth_floor": depth_floor}
 
 
 # --- the hunt: many stars, one honest ledger (sub-11-3 Light 1) ----------------
@@ -436,16 +491,18 @@ def _event_disposition(c: dict) -> str:
 def _classify_star(result: dict) -> dict:
     """Collapse one star's events into a single ledger entry with a named disposition."""
     cands = result["candidates"]
+    floor = result.get("depth_floor")
     if not cands:
         return {"planet_name": result["planet_name"], "disposition": "no_event",
-                "n_events": 0, "significance": None, "failed": []}
+                "n_events": 0, "significance": None, "failed": [], "depth_floor": floor}
 
     # the event that reached furthest toward a candidate sets the star's disposition
     top = min(cands, key=lambda c: _DISPOSITION_ORDER.index(_event_disposition(c)))
     disp = _event_disposition(top)
     failed = [ch["name"] for ch in top["checks"] if not ch["passed"]] if disp == "rejected" else []
     return {"planet_name": result["planet_name"], "disposition": disp,
-            "n_events": len(cands), "significance": top["significance"], "failed": failed}
+            "n_events": len(cands), "significance": top["significance"], "failed": failed,
+            "depth_floor": floor}
 
 
 def hunt_monotransit(planet_names: list[str]) -> dict:
@@ -463,7 +520,7 @@ def hunt_monotransit(planet_names: list[str]) -> dict:
             result = run_monotransit(name)
         except FileNotFoundError:
             ledger.append({"planet_name": name, "disposition": "not_fetched",
-                           "n_events": 0, "significance": None, "failed": []})
+                           "n_events": 0, "significance": None, "failed": [], "depth_floor": None})
             continue
         ledger.append(_classify_star(result))
         for c in result["candidates"]:
