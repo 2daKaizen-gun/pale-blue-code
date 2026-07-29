@@ -1,0 +1,142 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { monotransitPool, type PoolAssessment, type PoolTarget } from '../lib/api/monotransit'
+import { CLASSIFICATION_LABEL, minPlanetLabel, poolHeadline } from '../components/hunt/poolCopy'
+import Spinner from '../components/ui/Spinner'
+
+/**
+ * Phase 11 — where to point (sub-11-5 Light 4). Before a single fetch, ask what a detectable
+ * dip would MEAN on each frontier-pool star: a transit depth maps to a companion radius, so the
+ * detection floor becomes a minimum detectable planet radius. Most of the bright pool is giants
+ * where that floor implies a star, not a planet — this page names that honestly and ranks the
+ * few real targets first. Reached via a link — NOT added to constants/phases.ts.
+ */
+const CLASS_STYLE: Record<string, string> = {
+  plausible: 'border-emerald-400/40 bg-emerald-400/5',
+  too_big: 'border-cosmos-border bg-cosmos-surface opacity-70',
+  unknown: 'border-cosmos-border bg-cosmos-surface opacity-50',
+}
+
+function TargetRow({ t, rank }: { t: PoolTarget; rank: number }) {
+  return (
+    <li
+      className={`flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded border px-3 py-2 ${
+        CLASS_STYLE[t.classification] ?? ''
+      }`}
+    >
+      <span className="flex items-baseline gap-3">
+        <span className="font-mono text-[11px] text-cosmos-subtle">{rank}</span>
+        <span className="font-mono text-sm text-cosmos-text">TIC {t.tic}</span>
+        {t.constellation && (
+          <span className="font-mono text-[11px] text-cosmos-muted">{t.constellation}</span>
+        )}
+      </span>
+      <span className="flex items-baseline gap-4">
+        <span className="font-mono text-[11px] text-cosmos-subtle">
+          R★ {t.stellar_radius != null ? `${t.stellar_radius.toFixed(2)}☉` : '—'}
+        </span>
+        <span className="font-mono text-xs text-cosmos-text">{minPlanetLabel(t)}</span>
+        <span
+          className={`font-mono text-[11px] ${
+            t.classification === 'plausible' ? 'text-emerald-300/90' : 'text-cosmos-muted'
+          }`}
+        >
+          {CLASSIFICATION_LABEL[t.classification]}
+        </span>
+      </span>
+    </li>
+  )
+}
+
+export default function PoolTargetsPage() {
+  const [data, setData] = useState<PoolAssessment | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const run = () => {
+    setLoading(true)
+    setError(null)
+    monotransitPool()
+      .then(setData)
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(run, [])
+
+  const targets = data?.targets ?? []
+
+  return (
+    <div className="flex flex-col gap-6">
+      <header>
+        <p className="mb-1 font-mono text-xs tracking-widest text-cosmos-muted">
+          FRONTIER · 어디를 겨눌까
+        </p>
+        <h1 className="mb-2 flex items-center gap-2 text-3xl font-semibold text-cosmos-text">
+          <span aria-hidden>🎯</span> 사냥할 가치가 있는 별
+        </h1>
+        <p className="max-w-2xl text-sm text-cosmos-muted">
+          트랜짓 깊이는 별의 원반에서 가려진 넓이 — 즉 동반체의 반지름을 말합니다 (R
+          <sub>행성</sub> = √깊이 × R<sub>별</sub>). 우리의 검출 바닥(~0.40%)을 별마다 최소 검출가능
+          행성 반지름으로 바꾸면, 이 "갓 도착한 밝은 하늘"의 정체가 드러납니다: 밝은 건 대부분
+          거성이라서, 검출되는 딥은 행성이 아니라 <em>별</em>일 겁니다. 페치를 쓰기 전에, 진짜
+          겨눌 만한 소수의 별을 먼저 가려냅니다.
+        </p>
+      </header>
+
+      {loading && (
+        <div className="flex items-center gap-3 text-sm text-cosmos-muted">
+          <Spinner /> 풀을 평가하는 중…
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-4 text-sm text-amber-200">
+          <p className="mb-2">풀을 불러오지 못했습니다 — {error}</p>
+          <button onClick={run} className="font-mono text-xs text-cosmos-nebula hover:text-cosmos-text">
+            다시 시도 →
+          </button>
+        </div>
+      )}
+
+      {data && !loading && (
+        <>
+          <p className="border-l-2 border-cosmos-nebula/40 pl-3 text-lg text-cosmos-text">
+            {poolHeadline(data.summary)}
+          </p>
+
+          <div className="flex flex-wrap gap-2 font-mono text-[11px]">
+            <span className="rounded border border-emerald-400/40 bg-emerald-400/5 px-2.5 py-1 text-emerald-300/90">
+              행성 가능 <span className="text-cosmos-text">{data.summary.plausible}</span>
+            </span>
+            <span className="rounded border border-cosmos-border bg-cosmos-surface px-2.5 py-1 text-cosmos-muted">
+              검출돼도 별 <span className="text-cosmos-text">{data.summary.too_big}</span>
+            </span>
+            {data.summary.unknown > 0 && (
+              <span className="rounded border border-cosmos-border bg-cosmos-surface px-2.5 py-1 text-cosmos-muted">
+                반지름 미상 <span className="text-cosmos-text">{data.summary.unknown}</span>
+              </span>
+            )}
+          </div>
+
+          <ul className="flex flex-col gap-1.5">
+            {targets.map((t, i) => (
+              <TargetRow key={t.tic} t={t} rank={i + 1} />
+            ))}
+          </ul>
+
+          <p className="text-xs text-cosmos-subtle">
+            바닥 깊이 {(data.summary.depth_floor * 100).toFixed(2)}% 기준, 행성/별 경계 {data.summary.planet_max_rjup} R♃.
+            반지름은 크기만 말할 뿐 질량은 아닙니다 — 진짜 후보는 질량 확인이 더 필요합니다.
+          </p>
+        </>
+      )}
+
+      <p className="mt-2 text-xs text-cosmos-subtle">
+        <Link to="/hunt/frontier" className="text-cosmos-nebula hover:text-cosmos-text">
+          ← 개척지 허브로
+        </Link>
+      </p>
+    </div>
+  )
+}

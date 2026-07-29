@@ -36,6 +36,7 @@ const HuntPage = lazy(() => import('./pages/HuntPage'))
 const FrontierHubPage = lazy(() => import('./pages/FrontierHubPage'))
 const FrontierHuntPage = lazy(() => import('./pages/FrontierHuntPage'))
 const MonotransitHuntPage = lazy(() => import('./pages/MonotransitHuntPage'))
+const PoolTargetsPage = lazy(() => import('./pages/PoolTargetsPage'))
 
 export const router = createBrowserRouter([
   {
@@ -57,6 +58,8 @@ export const router = createBrowserRouter([
       // Phase 11 — the single-transit hunt over the pool. Its own page, off the
       // auto-derived phase nav, reached from the frontier hub.
       { path: 'hunt/monotransit',       element: <MonotransitHuntPage /> },
+      // sub-11-5 — which pool stars are worth a hunt at all (detectable planet radius).
+      { path: 'hunt/pool',              element: <PoolTargetsPage /> },
     ],
   },
 ])

@@ -62,3 +62,40 @@ export async function monotransitHunt(): Promise<MonotransitHunt> {
   }
   return res.json()
 }
+
+// A detection would be a planet, a star, or we cannot say without a radius.
+export type PoolClassification = 'plausible' | 'too_big' | 'unknown'
+
+export interface PoolTarget {
+  tic: number
+  tmag: number | null
+  constellation: string | null
+  stellar_radius: number | null // R_sun
+  min_planet_rjup: number | null // smallest planet a detection here could reveal
+  min_planet_rearth: number | null
+  classification: PoolClassification
+}
+
+export interface PoolSummary {
+  total: number
+  plausible: number // a detection could be a planet
+  too_big: number // a detection would be a star
+  unknown: number // no stellar radius on file
+  depth_floor: number // fiducial detection floor used
+  planet_max_rjup: number // the planet / star size boundary
+}
+
+export interface PoolAssessment {
+  targets: PoolTarget[]
+  summary: PoolSummary
+}
+
+// Where a detectable dip would mean a planet vs a star — pure catalog geometry, no fetch.
+export async function monotransitPool(): Promise<PoolAssessment> {
+  const res = await fetch(`${API_BASE_URL}/api/monotransit/pool`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail?.message ?? body.detail ?? `request failed: ${res.status}`)
+  }
+  return res.json()
+}

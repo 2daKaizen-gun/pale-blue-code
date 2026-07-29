@@ -115,6 +115,24 @@ export default function FrontierHubPage() {
         </span>
       </Link>
 
+      <Link
+        to="/hunt/pool"
+        className="group flex items-center justify-between gap-3 rounded-lg border border-cosmos-border bg-cosmos-surface px-5 py-3 transition-colors hover:border-cosmos-nebula hover:bg-cosmos-elevated"
+      >
+        <span className="flex items-center gap-3">
+          <span className="text-xl">🎯</span>
+          <span>
+            <span className="text-sm font-semibold text-cosmos-text">사냥할 가치가 있는 별</span>
+            <span className="ml-2 font-mono text-[11px] text-cosmos-muted">
+              검출돼도 행성일 수 있는 소수를 먼저 가려냅니다
+            </span>
+          </span>
+        </span>
+        <span className="font-mono text-xs text-cosmos-nebula transition-colors group-hover:text-cosmos-text">
+          →
+        </span>
+      </Link>
+
       <p className="mt-2 text-xs text-cosmos-subtle">
         판별기를 배우려면 알려진 사례로 시작하세요 —{' '}
         <Link to="/hunt" className="text-cosmos-nebula hover:text-cosmos-text">
