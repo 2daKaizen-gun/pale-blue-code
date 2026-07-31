@@ -505,27 +505,40 @@ def _classify_star(result: dict) -> dict:
             "depth_floor": floor}
 
 
-def hunt_monotransit(planet_names: list[str]) -> dict:
+# When no size verdict is known for a star (no size_index, or a name absent from the pool
+# triage), the hunt carries nulls rather than guessing — the same honesty as an unfetched star.
+_NO_SIZE = {"size_class": None, "min_planet_rjup": None, "min_planet_rearth": None}
+
+
+def hunt_monotransit(planet_names: list[str], size_index: dict | None = None) -> dict:
     """Run the single-transit search across many stars, keeping an honest ledger.
 
     For each star, ``run_monotransit`` if its light curve is cached, else record
     ``not_fetched`` — the tool never pretends to have looked where it did not. Every star
     gets a disposition; survivors (``candidate=True``) are promoted to a list tagged with
     their star and ranked by significance. Returns ``{"survivors": [...], "ledger": [...]}``.
+
+    ``size_index`` (sub-11-6, from ``pool_assessment.size_class_by_name``) optionally stamps
+    each ledger entry and survivor with what a detection on that star would MEAN — its size
+    class (plausible / too_big / unknown) and minimum detectable planet radius — so a dip on a
+    giant is reported honestly but never mistaken for a planet. Absent, every star carries nulls.
     """
+    size_index = size_index or {}
     survivors = []
     ledger = []
     for name in planet_names:
+        size = size_index.get(name, _NO_SIZE)
         try:
             result = run_monotransit(name)
         except FileNotFoundError:
             ledger.append({"planet_name": name, "disposition": "not_fetched",
-                           "n_events": 0, "significance": None, "failed": [], "depth_floor": None})
+                           "n_events": 0, "significance": None, "failed": [], "depth_floor": None,
+                           **size})
             continue
-        ledger.append(_classify_star(result))
+        ledger.append({**_classify_star(result), **size})
         for c in result["candidates"]:
             if c["candidate"]:
-                survivors.append({"planet_name": name, **c})
+                survivors.append({"planet_name": name, **c, **size})
 
     survivors.sort(key=lambda c: c["significance"], reverse=True)
     return {"survivors": survivors, "ledger": ledger}

@@ -294,6 +294,49 @@ def test_hunt_promotes_a_survivor_and_ledgers_every_star(tmp_path):
     assert out["survivors"][0]["candidate"] is True
 
 
+def test_hunt_stamps_the_size_verdict_onto_ledger_and_survivors(tmp_path):
+    # sub-11-6: a size_index (from pool_assessment) stamps each ledger entry and survivor with
+    # what a detection there would MEAN. The survivor on a plausible star carries that class and
+    # its minimum planet radius; a star absent from the index carries nulls, not a guess.
+    rng = np.random.default_rng(42)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    dip = mt.transit_model(time, 13.0, 0.3, 0.01) + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("sized-real", time, dip)
+    size_index = {"sized-real": {"size_class": "plausible", "min_planet_rjup": 0.6,
+                                 "min_planet_rearth": 6.6}}
+    try:
+        out = mt.hunt_monotransit(["sized-real", "sized-unlisted"], size_index=size_index)
+    finally:
+        (bls_service._CACHE_DIR / "bls_lc_sized-real.json").unlink(missing_ok=True)
+        (bls_service._CACHE_DIR / "lc_sized-real_tess.json").unlink(missing_ok=True)
+
+    ledger = {e["planet_name"]: e for e in out["ledger"]}
+    assert ledger["sized-real"]["size_class"] == "plausible"
+    assert ledger["sized-real"]["min_planet_rjup"] == 0.6
+    # a star not in the index carries nulls, never a guessed class
+    assert ledger["sized-unlisted"]["size_class"] is None
+    assert ledger["sized-unlisted"]["min_planet_rjup"] is None
+
+    assert out["survivors"][0]["planet_name"] == "sized-real"
+    assert out["survivors"][0]["size_class"] == "plausible"
+    assert out["survivors"][0]["min_planet_rjup"] == 0.6
+
+
+def test_hunt_without_a_size_index_carries_null_size(tmp_path):
+    # back-compatible: no size_index -> every star carries a null size verdict, not an error
+    rng = np.random.default_rng(43)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flat = 1.0 + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("nosize-flat", time, flat)
+    try:
+        out = mt.hunt_monotransit(["nosize-flat"])
+    finally:
+        (bls_service._CACHE_DIR / "bls_lc_nosize-flat.json").unlink(missing_ok=True)
+        (bls_service._CACHE_DIR / "lc_nosize-flat_tess.json").unlink(missing_ok=True)
+    assert out["ledger"][0]["size_class"] is None
+    assert out["ledger"][0]["min_planet_rjup"] is None
+
+
 # ---- completeness: injection + full-hunt recovery (sub-11-4 Light 1) ----------
 
 def test_inject_transit_presses_a_known_depth_and_leaves_input_untouched():

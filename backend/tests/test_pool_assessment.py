@@ -92,3 +92,16 @@ def test_assess_pool_on_the_real_pool_is_mostly_giants():
     assert s["plausible"] + s["too_big"] + s["unknown"] == 50
     assert s["too_big"] > s["plausible"]          # the majority cannot host a detectable planet
     assert out["targets"][0]["classification"] == "plausible"   # best target leads
+
+
+def test_size_class_by_name_keys_the_verdict_for_the_hunt():
+    # sub-11-6 Light 1: the triage keyed by the hunt's star name, so hunt_monotransit can join it
+    from services import hunt as hunt_service
+    index = pa.size_class_by_name(stars=_FAKE_POOL)
+    dwarf = hunt_service.star_name(1, "tess")     # radius 1.0 -> plausible
+    giant = hunt_service.star_name(2, "tess")     # radius 40 -> too_big
+    assert index[dwarf]["size_class"] == "plausible"
+    assert index[dwarf]["min_planet_rjup"] is not None
+    assert index[giant]["size_class"] == "too_big"
+    # every pool star with a TIC is keyed
+    assert len(index) == 4

@@ -128,3 +128,34 @@ def assess_pool(
         "planet_max_rjup": _PLANET_MAX_RJUP,
     }
     return {"targets": targets, "summary": summary}
+
+
+# --- the triage, keyed for the hunt (sub-11-6 Light 1) -------------------------
+#
+# The hunt works in star *names* (``star_name(tic, "tess")``), not the catalog dicts the pool
+# assessment scores. This maps the sub-11-5 verdict onto those names so the hunt can stamp each
+# star with what a detection there would MEAN — plausible (a planet), too_big (a star), unknown —
+# without re-deriving the geometry. One definition of the classification, read by two callers.
+
+
+def size_class_by_name(
+    depth_floor: float = _FIDUCIAL_DEPTH_FLOOR, stars: list[dict] | None = None
+) -> dict:
+    """``{star_name: {size_class, min_planet_rjup, min_planet_rearth}}`` over the pool.
+
+    Wraps ``assess_pool`` and keys it by the hunt's star name so ``hunt_monotransit`` can join the
+    size verdict onto its ledger and survivors. Stars with no TIC are skipped (no name to key on).
+    """
+    assessment = assess_pool(depth_floor=depth_floor, stars=stars)
+    index: dict[str, dict] = {}
+    for t in assessment["targets"]:
+        tic = t.get("tic")
+        if tic is None:
+            continue
+        name = hunt_service.star_name(int(tic), "tess")
+        index[name] = {
+            "size_class": t["classification"],
+            "min_planet_rjup": t["min_planet_rjup"],
+            "min_planet_rearth": t["min_planet_rearth"],
+        }
+    return index
