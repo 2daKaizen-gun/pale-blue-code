@@ -13,6 +13,7 @@ import {
   sensitivityCaption,
   sensitivityFloor,
   summarizeLedger,
+  survivorSizeNote,
 } from '../components/hunt/monotransitCopy'
 import Spinner from '../components/ui/Spinner'
 
@@ -24,12 +25,28 @@ import Spinner from '../components/ui/Spinner'
  * added to constants/phases.ts, the same frontier/roadmap separation the nav keeps.
  */
 function SurvivorCard({ s }: { s: MonotransitSurvivor }) {
+  // sub-11-6: a plausible-star survivor (a detection here could be a planet) is the real prize —
+  // highlighted; a too_big one is still shown but framed as star-sized, its card dimmed.
+  const plausible = s.size_class === 'plausible'
+  const cardBorder = plausible
+    ? 'border-emerald-400/50'
+    : s.size_class === 'too_big'
+      ? 'border-cosmos-border opacity-80'
+      : 'border-cosmos-nebula/50'
+  const sizeChip = plausible
+    ? 'bg-emerald-400/10 text-emerald-300/90'
+    : 'bg-cosmos-surface text-cosmos-muted'
   return (
-    <div className="rounded-lg border border-cosmos-nebula/50 bg-cosmos-elevated p-5">
-      <div className="mb-3 flex items-baseline justify-between gap-2">
+    <div className={`rounded-lg border bg-cosmos-elevated p-5 ${cardBorder}`}>
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <span className="font-mono text-sm text-cosmos-text">{s.planet_name}</span>
-        <span className="rounded bg-cosmos-nebula/15 px-2 py-0.5 font-mono text-[10px] tracking-widest text-cosmos-nebula">
-          단일 트랜짓 후보 · 행성 아님
+        <span className="flex flex-wrap items-baseline gap-2">
+          <span className={`rounded px-2 py-0.5 font-mono text-[10px] tracking-widest ${sizeChip}`}>
+            {survivorSizeNote(s)}
+          </span>
+          <span className="rounded bg-cosmos-nebula/15 px-2 py-0.5 font-mono text-[10px] tracking-widest text-cosmos-nebula">
+            단일 트랜짓 후보 · 행성 아님
+          </span>
         </span>
       </div>
       <dl className="mb-3 flex flex-wrap gap-x-6 gap-y-1">
@@ -117,7 +134,9 @@ export default function MonotransitHuntPage() {
           자동 파이프라인은 딥이 <em>여러 번 반복</em>돼야 잡습니다. 한 구역에서 딱 한 번
           스치고 지나간 긴 주기 행성은 접을 것이 없어 버려집니다. 그 한 번의 통과를 겨눕니다 —
           유의성으로 한 번, 네 판별자로 다시 한 번 거른 뒤에도 살아남는 것만 후보로 부릅니다.
-          대부분은 빈손이고, 그게 정직한 결과입니다.
+          대부분은 빈손이고, 그게 정직한 결과입니다. 살아남은 후보는 <em>검출됐을 때
+          행성일 수 있는지</em>로 먼저 줄 세웁니다 — 거성에서 뜬 깊은 딥은 별이지 세계가
+          아니니까요(sub-11-5의 트리아지).
         </p>
       </header>
 

@@ -24,7 +24,15 @@ export interface DiscriminatorCheck {
   value: number
 }
 
-export interface MonotransitSurvivor {
+// sub-11-6: what a detection on this star would MEAN (from the sub-11-5 pool triage). Carried on
+// every survivor and ledger entry so a dip on a giant is reported but never mistaken for a planet.
+export interface SizeVerdict {
+  size_class: PoolClassification | null // plausible | too_big | unknown | null (no triage for this star)
+  min_planet_rjup: number | null // smallest planet a detection here could reveal
+  min_planet_rearth: number | null
+}
+
+export interface MonotransitSurvivor extends SizeVerdict {
   planet_name: string
   t0: number // event center, days
   duration: number // first-to-last contact, days
@@ -37,7 +45,7 @@ export interface MonotransitSurvivor {
   candidate: boolean
 }
 
-export interface MonotransitLedgerEntry {
+export interface MonotransitLedgerEntry extends SizeVerdict {
   planet_name: string
   disposition: HuntDisposition
   n_events: number

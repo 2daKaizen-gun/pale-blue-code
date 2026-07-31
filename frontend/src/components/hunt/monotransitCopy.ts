@@ -1,4 +1,9 @@
-import type { HuntDisposition, MonotransitLedgerEntry } from '../../lib/api/monotransit'
+import type {
+  HuntDisposition,
+  MonotransitLedgerEntry,
+  PoolClassification,
+  SizeVerdict,
+} from '../../lib/api/monotransit'
 
 /**
  * Pure presentation for the single-transit hunt (sub-11-3 Light 4). The backend
@@ -82,6 +87,30 @@ export function sensitivityFloor(ledger: MonotransitLedgerEntry[]): number | nul
 export function sensitivityCaption(floor: number | null): string | null {
   if (floor == null) return null
   return `이 곡선들의 잡음이 허용하는 검출 바닥은 약 ${(floor * 100).toFixed(2)}% 깊이입니다 — 이보다 얕은 단일 트랜짓은 유의성 문턱조차 넘지 못합니다.`
+}
+
+// sub-11-6: the size verdict as a short chip label. plausible/too_big/unknown from the pool
+// triage; a null class (star absent from the triage) reads the same as unknown.
+export const SIZE_LABEL: Record<PoolClassification, string> = {
+  plausible: '행성 크기',
+  too_big: '검출돼도 별',
+  unknown: '크기 미상',
+}
+
+/**
+ * The honest size line for a survivor: whether a detection on this star could be a planet at all,
+ * and how small. A plausible survivor names its minimum detectable planet radius (the real prize);
+ * a too_big one is named star-sized — the dip is reported, but it cannot be a planet. A star with
+ * no triage (null / unknown) reads "크기 미상", never a guess.
+ */
+export function survivorSizeNote(s: SizeVerdict): string {
+  if (s.size_class === 'plausible') {
+    return s.min_planet_rjup != null
+      ? `행성 크기 · 검출 시 ≥ ${s.min_planet_rjup.toFixed(2)} R♃`
+      : SIZE_LABEL.plausible
+  }
+  if (s.size_class === 'too_big') return '검출돼도 별 (너무 큼)'
+  return SIZE_LABEL.unknown
 }
 
 /**

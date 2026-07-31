@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import type { MonotransitLedgerEntry } from '../../lib/api/monotransit'
+import type { MonotransitLedgerEntry, SizeVerdict } from '../../lib/api/monotransit'
 import {
   huntHeadline,
   sensitivityCaption,
   sensitivityFloor,
   summarizeLedger,
+  survivorSizeNote,
 } from './monotransitCopy'
 
 const entry = (
@@ -17,6 +18,9 @@ const entry = (
   significance: null,
   failed: [],
   depth_floor,
+  size_class: null,
+  min_planet_rjup: null,
+  min_planet_rearth: null,
 })
 
 describe('summarizeLedger', () => {
@@ -87,5 +91,31 @@ describe('huntHeadline', () => {
 
   it('tells the user to fetch light curves first when nothing was searched', () => {
     expect(huntHeadline(0, 0)).toContain('빛을 받아오세요')
+  })
+})
+
+describe('survivorSizeNote', () => {
+  const sized = (over: Partial<SizeVerdict>): SizeVerdict => ({
+    size_class: null,
+    min_planet_rjup: null,
+    min_planet_rearth: null,
+    ...over,
+  })
+
+  it('names a plausible survivor as planet-sized with its minimum radius', () => {
+    const note = survivorSizeNote(sized({ size_class: 'plausible', min_planet_rjup: 0.6 }))
+    expect(note).toContain('행성 크기')
+    expect(note).toContain('0.60')
+  })
+
+  it('names a too_big survivor as a star, never a planet', () => {
+    const note = survivorSizeNote(sized({ size_class: 'too_big', min_planet_rjup: 8 }))
+    expect(note).toContain('별')
+    expect(note).not.toContain('행성 크기')
+  })
+
+  it('reads unknown for a star with no triage, not a guess', () => {
+    expect(survivorSizeNote(sized({ size_class: null }))).toBe('크기 미상')
+    expect(survivorSizeNote(sized({ size_class: 'unknown' }))).toBe('크기 미상')
   })
 })
