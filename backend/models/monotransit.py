@@ -25,11 +25,19 @@ class MonotransitResponse(BaseModel):
     depth_floor: float | None = None   # shallowest transit this curve's noise would admit
 
 
-class MonotransitSurvivor(MonotransitCandidate):
+# sub-11-6: what a detection on this star would MEAN (from the sub-11-5 pool triage). A survivor
+# on a too_big star is still reported, but named star-sized and ranked below plausible ones.
+class SizeVerdict(BaseModel):
+    size_class: str | None = None          # plausible | too_big | unknown | None (no triage)
+    min_planet_rjup: float | None = None   # smallest planet a detection here could reveal
+    min_planet_rearth: float | None = None
+
+
+class MonotransitSurvivor(MonotransitCandidate, SizeVerdict):
     planet_name: str               # which star this survivor came from
 
 
-class MonotransitLedgerEntry(BaseModel):
+class MonotransitLedgerEntry(SizeVerdict):
     planet_name: str
     # candidate | rejected | held | insignificant | no_event | not_fetched
     disposition: str

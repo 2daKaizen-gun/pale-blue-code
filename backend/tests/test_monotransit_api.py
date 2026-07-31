@@ -124,6 +124,32 @@ def test_hunt_endpoint_rejects_non_tess():
     assert r.status_code == 400
 
 
+def test_hunt_endpoint_carries_the_size_verdict_per_star(monkeypatch):
+    # sub-11-6: the hunt joins the sub-11-5 triage, so each searched star and each survivor says
+    # what a detection there would MEAN. A transit on a dwarf reads plausible with a real min radius.
+    tic = 99000010
+    time = np.arange(0.0, 27.0, _CADENCE)
+    rng = np.random.default_rng(2)
+    _write_star(tic, time, mono.transit_model(time, _T0, 0.3, 0.01) + rng.normal(0, 5e-4, time.shape))
+    # a dwarf pool: radius small enough that the detection floor implies a planet-sized companion
+    monkeypatch.setattr(
+        "services.hunt.frontier_tess_stars",
+        lambda: [{"tic": tic, "tmag": 9.0, "constellation": "Pavo", "radius": 1.0}],
+    )
+    try:
+        r = client.get("/api/monotransit/hunt")
+    finally:
+        _remove_star(tic)
+
+    assert r.status_code == 200
+    body = r.json()
+    entry = body["ledger"][0]
+    assert entry["size_class"] == "plausible"
+    assert entry["min_planet_rjup"] is not None
+    assert body["survivors"][0]["size_class"] == "plausible"
+    assert body["survivors"][0]["min_planet_rjup"] is not None
+
+
 # --- the pool assessment endpoint (sub-11-5 Light 3) --------------------------
 
 def test_pool_endpoint_ranks_and_summarizes_the_real_pool():

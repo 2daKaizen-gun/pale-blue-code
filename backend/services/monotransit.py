@@ -509,6 +509,12 @@ def _classify_star(result: dict) -> dict:
 # triage), the hunt carries nulls rather than guessing — the same honesty as an unfetched star.
 _NO_SIZE = {"size_class": None, "min_planet_rjup": None, "min_planet_rearth": None}
 
+# Survivor ranking: a candidate where a detection could be a PLANET leads one where it could only
+# be a star, and an unknown-size star sorts last (we cannot claim it could host a planet). Ties
+# within a class break by significance. Mirrors the sub-11-5 pool order so the two agree.
+_SIZE_RANK = {"plausible": 0, "too_big": 1, "unknown": 2}
+_SIZE_RANK_UNKNOWN = 2   # also covers a null size_class (no triage for this star)
+
 
 def hunt_monotransit(planet_names: list[str], size_index: dict | None = None) -> dict:
     """Run the single-transit search across many stars, keeping an honest ledger.
@@ -540,7 +546,9 @@ def hunt_monotransit(planet_names: list[str], size_index: dict | None = None) ->
             if c["candidate"]:
                 survivors.append({"planet_name": name, **c, **size})
 
-    survivors.sort(key=lambda c: c["significance"], reverse=True)
+    # plausible-star candidates lead star-sized ones; significance breaks ties within a class
+    survivors.sort(key=lambda c: (
+        _SIZE_RANK.get(c.get("size_class"), _SIZE_RANK_UNKNOWN), -c["significance"]))
     return {"survivors": survivors, "ledger": ledger}
 
 

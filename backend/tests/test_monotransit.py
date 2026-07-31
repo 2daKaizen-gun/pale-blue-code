@@ -322,6 +322,35 @@ def test_hunt_stamps_the_size_verdict_onto_ledger_and_survivors(tmp_path):
     assert out["survivors"][0]["min_planet_rjup"] == 0.6
 
 
+def test_hunt_ranks_plausible_star_survivors_ahead_of_star_sized_ones(tmp_path):
+    # sub-11-6 Light 2: a candidate where a detection could be a PLANET leads one where it could
+    # only be a star, even when the star-sized one is the louder signal. A giant's deeper dip does
+    # not outrank a dwarf's shallower one — the ranking points where a planet is possible.
+    rng = np.random.default_rng(44)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    loud = mt.transit_model(time, 13.0, 0.3, 0.03) + rng.normal(0.0, 3e-4, size=time.shape)
+    quiet = mt.transit_model(time, 13.0, 0.3, 0.005) + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("rank-giant", time, loud)     # deep + quiet -> higher significance, but too_big
+    _write_lc("rank-dwarf", time, quiet)    # shallow + noisier -> lower significance, but plausible
+    size_index = {
+        "rank-giant": {"size_class": "too_big", "min_planet_rjup": 8.0, "min_planet_rearth": 90.0},
+        "rank-dwarf": {"size_class": "plausible", "min_planet_rjup": 0.6, "min_planet_rearth": 6.6},
+    }
+    try:
+        out = mt.hunt_monotransit(["rank-giant", "rank-dwarf"], size_index=size_index)
+    finally:
+        for slug in ("rank-giant", "rank-dwarf"):
+            (bls_service._CACHE_DIR / f"bls_lc_{slug}.json").unlink(missing_ok=True)
+            (bls_service._CACHE_DIR / f"lc_{slug}_tess.json").unlink(missing_ok=True)
+
+    assert len(out["survivors"]) == 2
+    # the louder giant would win a significance-only sort; here the plausible dwarf leads
+    assert out["survivors"][0]["planet_name"] == "rank-dwarf"
+    assert out["survivors"][0]["size_class"] == "plausible"
+    assert out["survivors"][1]["planet_name"] == "rank-giant"
+    assert out["survivors"][1]["significance"] > out["survivors"][0]["significance"]
+
+
 def test_hunt_without_a_size_index_carries_null_size(tmp_path):
     # back-compatible: no size_index -> every star carries a null size verdict, not an error
     rng = np.random.default_rng(43)

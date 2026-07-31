@@ -38,7 +38,10 @@ async def hunt_the_pool(mission: str = Query("tess")):
         raise HTTPException(status_code=400, detail="monotransit hunt is TESS-only")
     stars = hunt_service.frontier_tess_stars()
     names = [hunt_service.star_name(int(s["tic"]), "tess") for s in stars]
-    result = await run_in_threadpool(mono_service.hunt_monotransit, names)
+    # sub-11-6: carry the sub-11-5 size triage into the hunt, so every star and survivor says
+    # what a detection there would MEAN and plausible-star candidates rank ahead of star-sized ones
+    size_index = await run_in_threadpool(pool_service.size_class_by_name)
+    result = await run_in_threadpool(mono_service.hunt_monotransit, names, size_index)
     searched = sum(1 for e in result["ledger"] if e["disposition"] != "not_fetched")
     return MonotransitHunt(mission="tess", searched=searched, **result)
 
