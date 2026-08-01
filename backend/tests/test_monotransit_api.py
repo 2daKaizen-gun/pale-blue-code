@@ -165,3 +165,27 @@ def test_pool_endpoint_ranks_and_summarizes_the_real_pool():
     assert targets[0]["classification"] == "plausible"
     assert targets[0]["min_planet_rjup"] is not None
     assert targets[0]["min_planet_rjup"] <= summary["planet_max_rjup"]
+
+
+# --- the fetch-plan endpoint (sub-11-7 Light 3) -------------------------------
+
+def test_fetch_plan_endpoint_lists_plausible_targets_without_fetching(monkeypatch):
+    # a two-star pool: one dwarf (plausible, worth a fetch) and one giant (too_big, excluded)
+    monkeypatch.setattr(
+        "services.hunt.frontier_tess_stars",
+        lambda: [
+            {"tic": 501, "tmag": 9.0, "constellation": "Pavo", "radius": 1.0},   # dwarf
+            {"tic": 502, "tmag": 5.0, "constellation": "Tucana", "radius": 40.0},  # giant
+        ],
+    )
+    r = client.get("/api/monotransit/fetch-plan")
+    assert r.status_code == 200
+    body = r.json()
+    # only the dwarf is a target; the giant never appears in a fetch plan
+    assert [t["star_name"] for t in body["targets"]] == ["TIC 501"]
+    assert body["summary"]["plausible"] == 1
+    assert body["summary"]["best_target"] == "TIC 501"
+    assert body["summary"]["best_min_planet_rjup"] is not None
+    # every target says cached or pending; the counts account for all of them
+    s = body["summary"]
+    assert s["cached"] + s["pending"] == s["plausible"]

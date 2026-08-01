@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.concurrency import run_in_threadpool
 
-from models.monotransit import MonotransitResponse, MonotransitHunt, PoolAssessment
+from models.monotransit import MonotransitResponse, MonotransitHunt, PoolAssessment, FetchPlan
 from services import monotransit as mono_service
 from services import hunt as hunt_service
 from services import pool_assessment as pool_service
+from services import fetch_plan as fetch_plan_service
 
 router = APIRouter()
 
@@ -22,6 +23,20 @@ async def assess_the_pool():
     """
     result = await run_in_threadpool(pool_service.assess_pool)
     return PoolAssessment(**result)
+
+
+# Declared before /monotransit/{planet_name} so "fetch-plan" is not swallowed as a star name.
+@router.get("/monotransit/fetch-plan", response_model=FetchPlan)
+async def get_fetch_plan():
+    """Which plausible dwarfs are worth fetching — cached or pending, best target first.
+
+    The deterministic half of the fetch bridge (sub-11-7): the sub-11-5 triage keeps only the
+    stars where a detectable dip could be a planet, tagged by whether their light curve is
+    already on disk. No network, no fetch — a slow MAST download never masquerades as this
+    request. The fetch itself runs from the local ``scripts/fetch_plausible.py``.
+    """
+    result = await run_in_threadpool(fetch_plan_service.fetch_plan)
+    return FetchPlan(**result)
 
 
 # Declared before /monotransit/{planet_name} so "hunt" is not swallowed as a star name.

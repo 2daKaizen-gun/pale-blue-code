@@ -76,3 +76,26 @@ class PoolSummary(BaseModel):
 class PoolAssessment(BaseModel):
     targets: list[PoolTarget]
     summary: PoolSummary
+
+
+# sub-11-7: the fetch plan — which plausible dwarfs to fetch, cached or pending, best target
+# first. Deterministic (catalog geometry + a cache check); no network in the request path.
+class FetchTarget(BaseModel):
+    tic: int
+    star_name: str
+    min_planet_rjup: float | None      # smallest planet a detection here could reveal
+    min_planet_rearth: float | None
+    cached: bool                       # its light curve is already on disk (the hunt can search it)
+
+
+class FetchPlanSummary(BaseModel):
+    plausible: int                     # plausible dwarfs worth a fetch
+    cached: int                        # already searchable
+    pending: int                       # still waiting on their light
+    best_target: str | None            # the smallest-planet target, or None if the pool is empty
+    best_min_planet_rjup: float | None
+
+
+class FetchPlan(BaseModel):
+    targets: list[FetchTarget]
+    summary: FetchPlanSummary
