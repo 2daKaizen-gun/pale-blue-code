@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import type { MonotransitLedgerEntry, SizeVerdict } from '../../lib/api/monotransit'
+import type {
+  FetchPlanSummary,
+  MonotransitLedgerEntry,
+  SizeVerdict,
+} from '../../lib/api/monotransit'
 import {
+  fetchPlanBestTarget,
+  fetchPlanHeadline,
+  fetchPlanPendingNote,
   huntHeadline,
   sensitivityCaption,
   sensitivityFloor,
@@ -91,6 +98,49 @@ describe('huntHeadline', () => {
 
   it('tells the user to fetch light curves first when nothing was searched', () => {
     expect(huntHeadline(0, 0)).toContain('빛을 받아오세요')
+  })
+})
+
+describe('fetch plan copy', () => {
+  const plan = (over: Partial<FetchPlanSummary>): FetchPlanSummary => ({
+    plausible: 16,
+    cached: 0,
+    pending: 16,
+    best_target: 'TIC 156004112',
+    best_min_planet_rjup: 0.6,
+    ...over,
+  })
+
+  it('headline names the target count and how many are searchable vs waiting', () => {
+    const line = fetchPlanHeadline(plan({ plausible: 16, cached: 2, pending: 14 }))
+    expect(line).toContain('16')
+    expect(line).toContain('2')
+    expect(line).toContain('14')
+  })
+
+  it('headline states an empty pool honestly, not as a failure', () => {
+    expect(fetchPlanHeadline(plan({ plausible: 0 }))).toContain('행성 크기 표적이 없습니다')
+  })
+
+  it('best-target line names the smallest planet a detection could reveal', () => {
+    const line = fetchPlanBestTarget(plan({})) as string
+    expect(line).toContain('TIC 156004112')
+    expect(line).toContain('0.60')
+  })
+
+  it('best-target line is null when there is no plausible target to omit the line', () => {
+    expect(fetchPlanBestTarget(plan({ best_target: null, best_min_planet_rjup: null }))).toBeNull()
+  })
+
+  it('pending note states pending stars need a local fetch, and is honest about not looking', () => {
+    const note = fetchPlanPendingNote(plan({ pending: 16 })) as string
+    expect(note).toContain('16')
+    expect(note).toContain('fetch')
+    expect(note).toContain('보지 않은 곳') // never implies it looked where it did not
+  })
+
+  it('pending note is null when nothing is pending', () => {
+    expect(fetchPlanPendingNote(plan({ pending: 0 }))).toBeNull()
   })
 })
 

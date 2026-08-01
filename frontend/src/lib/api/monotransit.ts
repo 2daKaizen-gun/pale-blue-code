@@ -107,3 +107,36 @@ export async function monotransitPool(): Promise<PoolAssessment> {
   }
   return res.json()
 }
+
+// sub-11-7: the fetch plan — which plausible dwarfs are worth fetching, cached or pending, best
+// target first. Deterministic; the actual fetch is a separate local step, never this request.
+export interface FetchTarget {
+  tic: number
+  star_name: string
+  min_planet_rjup: number | null // smallest planet a detection here could reveal
+  min_planet_rearth: number | null
+  cached: boolean // its light curve is already on disk (the hunt can search it)
+}
+
+export interface FetchPlanSummary {
+  plausible: number // plausible dwarfs worth a fetch
+  cached: number // already searchable
+  pending: number // still waiting on their light
+  best_target: string | null // the smallest-planet target
+  best_min_planet_rjup: number | null
+}
+
+export interface FetchPlan {
+  targets: FetchTarget[]
+  summary: FetchPlanSummary
+}
+
+// The plausible dwarfs to fetch — deterministic, no network in this request.
+export async function monotransitFetchPlan(): Promise<FetchPlan> {
+  const res = await fetch(`${API_BASE_URL}/api/monotransit/fetch-plan`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail?.message ?? body.detail ?? `request failed: ${res.status}`)
+  }
+  return res.json()
+}

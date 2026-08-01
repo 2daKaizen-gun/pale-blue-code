@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  monotransitFetchPlan,
   monotransitHunt,
+  type FetchPlan,
   type MonotransitHunt,
   type MonotransitLedgerEntry,
   type MonotransitSurvivor,
@@ -9,6 +11,9 @@ import {
 import {
   DISCRIMINATOR_LABEL,
   DISPOSITION_LABEL,
+  fetchPlanBestTarget,
+  fetchPlanHeadline,
+  fetchPlanPendingNote,
   huntHeadline,
   sensitivityCaption,
   sensitivityFloor,
@@ -97,8 +102,50 @@ function LedgerRow({ e }: { e: MonotransitLedgerEntry }) {
   )
 }
 
+// sub-11-7: the targets. The hunt searches only cached curves, so before the result we name
+// which plausible dwarfs are worth a fetch — how many are already searchable, how many still
+// wait on their light — and state plainly that the pending ones need a local fetch.
+function FetchPlanPanel({ plan }: { plan: FetchPlan }) {
+  const s = plan.summary
+  const best = fetchPlanBestTarget(s)
+  const pendingNote = fetchPlanPendingNote(s)
+  return (
+    <section className="rounded-lg border border-cosmos-border bg-cosmos-surface p-5">
+      <h2 className="mb-1 font-mono text-xs tracking-widest text-cosmos-subtle">
+        표적 — 검출이 행성일 수 있는 별들 (sub-11-5 트리아지)
+      </h2>
+      <p className="text-sm text-cosmos-text">{fetchPlanHeadline(s)}</p>
+      {best && <p className="mt-1 text-sm text-emerald-300/90">{best}</p>}
+      {plan.targets.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {plan.targets.map((t) => (
+            <li
+              key={t.tic}
+              className={`rounded border px-2 py-0.5 font-mono text-[11px] ${
+                t.cached
+                  ? 'border-emerald-400/40 text-emerald-300/90'
+                  : 'border-cosmos-border text-cosmos-muted'
+              }`}
+            >
+              {t.star_name}
+              {t.min_planet_rjup != null && ` · ≥${t.min_planet_rjup.toFixed(2)}R♃`}
+              {t.cached ? ' ✓' : ' ·미수집'}
+            </li>
+          ))}
+        </ul>
+      )}
+      {pendingNote && (
+        <p className="mt-3 border-l-2 border-cosmos-nebula/40 pl-3 text-xs text-cosmos-subtle">
+          {pendingNote}
+        </p>
+      )}
+    </section>
+  )
+}
+
 export default function MonotransitHuntPage() {
   const [data, setData] = useState<MonotransitHunt | null>(null)
+  const [plan, setPlan] = useState<FetchPlan | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -110,6 +157,14 @@ export default function MonotransitHuntPage() {
       .catch((e) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false))
   }
+
+  // the deterministic fetch plan loads alongside the hunt; a plan failure is non-fatal (the
+  // hunt still renders), so it is swallowed rather than surfaced as the hunt's own error.
+  useEffect(() => {
+    monotransitFetchPlan()
+      .then(setPlan)
+      .catch(() => setPlan(null))
+  }, [])
 
   useEffect(run, [])
 
@@ -139,6 +194,8 @@ export default function MonotransitHuntPage() {
           아니니까요(sub-11-5의 트리아지).
         </p>
       </header>
+
+      {plan && <FetchPlanPanel plan={plan} />}
 
       {loading && (
         <div className="flex items-center gap-3 text-sm text-cosmos-muted">
