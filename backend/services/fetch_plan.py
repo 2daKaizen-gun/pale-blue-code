@@ -78,3 +78,62 @@ def fetch_plan(
         "best_min_planet_rjup": best["min_planet_rjup"] if best else None,
     }
     return {"targets": targets, "summary": summary}
+
+
+# --- the fetch runner (sub-11-7 Light 2) --------------------------------------
+#
+# The plan says which stars and in what order; this walks it and actually pulls the light
+# curves — the network half of the bridge. It is deliberately thin and honest: bounded by a
+# limit so a run pulls a handful and not all sixteen, the fetch function injectable so the
+# orchestration is tested without touching MAST, and every star given an explicit outcome. A
+# fetch that raises is recorded as failed with its reason, never swallowed into a false success.
+
+
+def _default_fetch(tic: int) -> None:
+    """Fetch and cache one TESS light curve by TIC — the real network step, imported lazily."""
+    hunt_service.fetch_lc_by_tic(tic)
+
+
+def fetch_targets(plan: dict, fetch_fn=None, limit: int = 4) -> dict:
+    """Fetch the pending targets in a plan, bounded and with an honest per-star outcome.
+
+    Walks ``plan["targets"]`` (already best-target-first) and, for each:
+
+      - ``already_cached``  its curve is on disk — skipped, the hunt can already search it
+      - ``fetched``         ``fetch_fn`` pulled and cached it just now
+      - ``failed``          ``fetch_fn`` raised — recorded with the reason, never pretended done
+      - ``deferred``        pending, but the fetch budget (``limit``) was spent — try again later
+
+    Only pending targets consume the budget, so ``limit`` caps the number of network calls. The
+    fetch function is injectable (default ``hunt.fetch_lc_by_tic``) so tests run without MAST.
+    Returns ``{"outcomes": [{star_name, tic, outcome, detail}], "summary": {...counts...}}``.
+    """
+    fetch_fn = fetch_fn or _default_fetch
+    outcomes = []
+    fetched = 0
+    for t in plan.get("targets", []):
+        name, tic = t["star_name"], t["tic"]
+        if t["cached"]:
+            outcomes.append({"star_name": name, "tic": tic,
+                             "outcome": "already_cached", "detail": None})
+            continue
+        if fetched >= limit:
+            outcomes.append({"star_name": name, "tic": tic,
+                             "outcome": "deferred", "detail": "fetch budget spent"})
+            continue
+        try:
+            fetch_fn(tic)
+        except Exception as e:                       # network/MAST error -> honest failure
+            outcomes.append({"star_name": name, "tic": tic,
+                             "outcome": "failed", "detail": str(e)})
+            continue
+        fetched += 1
+        outcomes.append({"star_name": name, "tic": tic, "outcome": "fetched", "detail": None})
+
+    summary = {
+        "fetched": sum(1 for o in outcomes if o["outcome"] == "fetched"),
+        "already_cached": sum(1 for o in outcomes if o["outcome"] == "already_cached"),
+        "failed": sum(1 for o in outcomes if o["outcome"] == "failed"),
+        "deferred": sum(1 for o in outcomes if o["outcome"] == "deferred"),
+    }
+    return {"outcomes": outcomes, "summary": summary}

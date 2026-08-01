@@ -64,3 +64,53 @@ def test_plan_on_the_real_pool_targets_sixteen_dwarfs():
     assert plan["summary"]["pending"] == 16          # forced-uncached: all pending
     # the best target is a real planet-sized reach, not a star
     assert plan["summary"]["best_min_planet_rjup"] < 2.0
+
+
+# ---- fetch_targets (Light 2) -------------------------------------------------
+
+def _plan_none_cached():
+    return fp.fetch_plan(is_cached=_NONE_CACHED, stars=_FAKE_POOL)
+
+
+def test_runner_fetches_pending_targets_and_records_each():
+    fetched = []
+    plan = _plan_none_cached()
+    result = fp.fetch_targets(plan, fetch_fn=fetched.append, limit=10)
+    # both plausible dwarfs pending -> both fetched, in best-target-first order
+    assert fetched == [4, 1]
+    assert [o["outcome"] for o in result["outcomes"]] == ["fetched", "fetched"]
+    assert result["summary"]["fetched"] == 2
+
+
+def test_runner_honors_the_limit_and_defers_the_rest():
+    fetched = []
+    plan = _plan_none_cached()
+    result = fp.fetch_targets(plan, fetch_fn=fetched.append, limit=1)
+    # only the best target is pulled; the rest is deferred, not silently dropped
+    assert fetched == [4]
+    outcomes = {o["star_name"]: o["outcome"] for o in result["outcomes"]}
+    assert outcomes == {"TIC 4": "fetched", "TIC 1": "deferred"}
+    assert result["summary"]["fetched"] == 1 and result["summary"]["deferred"] == 1
+
+
+def test_runner_records_a_failed_fetch_with_its_reason_not_a_false_success():
+    def boom(tic):
+        raise RuntimeError(f"MAST timeout on {tic}")
+
+    plan = _plan_none_cached()
+    result = fp.fetch_targets(plan, fetch_fn=boom, limit=10)
+    assert result["summary"]["failed"] == 2 and result["summary"]["fetched"] == 0
+    first = result["outcomes"][0]
+    assert first["outcome"] == "failed" and "MAST timeout" in first["detail"]
+
+
+def test_runner_skips_already_cached_targets_without_fetching():
+    fetched = []
+    # tic 1 already on disk; only tic 4 should be pulled
+    plan = fp.fetch_plan(is_cached=lambda n: n == "TIC 1", stars=_FAKE_POOL)
+    result = fp.fetch_targets(plan, fetch_fn=fetched.append, limit=10)
+    assert fetched == [4]
+    outcomes = {o["star_name"]: o["outcome"] for o in result["outcomes"]}
+    assert outcomes["TIC 1"] == "already_cached"
+    assert outcomes["TIC 4"] == "fetched"
+    assert result["summary"]["already_cached"] == 1 and result["summary"]["fetched"] == 1
