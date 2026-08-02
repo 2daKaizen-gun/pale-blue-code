@@ -43,6 +43,9 @@ export interface MonotransitSurvivor extends SizeVerdict {
   checks: DiscriminatorCheck[]
   passed: boolean
   candidate: boolean
+  // sub-11-8: the shortest orbit this one transit could belong to (a b=0 lower bound),
+  // or null when the star's radius is unknown. "at least", never "the period is".
+  min_period_days: number | null
 }
 
 export interface MonotransitLedgerEntry extends SizeVerdict {

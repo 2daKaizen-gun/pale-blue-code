@@ -145,6 +145,32 @@ export function fetchPlanPendingNote(s: FetchPlanSummary): string | null {
   return `아직 빛을 안 받아온 ${s.pending}개는 로컬에서 fetch해야 사냥이 뒤질 수 있습니다 — 도구는 보지 않은 곳을 봤다고 하지 않습니다.`
 }
 
+// sub-11-8: the minimum orbital period a single transit implies. Beyond a TESS sector's ~27-day
+// span a planet cannot repeat inside one sector, so a bound past this is squarely the long-period
+// ground BLS is blind to — the reason a monotransit is worth more than a machine's repeated dip.
+const _LONG_PERIOD_DAYS = 27
+
+/** Days rendered for reading: one decimal under 10, whole days above (a bound, not a measurement). */
+export function formatPeriodDays(days: number): string {
+  return days < 10 ? days.toFixed(1) : String(Math.round(days))
+}
+
+/**
+ * The honest period line for a survivor: the shortest orbit its one transit could belong to,
+ * stated as a lower bound — "at least", never "the period is". A bound past a sector's span names
+ * the long-period framing (the machine's blind spot). `null` when no bound is known (no radius),
+ * so the caller omits the line rather than inventing a number.
+ */
+export function survivorPeriodNote(minPeriodDays: number | null): string | null {
+  if (minPeriodDays == null || !Number.isFinite(minPeriodDays) || minPeriodDays <= 0) return null
+  const p = formatPeriodDays(minPeriodDays)
+  const base = `이 한 번의 통과만으로도 궤도 주기는 최소 ${p}일 — 더 길 수는 있어도 짧을 수는 없는 하한입니다 (중심통과·원궤도 가정).`
+  if (minPeriodDays >= _LONG_PERIOD_DAYS) {
+    return `${base} 한 섹터 안에서 반복될 수 없는 긴 주기 — 기계가 접을 것이 없어 놓치는 자리입니다.`
+  }
+  return base
+}
+
 /**
  * The honest headline for a finished hunt: a candidate count when something survived,
  * else the empty-handed truth — searched N, none survived — never framed as failure.

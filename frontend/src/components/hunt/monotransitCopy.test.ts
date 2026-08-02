@@ -8,10 +8,12 @@ import {
   fetchPlanBestTarget,
   fetchPlanHeadline,
   fetchPlanPendingNote,
+  formatPeriodDays,
   huntHeadline,
   sensitivityCaption,
   sensitivityFloor,
   summarizeLedger,
+  survivorPeriodNote,
   survivorSizeNote,
 } from './monotransitCopy'
 
@@ -141,6 +143,37 @@ describe('fetch plan copy', () => {
 
   it('pending note is null when nothing is pending', () => {
     expect(fetchPlanPendingNote(plan({ pending: 0 }))).toBeNull()
+  })
+})
+
+describe('survivorPeriodNote', () => {
+  it('states the period as a lower bound, never as a measured period', () => {
+    const note = survivorPeriodNote(15) as string
+    expect(note).toContain('15')
+    expect(note).toContain('최소')
+    expect(note).toContain('하한')
+  })
+
+  it('names the long-period framing when the bound passes a sector span', () => {
+    const note = survivorPeriodNote(260) as string
+    expect(note).toContain('260')
+    expect(note).toContain('긴 주기')
+  })
+
+  it('omits the long-period framing for a short bound', () => {
+    const note = survivorPeriodNote(5) as string
+    expect(note).not.toContain('긴 주기')
+  })
+
+  it('is null when no bound is known (no radius), so the caller omits the line', () => {
+    expect(survivorPeriodNote(null)).toBeNull()
+    expect(survivorPeriodNote(0)).toBeNull()
+    expect(survivorPeriodNote(Number.NaN)).toBeNull()
+  })
+
+  it('formats short bounds with a decimal and long ones as whole days', () => {
+    expect(formatPeriodDays(5.34)).toBe('5.3')
+    expect(formatPeriodDays(260.7)).toBe('261')
   })
 })
 
