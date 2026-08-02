@@ -114,7 +114,25 @@ Kepler/TESS는 하나의 **개척지 허브**에서 고르며, 판별 엔진(9-A
 > 단일 트랜짓을 잡음과 못 가려 폐기했고, 트랜짓 *사이* 산포로 잰 S/N이 깨끗이 갈랐습니다(잡음
 > ≤3.23, 진짜 ≥6.00 → 임계 4.0). `TIC 7318157`이 어제의 `strong 4/4`에서 오늘 "검출 아님"으로
 > 내려갔고, 앵커 셋은 판정을 유지합니다. 기록: `docs/checks/phase-11/sub-11-1.md`,
-> 계획: `docs/specs/phase-11/`. 다음은 단일 트랜짓 탐지(sub-11-2+).
+> 계획: `docs/specs/phase-11/`.
+>
+> **단일 트랜짓 사냥이 그 위에 지어졌습니다 (sub-11-2 ~ 11-9).** 접을 것이 없는 한 번의 딥을
+> 정합필터로 재고(11-2), 개척지 풀 전체에 걸쳐 별마다 처분을 남기는 정직한 원장으로 사냥하며
+> "뒤졌지만 아무도 살아남지 못함"을 일급 결과로 둡니다(11-3). 알려진 깊이의 트랜짓을 주입해
+> 무엇이 회수되는지 재고(11-4 — 완전성은 보장이 아니라 바닥), 거성에서 뜬 깊은 딥은 세계가
+> 아니라 별이므로 검출이 *행성일 수 있는* 곳으로 풀을 줄 세웁니다(11-5 — 밝은 새하늘 풀은
+> 대부분 거성). 생존자마다 크기 판정(11-6)과 fetch할 가치가 있는 왜성 목록(11-7)을 답니다.
+>
+> **그리고 한 번의 통과에서 세계의 초상을 읽습니다.** 그 한 트랜짓의 모양이 궤도 주기의 **하한**을
+> 못박고(11-8 — "적어도 N일", 기계가 눈먼 긴 주기 쪽으로), 그 최단 주기(가장 가까운 궤도)와 제로
+> 알베도가 평형온도의 **상한**을 줍니다(11-9 — "많아야 T K"). 긴 트랜짓일수록 최소 주기가 길고,
+> 그래서 가장 뜨거워도 더 차갑습니다 — K왜성의 반나절 트랜짓은 184일 궤도에 많아야 268 K, 온화한
+> 범위. 정직: 둘 다 경계값이지 측정이 아니며(모든 가정이 "적어도/많아야" 방향으로만 틀림), 검출이
+> 행성이라는 증거는 아닙니다. 기록: `docs/checks/phase-11/sub-11-8.md`·`sub-11-9.md`.
+>
+> **아직 남은 진짜 다음 걸음**: 16개 유력 왜성 중 하나도 아직 fetch되지 않았습니다. 도구와 초상은
+> 지어졌지만, 실제 생존자가 자기 주기·온도를 처음 말하려면 로컬에서 한 번 빛을 받아와야 합니다 —
+> `python scripts/fetch_plausible.py`(backend/ 기준), 그 뒤 유력 왜성의 첫 사냥.
 
 > 📜 Phase별 상세 작업은 `docs/phase-handoffs/` 에서 추적됩니다.
 
@@ -167,7 +185,11 @@ pale-blue-code/
 │   ├── find_single_sector_targets.py 단일섹터 미기록 TIC 탐색 (보정용 사냥터)
 │   ├── measure_detrend_window.py    디트렌드 창 ↔ 트랜짓 깊이 주입-회수 측정
 │   ├── calibrate_min_transits.py    _N_MIN_TRANSITS 실측 보정 (행성/쌍성 주입)
-│   └── measure_detection_significance.py  검출 유의성 지표 실측 (SDE·트랜짓 S/N, Phase 11)
+│   ├── measure_detection_significance.py  검출 유의성 지표 실측 (SDE·트랜짓 S/N, Phase 11)
+│   ├── measure_monotransit_false_alarm.py 단일 트랜짓 오경보율 실측 (Phase 11)
+│   ├── measure_monotransit_completeness.py 단일 트랜짓 완전성 (주입-회수, Phase 11)
+│   ├── measure_monotransit_significance.py 단일 트랜짓 유의성 임계 실측 (Phase 11)
+│   └── fetch_plausible.py           유력 왜성 광도곡선 로컬 fetch (Phase 11, MAST)
 │
 ├── docs/
 │   ├── COLLABORATION.md             📜 협업 헌장 (약속)
@@ -176,7 +198,8 @@ pale-blue-code/
 │   ├── deploy.md                    배포·운영·비용 런북
 │   │
 │   ├── vision/                      북극성 문서 (spec 아님, 방향과 가드레일)
-│   │   └── finding-our-own-planet.md
+│   │   ├── finding-our-own-planet.md   단일 트랜짓으로 진짜 발견 (Phase 11 방향)
+│   │   └── making-the-tool-legible.md  도구를 읽히게 (기능 완성 후 UX 재설계)
 │   │
 │   ├── phase-handoffs/              Phase 종료 시 작성
 │   │   └── phase-{N}-to-{M}.md
@@ -201,25 +224,34 @@ pale-blue-code/
     │   ├── planets.py               NASA Exoplanet Archive
     │   ├── lightcurves.py           광도곡선 (Phase 6)
     │   ├── bls.py                   BLS 주기 탐색 (Phase 7)
-    │   └── hunt.py                  외계행성 사냥 (Phase 8)
+    │   ├── hunt.py                  외계행성 사냥 (Phase 8)
+    │   └── monotransit.py           단일 트랜짓 사냥·풀·fetch-plan (Phase 11)
     ├── services/
     │   ├── archive.py               NASA Exoplanet Archive
     │   ├── mast.py                  Lightkurve + 파일 캐시
     │   ├── bls.py                   Box Least Squares
     │   ├── hunt.py                  KIC/TIC 광도곡선 + KOI/TOI 대조 + frontier (Kepler·TESS)
-    │   └── vetting.py               4관문 판별 + de-alias (Phase 9-A, 미션 무관)
+    │   ├── vetting.py               4관문 판별 + de-alias (Phase 9-A, 미션 무관)
+    │   ├── monotransit.py           단일 트랜짓: 정합필터·유의성·판별자·최소주기·최대온도 (Phase 11)
+    │   ├── pool_assessment.py       개척지 풀 트리아지 — 검출이 행성일 수 있는 곳 (Phase 11)
+    │   └── fetch_plan.py            유력 왜성 fetch 계획 (캐시 대조, Phase 11)
     ├── models/
     │   ├── planet.py
     │   ├── lightcurve.py
     │   ├── bls.py
     │   ├── hunt.py
-    │   └── vetting.py
+    │   ├── vetting.py
+    │   └── monotransit.py           생존자·원장·풀·fetch-plan 스키마 (Phase 11)
     ├── tests/                       pytest — 순수 계산 경계를 못박음
     │   ├── test_archive.py
     │   ├── test_bls.py              디트렌드 창·cadence 유도·세그먼트 clamp
     │   ├── test_hunt.py             KOI/TOI 게이트 · 씨드 풀 불변식 · 섹터 계수
     │   ├── test_hunt_api.py         HTTP 계약
-    │   └── test_vetting.py          4관문 · de-alias · 관측 트랜짓 계수
+    │   ├── test_vetting.py          4관문 · de-alias · 관측 트랜짓 계수
+    │   ├── test_monotransit.py      정합필터·유의성·판별자·최소주기·최대온도·사냥 원장 (Phase 11)
+    │   ├── test_monotransit_api.py  단일 트랜짓 HTTP 계약 (Phase 11)
+    │   ├── test_pool_assessment.py  풀 트리아지 기하 (Phase 11)
+    │   └── test_fetch_plan.py       fetch 계획 (Phase 11)
     ├── data/
     │   ├── koi_catalog.csv          KOI 스냅샷 (kepid/kepoi/disposition/period)
     │   ├── toi_catalog.csv          TOI 스냅샷 (tid/toi/disposition/period, Phase 10)
