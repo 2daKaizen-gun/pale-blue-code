@@ -9,12 +9,14 @@ import {
   fetchPlanHeadline,
   fetchPlanPendingNote,
   formatPeriodDays,
+  formatTempK,
   huntHeadline,
   sensitivityCaption,
   sensitivityFloor,
   summarizeLedger,
   survivorPeriodNote,
   survivorSizeNote,
+  survivorTempNote,
 } from './monotransitCopy'
 
 const entry = (
@@ -174,6 +176,36 @@ describe('survivorPeriodNote', () => {
   it('formats short bounds with a decimal and long ones as whole days', () => {
     expect(formatPeriodDays(5.34)).toBe('5.3')
     expect(formatPeriodDays(260.7)).toBe('261')
+  })
+})
+
+describe('survivorTempNote', () => {
+  it('states the temperature as an upper bound, never as a measured value', () => {
+    const note = survivorTempNote(410) as string
+    expect(note).toContain('410')
+    expect(note).toContain('많아야')
+    expect(note).toContain('상한')
+  })
+
+  it('names the temperate framing when even the warmest case is cool enough to ask about', () => {
+    const note = survivorTempNote(300) as string
+    expect(note).toContain('온화')
+  })
+
+  it('omits the temperate framing when even the warmest case is hot', () => {
+    const note = survivorTempNote(900) as string
+    expect(note).not.toContain('온화')
+  })
+
+  it('is null when no bound is known (no Teff/radius/period), so the caller omits the line', () => {
+    expect(survivorTempNote(null)).toBeNull()
+    expect(survivorTempNote(0)).toBeNull()
+    expect(survivorTempNote(Number.NaN)).toBeNull()
+  })
+
+  it('formats the temperature as whole kelvin', () => {
+    expect(formatTempK(278.6)).toBe('279')
+    expect(formatTempK(410.2)).toBe('410')
   })
 })
 

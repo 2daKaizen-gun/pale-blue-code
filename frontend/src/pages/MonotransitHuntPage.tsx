@@ -20,6 +20,7 @@ import {
   summarizeLedger,
   survivorPeriodNote,
   survivorSizeNote,
+  survivorTempNote,
 } from '../components/hunt/monotransitCopy'
 import Spinner from '../components/ui/Spinner'
 
@@ -35,6 +36,7 @@ function SurvivorCard({ s }: { s: MonotransitSurvivor }) {
   // highlighted; a too_big one is still shown but framed as star-sized, its card dimmed.
   const plausible = s.size_class === 'plausible'
   const periodNote = survivorPeriodNote(s.min_period_days)
+  const tempNote = survivorTempNote(s.max_eq_temp_k)
   const cardBorder = plausible
     ? 'border-emerald-400/50'
     : s.size_class === 'too_big'
@@ -62,10 +64,11 @@ function SurvivorCard({ s }: { s: MonotransitSurvivor }) {
         <Stat label="지속" value={`${(s.duration * 24).toFixed(1)}h`} />
         <Stat label="t0" value={`${s.t0.toFixed(2)} d`} />
       </dl>
-      {periodNote && (
-        <p className="mb-3 border-l-2 border-cosmos-nebula/50 pl-3 text-xs text-cosmos-subtle">
-          {periodNote}
-        </p>
+      {(periodNote || tempNote) && (
+        <div className="mb-3 space-y-1 border-l-2 border-cosmos-nebula/50 pl-3 text-xs text-cosmos-subtle">
+          {periodNote && <p>{periodNote}</p>}
+          {tempNote && <p>{tempNote}</p>}
+        </div>
       )}
       <ul className="flex flex-wrap gap-2">
         {s.checks.map((c) => (

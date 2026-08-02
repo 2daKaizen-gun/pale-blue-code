@@ -171,6 +171,33 @@ export function survivorPeriodNote(minPeriodDays: number | null): string | null 
   return base
 }
 
+// sub-11-9: the warmest a survivor's world could run — an upper bound from its closest orbit
+// (the minimum period) at zero albedo. Below this even the hottest case is temperate enough to
+// ask about; the real temperature is only lower (a longer period, or any reflection, cools it).
+const _TEMPERATE_MAX_K = 320
+
+/** Rounded kelvin for reading — an upper bound, not a measurement. */
+export function formatTempK(kelvin: number): string {
+  return String(Math.round(kelvin))
+}
+
+/**
+ * The honest temperature line for a survivor: the warmest it could run, stated as an upper
+ * bound — "at most", never "is". The closest orbit (its minimum period) at zero albedo is the
+ * hottest case, so the real temperature is only lower. When even that warmest case is temperate,
+ * the line says the world is worth asking about. `null` when no bound is known (no Teff/radius/
+ * period), so the caller omits the line rather than inventing a temperature.
+ */
+export function survivorTempNote(maxEqTempK: number | null): string | null {
+  if (maxEqTempK == null || !Number.isFinite(maxEqTempK) || maxEqTempK <= 0) return null
+  const t = formatTempK(maxEqTempK)
+  const base = `가장 가까운 궤도에서도 평형온도는 많아야 약 ${t} K — 제로 알베도·최단 주기 가정의 상한이라, 더 멀거나 빛을 반사하면 더 차가워집니다.`
+  if (maxEqTempK <= _TEMPERATE_MAX_K) {
+    return `${base} 가장 뜨거운 경우조차 온화한 범위 — 물어볼 가치가 있는 세계입니다.`
+  }
+  return base
+}
+
 /**
  * The honest headline for a finished hunt: a candidate count when something survived,
  * else the empty-handed truth — searched N, none survived — never framed as failure.
