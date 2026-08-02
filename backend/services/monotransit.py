@@ -474,6 +474,73 @@ def min_orbital_period_days(
     return float(period_s / _SECONDS_PER_DAY)
 
 
+# --- the warmest it could be: an upper bound on the world's temperature -------
+#
+# The minimum period (above) is the SHORTEST orbit the transit allows, so it also
+# fixes the CLOSEST the planet could sit to its star — and the closest orbit is the
+# hottest. Turn that period into an orbital distance through Kepler's third law (with
+# the star's mass from the same main-sequence relation the period bound uses), and the
+# star's own temperature and radius into the flux that distance receives:
+#
+#   a_min    = (G * M_star * P_min^2 / (4 pi^2))^(1/3)         Kepler III
+#   T_eq_max = T_eff * sqrt(R_star / (2 * a_min))             zero-albedo, closest orbit
+#
+# Every assumption pushes the number UP: the real period is at least P_min, so the real
+# orbit is at least a_min, so the real insolation is at most this and the real
+# equilibrium temperature is at most T_eq_max; zero albedo is the hottest a body can run
+# (any reflection only cools it). So the honest statement is "at most T_eq_max", never
+# "its temperature is T_eq_max" — and since the temperature descends from the period, it
+# inherits the same main-sequence radius caveat.
+_RSUN_M = 6.957e8            # solar radius, meters
+
+
+def stellar_mass_kg(radius_rsun: float) -> float:
+    """Stellar mass in kg, from radius via the same main-sequence relation as the density.
+
+    ``M = rho_star * (4/3) pi R_star^3`` with ``rho_star = rho_sun * R^-1.75`` reduces to
+    ``M ~ R^1.25`` in solar units — the identical M ~ R^1.25 footing the period bound stands
+    on, so the orbital distance is consistent with the period it descends from. Raises on a
+    non-positive radius (no mass to report). Returns ~1 solar mass at 1 R_sun.
+    """
+    if radius_rsun <= 0:
+        raise ValueError("radius_rsun must be positive")
+    return _RHO_SUN_SI * (4.0 / 3.0) * np.pi * _RSUN_M ** 3 * radius_rsun ** _MS_MASS_RADIUS_EXP
+
+
+def semi_major_axis_m(period_days: float, radius_rsun: float) -> float:
+    """Orbital semi-major axis in meters, from the period via Kepler's third law.
+
+    ``a^3 = G M_star P^2 / (4 pi^2)``, with the stellar mass estimated from the radius.
+    Fed the *minimum* period, it returns the *closest* the planet could orbit. Raises on
+    non-positive input (no distance to report).
+    """
+    if period_days <= 0 or radius_rsun <= 0:
+        raise ValueError("period_days and radius_rsun must be positive")
+    mass = stellar_mass_kg(radius_rsun)
+    period_s = period_days * _SECONDS_PER_DAY
+    a_cubed = _G_SI * mass * period_s ** 2 / (4.0 * np.pi ** 2)
+    return float(a_cubed ** (1.0 / 3.0))
+
+
+def max_equilibrium_temp_k(
+    min_period_days: float | None, teff_k: float | None, radius_rsun: float | None
+) -> float | None:
+    """Warmest equilibrium temperature (K) a single-transit world could run.
+
+    From the *minimum* period (the closest orbit) and zero albedo (the hottest case),
+    ``T_eq_max = T_eff * sqrt(R_star / (2 a_min))`` — a genuine UPPER bound: a longer real
+    period, or any reflection, only lowers it. Returns ``None`` when the period bound, the
+    effective temperature, or the radius is missing or non-physical (no temperature to
+    report). Earth around the Sun returns its known ~278 K zero-albedo value.
+    """
+    if (min_period_days is None or teff_k is None or radius_rsun is None
+            or min_period_days <= 0 or teff_k <= 0 or radius_rsun <= 0):
+        return None
+    a_min = semi_major_axis_m(min_period_days, radius_rsun)
+    r_star_m = radius_rsun * _RSUN_M
+    return float(teff_k * np.sqrt(r_star_m / (2.0 * a_min)))
+
+
 # --- reachable entry point (Light 5) ------------------------------------------
 
 def run_monotransit(planet_name: str) -> dict:

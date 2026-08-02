@@ -550,3 +550,48 @@ def test_min_period_guards_non_physical_input():
 def test_stellar_density_a_smaller_dwarf_is_denser_sun_is_solar():
     assert mt.stellar_density_solar(1.0) == pytest.approx(1408.0)
     assert mt.stellar_density_solar(0.5) > mt.stellar_density_solar(1.0)
+
+
+# --- sub-11-9: the warmest a survivor's world could be ------------------------
+
+def test_stellar_mass_is_solar_at_one_rsun_and_scales_with_radius():
+    # the same main-sequence relation as the density: ~1 solar mass at 1 R_sun, M ~ R^1.25
+    assert mt.stellar_mass_kg(1.0) == pytest.approx(1.989e30, rel=2e-3)
+    assert mt.stellar_mass_kg(0.5) < mt.stellar_mass_kg(1.0)
+    with pytest.raises(ValueError):
+        mt.stellar_mass_kg(0.0)
+
+
+def test_semi_major_axis_earth_period_is_one_au():
+    # Kepler III with a solar-mass star and a one-year period returns ~1 AU
+    assert mt.semi_major_axis_m(365.25, 1.0) == pytest.approx(1.496e11, rel=3e-3)
+    with pytest.raises(ValueError):
+        mt.semi_major_axis_m(0.0, 1.0)
+
+
+def test_equilibrium_temp_earth_around_the_sun_is_the_known_zero_albedo_value():
+    # Earth's zero-albedo equilibrium temperature is ~278 K — the constant is anchored
+    t = mt.max_equilibrium_temp_k(365.25, 5772.0, 1.0)
+    assert t == pytest.approx(278.0, abs=2.0)
+
+
+def test_equilibrium_temp_is_an_upper_bound_a_longer_period_only_cools():
+    # the number descends from the MINIMUM period; a longer real period sits farther out
+    # and can only be cooler, so a longer period bound must return a lower temperature
+    warm = mt.max_equilibrium_temp_k(20.0, 5000.0, 0.8)
+    cool = mt.max_equilibrium_temp_k(200.0, 5000.0, 0.8)
+    assert warm is not None and cool is not None and cool < warm
+
+
+def test_equilibrium_temp_is_hotter_for_a_hotter_star():
+    cooler = mt.max_equilibrium_temp_k(30.0, 4000.0, 0.8)
+    hotter = mt.max_equilibrium_temp_k(30.0, 6500.0, 0.8)
+    assert hotter > cooler
+
+
+def test_equilibrium_temp_guards_missing_and_non_physical_input():
+    assert mt.max_equilibrium_temp_k(None, 5000.0, 0.8) is None   # no period bound, no temp
+    assert mt.max_equilibrium_temp_k(30.0, None, 0.8) is None     # no effective temperature
+    assert mt.max_equilibrium_temp_k(30.0, 5000.0, None) is None  # no radius
+    assert mt.max_equilibrium_temp_k(0.0, 5000.0, 0.8) is None    # non-physical period
+    assert mt.max_equilibrium_temp_k(30.0, -1.0, 0.8) is None     # non-physical temperature
