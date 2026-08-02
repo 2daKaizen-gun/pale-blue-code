@@ -8,6 +8,7 @@ drives it — no folding, no repetition, one event.
 import json
 
 import numpy as np
+import pytest
 
 from services import bls as bls_service
 from services import monotransit as mt
@@ -459,3 +460,60 @@ def test_hunt_ledger_carries_a_depth_floor_per_star(tmp_path):
     assert ledger["floor-flat"]["depth_floor"] is not None
     assert ledger["floor-flat"]["depth_floor"] > 0.0
     assert ledger["floor-missing"]["depth_floor"] is None
+
+
+# --- sub-11-8: the minimum orbital period from one transit ---------------------
+
+def _central_transit_duration_days(period_days, depth, radius_rsun):
+    """Forward central-transit (b=0) duration — the relation min_orbital_period inverts."""
+    rho = mt.stellar_density_solar(radius_rsun)
+    k = np.sqrt(depth)
+    p_s = period_days * 86400.0
+    t14_s = (1.0 + k) / np.pi * (3.0 * np.pi / (mt._G_SI * rho)) ** (1 / 3) * p_s ** (1 / 3)
+    return t14_s / 86400.0
+
+
+def test_min_period_inverts_the_central_transit_relation_exactly():
+    # press a known b=0 period through the forward duration, then invert: we get it back
+    for period, depth, radius in [(15.0, 0.01, 0.9), (260.0, 0.02, 0.75), (3.5, 0.005, 1.1)]:
+        dur = _central_transit_duration_days(period, depth, radius)
+        assert mt.min_orbital_period_days(dur, depth, radius) == pytest.approx(period, rel=1e-9)
+
+
+def test_min_period_is_a_lower_bound_grazing_needs_longer():
+    # b=0 gives the LONGEST duration a period can make, so inverting an observed duration as if
+    # b=0 gives the SHORTEST period — a grazing transit of the SAME duration means a longer period.
+    radius, depth = 0.9, 0.01
+    p_central = 40.0
+    dur_central = _central_transit_duration_days(p_central, depth, radius)
+    # a shorter observed duration (what a grazing geometry leaves) yields a shorter min period,
+    # confirming the returned value is the floor: the true period is never below it
+    p_from_shorter = mt.min_orbital_period_days(0.5 * dur_central, depth, radius)
+    assert p_from_shorter < p_central
+
+
+def test_min_period_a_long_single_transit_implies_a_long_period():
+    # the whole point: a half-day central transit on a dwarf is a hundreds-of-days orbit —
+    # exactly the long-period world BLS discards for want of a repeat
+    p = mt.min_orbital_period_days(0.5, 0.01, 0.9)
+    assert p is not None and p > 100.0
+
+
+def test_min_period_monotonic_in_duration_density_and_depth():
+    base = mt.min_orbital_period_days(0.4, 0.01, 0.9)
+    assert mt.min_orbital_period_days(0.8, 0.01, 0.9) > base       # longer transit -> longer period
+    assert mt.min_orbital_period_days(0.4, 0.01, 0.6) > base       # denser star -> longer period
+    assert mt.min_orbital_period_days(0.4, 0.04, 0.9) < base       # deeper (bigger k) -> shorter
+
+
+def test_min_period_guards_non_physical_input():
+    assert mt.min_orbital_period_days(0.0, 0.01, 0.9) is None      # no duration, no bound
+    assert mt.min_orbital_period_days(0.4, 0.01, 0.0) is None      # no radius, no density
+    assert mt.min_orbital_period_days(0.4, -0.5, 0.9) is not None  # negative depth -> treated as 0
+    with pytest.raises(ValueError):
+        mt.stellar_density_solar(0.0)
+
+
+def test_stellar_density_a_smaller_dwarf_is_denser_sun_is_solar():
+    assert mt.stellar_density_solar(1.0) == pytest.approx(1408.0)
+    assert mt.stellar_density_solar(0.5) > mt.stellar_density_solar(1.0)

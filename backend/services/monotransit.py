@@ -416,6 +416,64 @@ def discriminators(
     return {"checks": checks, "passed": all(c["passed"] for c in checks)}
 
 
+# --- from one transit, the least it could be: the minimum orbital period ------
+#
+# A monotransit has no period — that is why BLS discards it. But the one transit we
+# saw still bounds the orbit. For a circular orbit crossing the star's center (impact
+# parameter b = 0), the transit duration, the star's mean density, and the depth fix
+# the period (Winn 2010, the small-angle central-transit duration):
+#
+#   T14 = (1 + k) / pi * (3 / (pi^2 * G * rho_star))^(1/3) * P^(1/3),   k = sqrt(depth)
+#
+# inverted:
+#
+#   P_min = (pi^2 * G * rho_star / 3) * T14^3 / (1 + k)^3
+#
+# A central transit is the LONGEST a given period can make; any grazing geometry of
+# the same observed duration needs a LONGER period. So b = 0 gives the shortest period
+# consistent with the data — a true lower bound. The surface says "at least P_min days",
+# never "the period is P_min". The mean density comes from the catalog radius through a
+# main-sequence mass-radius relation (M ~ R^1.25, so rho_star / rho_sun = R^-1.75): the
+# same catalog-geometry footing the sub-11-5 triage stands on, and a wrong radius or an
+# evolved star (a subgiant is far less dense) moves the bound — a caveat that travels.
+_G_SI = 6.674e-11            # gravitational constant, m^3 kg^-1 s^-2
+_RHO_SUN_SI = 1408.0         # mean solar density, kg m^-3
+_MS_MASS_RADIUS_EXP = 1.25   # main-sequence M ~ R^1.25 (so rho ~ R^-1.75), solar units
+_SECONDS_PER_DAY = 86400.0
+
+
+def stellar_density_solar(radius_rsun: float) -> float:
+    """Mean stellar density in kg/m^3, estimated from radius via a main-sequence relation.
+
+    Uses M ~ R^1.25 (solar units), so rho_star = rho_sun * R^(1.25 - 3) = rho_sun * R^-1.75.
+    Valid for main-sequence dwarfs (which the sub-11-5 triage already selects); a subgiant of
+    the same radius is far less dense, which would lengthen the period bound. Raises on a
+    non-positive radius (no density to report).
+    """
+    if radius_rsun <= 0:
+        raise ValueError("radius_rsun must be positive")
+    return _RHO_SUN_SI * radius_rsun ** (_MS_MASS_RADIUS_EXP - 3.0)
+
+
+def min_orbital_period_days(
+    duration_days: float, depth: float, stellar_radius_rsun: float
+) -> float | None:
+    """Shortest orbital period (days) consistent with a single transit of this shape.
+
+    Inverts the central-transit (b = 0) duration relation, where the transit is longest for a
+    given period, so the result is a genuine LOWER bound — the true period can only be longer.
+    Returns ``None`` when the inputs cannot yield a bound (non-positive duration or radius). A
+    zero depth (k -> 0) is allowed; a negative depth is treated as zero rather than raising.
+    """
+    if duration_days <= 0 or stellar_radius_rsun <= 0:
+        return None
+    rho = stellar_density_solar(stellar_radius_rsun)
+    k = np.sqrt(max(depth, 0.0))
+    t14 = duration_days * _SECONDS_PER_DAY
+    period_s = (np.pi ** 2 * _G_SI * rho / 3.0) * t14 ** 3 / (1.0 + k) ** 3
+    return float(period_s / _SECONDS_PER_DAY)
+
+
 # --- reachable entry point (Light 5) ------------------------------------------
 
 def run_monotransit(planet_name: str) -> dict:
