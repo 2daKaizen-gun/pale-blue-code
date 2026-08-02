@@ -323,6 +323,39 @@ def test_hunt_stamps_the_size_verdict_onto_ledger_and_survivors(tmp_path):
     assert out["survivors"][0]["min_planet_rjup"] == 0.6
 
 
+def test_hunt_stamps_the_min_period_bound_onto_survivors(tmp_path):
+    # sub-11-8: when the size index carries the star's radius, a survivor gets its minimum
+    # orbital period — the shortest orbit its own transit could belong to. A star whose radius
+    # is unknown carries None: the tool never invents a bound it cannot stand on.
+    rng = np.random.default_rng(42)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    dip = mt.transit_model(time, 13.0, 0.3, 0.01) + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("period-real", time, dip)
+    _write_lc("period-noradius", time, dip.copy())
+    size_index = {
+        "period-real": {"size_class": "plausible", "min_planet_rjup": 0.6,
+                        "min_planet_rearth": 6.6, "stellar_radius": 0.9},
+        "period-noradius": {"size_class": "unknown", "min_planet_rjup": None,
+                            "min_planet_rearth": None, "stellar_radius": None},
+    }
+    try:
+        out = mt.hunt_monotransit(["period-real", "period-noradius"], size_index=size_index)
+    finally:
+        for slug in ("period-real", "period-noradius"):
+            (bls_service._CACHE_DIR / f"bls_lc_{slug}.json").unlink(missing_ok=True)
+            (bls_service._CACHE_DIR / f"lc_{slug}_tess.json").unlink(missing_ok=True)
+
+    surv = {s["planet_name"]: s for s in out["survivors"]}
+    # the radius'd star gets a real, positive lower bound consistent with the physics
+    assert surv["period-real"]["min_period_days"] is not None
+    assert surv["period-real"]["min_period_days"] > 0.0
+    expected = mt.min_orbital_period_days(
+        surv["period-real"]["duration"], surv["period-real"]["depth"], 0.9)
+    assert surv["period-real"]["min_period_days"] == pytest.approx(expected)
+    # no radius -> no bound, not a guess
+    assert surv["period-noradius"]["min_period_days"] is None
+
+
 def test_hunt_ranks_plausible_star_survivors_ahead_of_star_sized_ones(tmp_path):
     # sub-11-6 Light 2: a candidate where a detection could be a PLANET leads one where it could
     # only be a star, even when the star-sized one is the louder signal. A giant's deeper dip does

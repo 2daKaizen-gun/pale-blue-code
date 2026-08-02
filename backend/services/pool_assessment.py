@@ -157,5 +157,6 @@ def size_class_by_name(
             "size_class": t["classification"],
             "min_planet_rjup": t["min_planet_rjup"],
             "min_planet_rearth": t["min_planet_rearth"],
+            "stellar_radius": t["stellar_radius"],   # for the sub-11-8 min-period bound
         }
     return index

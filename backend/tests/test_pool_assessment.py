@@ -103,5 +103,7 @@ def test_size_class_by_name_keys_the_verdict_for_the_hunt():
     assert index[dwarf]["size_class"] == "plausible"
     assert index[dwarf]["min_planet_rjup"] is not None
     assert index[giant]["size_class"] == "too_big"
+    # sub-11-8: the radius rides along so the hunt can bound the period
+    assert index[dwarf]["stellar_radius"] == 1.0
     # every pool star with a TIC is keyed
     assert len(index) == 4

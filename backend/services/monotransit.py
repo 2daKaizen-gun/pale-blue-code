@@ -565,7 +565,8 @@ def _classify_star(result: dict) -> dict:
 
 # When no size verdict is known for a star (no size_index, or a name absent from the pool
 # triage), the hunt carries nulls rather than guessing — the same honesty as an unfetched star.
-_NO_SIZE = {"size_class": None, "min_planet_rjup": None, "min_planet_rearth": None}
+_NO_SIZE = {"size_class": None, "min_planet_rjup": None, "min_planet_rearth": None,
+            "stellar_radius": None}
 
 # Survivor ranking: a candidate where a detection could be a PLANET leads one where it could only
 # be a star, and an unknown-size star sorts last (we cannot claim it could host a planet). Ties
@@ -600,9 +601,13 @@ def hunt_monotransit(planet_names: list[str], size_index: dict | None = None) ->
                            **size})
             continue
         ledger.append({**_classify_star(result), **size})
+        radius = size.get("stellar_radius")
         for c in result["candidates"]:
             if c["candidate"]:
-                survivors.append({"planet_name": name, **c, **size})
+                # what the machine is blind to: the shortest orbit this lone transit could belong to
+                min_p = (min_orbital_period_days(c["duration"], c["depth"], radius)
+                         if radius else None)
+                survivors.append({"planet_name": name, **c, **size, "min_period_days": min_p})
 
     # plausible-star candidates lead star-sized ones; significance breaks ties within a class
     survivors.sort(key=lambda c: (

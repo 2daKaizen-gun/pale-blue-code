@@ -35,6 +35,9 @@ class SizeVerdict(BaseModel):
 
 class MonotransitSurvivor(MonotransitCandidate, SizeVerdict):
     planet_name: str               # which star this survivor came from
+    # sub-11-8: shortest orbital period this one transit's duration+depth allows on this star
+    # (a b=0 lower bound), or None when the star's radius is unknown. "at least", never "is".
+    min_period_days: float | None = None
 
 
 class MonotransitLedgerEntry(SizeVerdict):
