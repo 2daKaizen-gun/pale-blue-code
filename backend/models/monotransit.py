@@ -38,6 +38,9 @@ class MonotransitSurvivor(MonotransitCandidate, SizeVerdict):
     # sub-11-8: shortest orbital period this one transit's duration+depth allows on this star
     # (a b=0 lower bound), or None when the star's radius is unknown. "at least", never "is".
     min_period_days: float | None = None
+    # sub-11-9: warmest equilibrium temperature (K) this world could run — the closest orbit
+    # (from min_period_days) at zero albedo, an upper bound. None when Teff/radius/period unknown.
+    max_eq_temp_k: float | None = None
 
 
 class MonotransitLedgerEntry(SizeVerdict):

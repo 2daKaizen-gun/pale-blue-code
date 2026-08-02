@@ -93,6 +93,7 @@ def _assess_star(star: dict, depth_floor: float) -> dict:
         "tmag": star.get("tmag"),
         "constellation": star.get("constellation"),
         "stellar_radius": radius,
+        "teff": star.get("teff"),   # for the sub-11-9 max-equilibrium-temp bound
     }
     if radius is None or radius <= 0:
         # no radius on file -> we cannot say what a dip would mean; do not guess
@@ -158,5 +159,6 @@ def size_class_by_name(
             "min_planet_rjup": t["min_planet_rjup"],
             "min_planet_rearth": t["min_planet_rearth"],
             "stellar_radius": t["stellar_radius"],   # for the sub-11-8 min-period bound
+            "teff": t["teff"],                        # for the sub-11-9 max-equilibrium-temp bound
         }
     return index

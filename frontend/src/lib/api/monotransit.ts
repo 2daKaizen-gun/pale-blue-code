@@ -46,6 +46,9 @@ export interface MonotransitSurvivor extends SizeVerdict {
   // sub-11-8: the shortest orbit this one transit could belong to (a b=0 lower bound),
   // or null when the star's radius is unknown. "at least", never "the period is".
   min_period_days: number | null
+  // sub-11-9: the warmest this world could run — the closest orbit (from min_period_days) at
+  // zero albedo, an upper bound. null when Teff/radius/period unknown. "at most", never "is".
+  max_eq_temp_k: number | null
 }
 
 export interface MonotransitLedgerEntry extends SizeVerdict {

@@ -58,10 +58,10 @@ def test_floor_on_a_giant_is_a_star_sized_companion():
 # ---- assess_pool -------------------------------------------------------------
 
 _FAKE_POOL = [
-    {"tic": 1, "tmag": 8.0, "constellation": "Pavo", "radius": 1.0},      # dwarf -> plausible
-    {"tic": 2, "tmag": 5.0, "constellation": "Tucana", "radius": 40.0},   # giant -> too_big
-    {"tic": 3, "tmag": 7.0, "constellation": "Indus", "radius": None},    # no radius -> unknown
-    {"tic": 4, "tmag": 8.1, "constellation": "Phoenix", "radius": 0.8},   # dwarf -> plausible
+    {"tic": 1, "tmag": 8.0, "constellation": "Pavo", "radius": 1.0, "teff": 5800.0},   # dwarf -> plausible
+    {"tic": 2, "tmag": 5.0, "constellation": "Tucana", "radius": 40.0},  # giant -> too_big
+    {"tic": 3, "tmag": 7.0, "constellation": "Indus", "radius": None},   # no radius -> unknown
+    {"tic": 4, "tmag": 8.1, "constellation": "Phoenix", "radius": 0.8},  # dwarf -> plausible
 ]
 
 
@@ -105,5 +105,7 @@ def test_size_class_by_name_keys_the_verdict_for_the_hunt():
     assert index[giant]["size_class"] == "too_big"
     # sub-11-8: the radius rides along so the hunt can bound the period
     assert index[dwarf]["stellar_radius"] == 1.0
+    # sub-11-9: the effective temperature rides along too, for the max-equilibrium-temp bound
+    assert index[dwarf]["teff"] == 5800.0
     # every pool star with a TIC is keyed
     assert len(index) == 4
