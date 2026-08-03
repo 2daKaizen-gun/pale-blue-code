@@ -627,3 +627,39 @@ def test_equilibrium_temp_guards_missing_and_non_physical_input():
     assert mt.max_equilibrium_temp_k(30.0, 5000.0, None) is None  # no radius
     assert mt.max_equilibrium_temp_k(0.0, 5000.0, 0.8) is None    # non-physical period
     assert mt.max_equilibrium_temp_k(30.0, -1.0, 0.8) is None     # non-physical temperature
+
+
+# --- sub-11-10: the earliest a second transit could recur ---------------------
+
+def test_jd_to_calendar_date_on_known_anchors():
+    # the Meeus JD->Gregorian conversion, pinned on dates whose Julian Date is textbook
+    assert mt.jd_to_calendar_date(2451545.0) == "2000-01-01"   # J2000.0
+    assert mt.jd_to_calendar_date(2440587.5) == "1970-01-01"   # the Unix epoch
+    assert mt.jd_to_calendar_date(2457000.0) == "2014-12-08"   # the TESS BTJD reference epoch
+    # the time-of-day fraction is floored to the civil day: still Jan 1, not Jan 2
+    assert mt.jd_to_calendar_date(2451545.0 + 0.4) == "2000-01-01"
+
+
+def test_earliest_recurrence_is_t0_plus_min_period_as_a_calendar_date():
+    # a transit at t0 (BTJD) with a minimum period P_min cannot recur before t0 + P_min;
+    # that BTJD, shifted to JD and converted, is the earliest-recurrence date
+    t0, p_min = 10.0, 100.0
+    got = mt.earliest_recurrence_date(t0, p_min)
+    assert got == mt.jd_to_calendar_date(t0 + p_min + mt._BTJD_OFFSET)
+    # BTJD 110 = JD 2457110 -> a date in early 2015, well after the BTJD epoch
+    assert got == "2015-03-28"
+
+
+def test_earliest_recurrence_a_longer_period_pushes_the_date_later():
+    # the whole honesty of the bound: a longer minimum period can only move the earliest
+    # possible recurrence later (ISO dates sort chronologically), never earlier
+    near = mt.earliest_recurrence_date(0.0, 40.0)
+    far = mt.earliest_recurrence_date(0.0, 400.0)
+    assert near is not None and far is not None
+    assert far > near
+
+
+def test_earliest_recurrence_guards_a_missing_or_non_physical_period():
+    assert mt.earliest_recurrence_date(10.0, None) is None    # no period bound -> no date
+    assert mt.earliest_recurrence_date(10.0, 0.0) is None     # non-physical period
+    assert mt.earliest_recurrence_date(10.0, -5.0) is None    # non-physical period

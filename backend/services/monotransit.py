@@ -541,6 +541,64 @@ def max_equilibrium_temp_k(
     return float(teff_k * np.sqrt(r_star_m / (2.0 * a_min)))
 
 
+# --- when it could come round again: the earliest a second transit could appear --
+#
+# A single transit is seen at epoch t0. If the true period is P >= P_min (sub-11-8),
+# the next transit falls at t0 + P, so the EARLIEST one could appear is t0 + P_min:
+# before that date a second transit cannot occur. Because the true period can only be
+# longer, the true recurrence can only be later — so this is a one-sided bound, the
+# same shape as every other number the survivor carries. The surface says "cannot recur
+# before DATE", the earliest edge of the follow-up window, never "the next transit is on
+# DATE". This is the bridge the north-star (finding-our-own-planet.md, §5-6) names as the
+# last step that makes a discovery real: a monotransit is only confirmable if someone
+# knows when to look for its second crossing.
+#
+# t0 is in the light curve's own time frame, which for TESS SPOC products is BTJD
+# (Barycentric TESS Julian Date = BJD_TDB - 2457000). Add the offset to recover JD, then
+# convert to a civil date with the standard Meeus algorithm — pure, exact for a calendar day.
+_BTJD_OFFSET = 2457000.0     # BTJD = BJD_TDB - 2457000 (TESS reference epoch)
+
+
+def jd_to_calendar_date(jd: float) -> str:
+    """Gregorian civil date (``YYYY-MM-DD``) for a Julian Date, via the Meeus algorithm.
+
+    Exact for the calendar day: JD 2451545.0 -> ``2000-01-01`` (J2000), JD 2440587.5 ->
+    ``1970-01-01`` (the Unix epoch), JD 2457000.0 -> ``2014-12-08`` (the TESS BTJD epoch).
+    The time-of-day fraction is carried through and floored, so any JD within a civil day
+    returns that day. Uses the Gregorian branch for JD >= 2299161 (all TESS-era dates).
+    """
+    jd = jd + 0.5
+    z = int(np.floor(jd))
+    f = jd - z
+    if z < 2299161:
+        a = z
+    else:
+        alpha = int((z - 1867216.25) / 36524.25)
+        a = z + 1 + alpha - alpha // 4
+    b = a + 1524
+    c = int((b - 122.1) / 365.25)
+    d = int(365.25 * c)
+    e = int((b - d) / 30.6001)
+    day = int(np.floor(b - d - int(30.6001 * e) + f))
+    month = e - 1 if e < 14 else e - 13
+    year = c - 4716 if month > 2 else c - 4715
+    return f"{year:04d}-{month:02d}-{day:02d}"
+
+
+def earliest_recurrence_date(t0_btjd: float, min_period_days: float | None) -> str | None:
+    """Calendar date (``YYYY-MM-DD``) of the earliest a second transit could appear.
+
+    The transit at ``t0_btjd`` cannot recur before ``t0 + P_min``, since the true period is
+    at least ``P_min`` — so this is the earliest edge of the follow-up window, a lower bound,
+    never a predicted transit time (a longer real period only pushes it later). ``t0_btjd`` is
+    read as BTJD (the TESS SPOC frame). Returns ``None`` when there is no period bound (no
+    stellar radius), the same null discipline as the period and temperature it descends from.
+    """
+    if min_period_days is None or min_period_days <= 0:
+        return None
+    return jd_to_calendar_date(t0_btjd + min_period_days + _BTJD_OFFSET)
+
+
 # --- reachable entry point (Light 5) ------------------------------------------
 
 def run_monotransit(planet_name: str) -> dict:
