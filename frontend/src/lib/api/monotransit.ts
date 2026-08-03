@@ -49,6 +49,9 @@ export interface MonotransitSurvivor extends SizeVerdict {
   // sub-11-9: the warmest this world could run — the closest orbit (from min_period_days) at
   // zero albedo, an upper bound. null when Teff/radius/period unknown. "at most", never "is".
   max_eq_temp_k: number | null
+  // sub-11-10: the earliest calendar date (YYYY-MM-DD) a second transit could appear — t0 + the
+  // minimum period. The earliest edge of the follow-up window; null when there is no period bound.
+  earliest_recurrence: string | null
 }
 
 export interface MonotransitLedgerEntry extends SizeVerdict {

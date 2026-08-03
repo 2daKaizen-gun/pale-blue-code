@@ -41,6 +41,9 @@ class MonotransitSurvivor(MonotransitCandidate, SizeVerdict):
     # sub-11-9: warmest equilibrium temperature (K) this world could run — the closest orbit
     # (from min_period_days) at zero albedo, an upper bound. None when Teff/radius/period unknown.
     max_eq_temp_k: float | None = None
+    # sub-11-10: earliest calendar date (YYYY-MM-DD) a second transit could appear — t0 + min
+    # period, in BTJD. The earliest edge of the follow-up window, None when no period bound.
+    earliest_recurrence: str | None = None
 
 
 class MonotransitLedgerEntry(SizeVerdict):

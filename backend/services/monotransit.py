@@ -735,8 +735,11 @@ def hunt_monotransit(planet_names: list[str], size_index: dict | None = None) ->
                          if radius else None)
                 # and the warmest that closest orbit could run — an upper bound, "at most"
                 max_t = max_equilibrium_temp_k(min_p, teff, radius)
+                # and the earliest that shortest orbit could bring it round again — "no earlier"
+                recur = earliest_recurrence_date(c["t0"], min_p)
                 survivors.append({"planet_name": name, **c, **size,
-                                  "min_period_days": min_p, "max_eq_temp_k": max_t})
+                                  "min_period_days": min_p, "max_eq_temp_k": max_t,
+                                  "earliest_recurrence": recur})
 
     # plausible-star candidates lead star-sized ones; significance breaks ties within a class
     survivors.sort(key=lambda c: (

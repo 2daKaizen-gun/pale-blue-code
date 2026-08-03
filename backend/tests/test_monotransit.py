@@ -388,6 +388,38 @@ def test_hunt_stamps_the_max_equilibrium_temp_onto_survivors(tmp_path):
     assert surv["temp-noteff"]["max_eq_temp_k"] is None
 
 
+def test_hunt_stamps_the_earliest_recurrence_date_onto_survivors(tmp_path):
+    # sub-11-10: with a radius (hence a minimum period), a survivor gets the earliest a second
+    # transit could appear — its own t0 plus that period, as a calendar date. A star with no
+    # radius (no period bound) carries None: no date invented without a bound to stand on.
+    rng = np.random.default_rng(42)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    dip = mt.transit_model(time, 13.0, 0.3, 0.01) + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("recur-real", time, dip)
+    _write_lc("recur-noradius", time, dip.copy())
+    size_index = {
+        "recur-real": {"size_class": "plausible", "min_planet_rjup": 0.6,
+                       "min_planet_rearth": 6.6, "stellar_radius": 0.9},
+        "recur-noradius": {"size_class": "unknown", "min_planet_rjup": None,
+                           "min_planet_rearth": None, "stellar_radius": None},
+    }
+    try:
+        out = mt.hunt_monotransit(["recur-real", "recur-noradius"], size_index=size_index)
+    finally:
+        for slug in ("recur-real", "recur-noradius"):
+            (bls_service._CACHE_DIR / f"bls_lc_{slug}.json").unlink(missing_ok=True)
+            (bls_service._CACHE_DIR / f"lc_{slug}_tess.json").unlink(missing_ok=True)
+
+    surv = {s["planet_name"]: s for s in out["survivors"]}
+    # the date is exactly t0 + this survivor's own minimum period, converted from BTJD
+    real = surv["recur-real"]
+    assert real["earliest_recurrence"] is not None
+    expected = mt.earliest_recurrence_date(real["t0"], real["min_period_days"])
+    assert real["earliest_recurrence"] == expected
+    # no radius -> no period bound -> no date, not a guess
+    assert surv["recur-noradius"]["earliest_recurrence"] is None
+
+
 def test_hunt_ranks_plausible_star_survivors_ahead_of_star_sized_ones(tmp_path):
     # sub-11-6 Light 2: a candidate where a detection could be a PLANET leads one where it could
     # only be a star, even when the star-sized one is the louder signal. A giant's deeper dip does
