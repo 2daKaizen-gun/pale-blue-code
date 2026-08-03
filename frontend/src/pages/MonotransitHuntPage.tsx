@@ -19,6 +19,7 @@ import {
   sensitivityFloor,
   summarizeLedger,
   survivorPeriodNote,
+  survivorRecurrenceNote,
   survivorSizeNote,
   survivorTempNote,
 } from '../components/hunt/monotransitCopy'
@@ -37,6 +38,7 @@ function SurvivorCard({ s }: { s: MonotransitSurvivor }) {
   const plausible = s.size_class === 'plausible'
   const periodNote = survivorPeriodNote(s.min_period_days)
   const tempNote = survivorTempNote(s.max_eq_temp_k)
+  const recurrenceNote = survivorRecurrenceNote(s.earliest_recurrence)
   const cardBorder = plausible
     ? 'border-emerald-400/50'
     : s.size_class === 'too_big'
@@ -64,10 +66,11 @@ function SurvivorCard({ s }: { s: MonotransitSurvivor }) {
         <Stat label="지속" value={`${(s.duration * 24).toFixed(1)}h`} />
         <Stat label="t0" value={`${s.t0.toFixed(2)} d`} />
       </dl>
-      {(periodNote || tempNote) && (
+      {(periodNote || tempNote || recurrenceNote) && (
         <div className="mb-3 space-y-1 border-l-2 border-cosmos-nebula/50 pl-3 text-xs text-cosmos-subtle">
           {periodNote && <p>{periodNote}</p>}
           {tempNote && <p>{tempNote}</p>}
+          {recurrenceNote && <p>{recurrenceNote}</p>}
         </div>
       )}
       <ul className="flex flex-wrap gap-2">
