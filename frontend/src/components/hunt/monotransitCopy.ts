@@ -198,6 +198,22 @@ export function survivorTempNote(maxEqTempK: number | null): string | null {
   return base
 }
 
+// sub-11-10: when this one transit could come round again. The earliest a second crossing could
+// appear is t0 + the minimum period — before that date it cannot recur. The date is the earliest
+// edge of the follow-up window (the bridge to real confirmation), never a predicted transit time:
+// the true period is longer, so the real recurrence is later.
+
+/**
+ * The honest recurrence line for a survivor: the earliest a second transit could appear, stated
+ * as the near edge of the follow-up window — "cannot recur before", never "the next transit is on".
+ * The real period can only be longer, so the true recurrence is later. `null` when no date is known
+ * (no period bound), so the caller omits the line rather than inventing a when.
+ */
+export function survivorRecurrenceNote(earliestRecurrence: string | null): string | null {
+  if (!earliestRecurrence) return null
+  return `두 번째 통과는 아무리 일러도 ${earliestRecurrence} 이후 — 관측 시각에 최소 주기를 더한 날로, 그 전에는 다시 스칠 수 없는 후속 관측 창의 앞 끝입니다 (t0는 TESS BTJD 기준). 진짜 주기는 더 길 수 있어 실제 재통과는 이보다 늦습니다.`
+}
+
 /**
  * The honest headline for a finished hunt: a candidate count when something survived,
  * else the empty-handed truth — searched N, none survived — never framed as failure.

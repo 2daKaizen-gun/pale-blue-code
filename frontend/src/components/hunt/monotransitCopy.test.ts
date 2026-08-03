@@ -15,6 +15,7 @@ import {
   sensitivityFloor,
   summarizeLedger,
   survivorPeriodNote,
+  survivorRecurrenceNote,
   survivorSizeNote,
   survivorTempNote,
 } from './monotransitCopy'
@@ -206,6 +207,26 @@ describe('survivorTempNote', () => {
   it('formats the temperature as whole kelvin', () => {
     expect(formatTempK(278.6)).toBe('279')
     expect(formatTempK(410.2)).toBe('410')
+  })
+})
+
+describe('survivorRecurrenceNote', () => {
+  it('states the date as the earliest a second transit could appear, not a predicted time', () => {
+    const note = survivorRecurrenceNote('2015-03-28') as string
+    expect(note).toContain('2015-03-28')
+    expect(note).toContain('아무리 일러도') // "no earlier than" — the near edge, a bound
+    expect(note).toContain('후속 관측 창') // the follow-up window it opens
+  })
+
+  it('says the real recurrence is likely later, never that the next transit is on that date', () => {
+    const note = survivorRecurrenceNote('2020-06-01') as string
+    expect(note).toContain('더 길') // the true period can only be longer
+    expect(note).toContain('늦습니다') // so the real recurrence is later
+  })
+
+  it('is null when no date is known (no period bound), so the caller omits the line', () => {
+    expect(survivorRecurrenceNote(null)).toBeNull()
+    expect(survivorRecurrenceNote('')).toBeNull()
   })
 })
 
