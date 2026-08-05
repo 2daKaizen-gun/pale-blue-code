@@ -18,6 +18,7 @@ import {
   sensitivityCaption,
   sensitivityFloor,
   summarizeLedger,
+  survivorFollowUpBrief,
   survivorPeriodNote,
   survivorRecurrenceNote,
   survivorSizeNote,
@@ -39,6 +40,13 @@ function SurvivorCard({ s }: { s: MonotransitSurvivor }) {
   const periodNote = survivorPeriodNote(s.min_period_days)
   const tempNote = survivorTempNote(s.max_eq_temp_k)
   const recurrenceNote = survivorRecurrenceNote(s.earliest_recurrence)
+  // sub-11-11: the same numbers in an observer's frame — a copy-ready hand-off to a campaign
+  const followUpBrief = survivorFollowUpBrief(
+    s.epoch_bjd_tdb,
+    s.depth_mmag,
+    s.duration,
+    s.earliest_recurrence,
+  )
   const cardBorder = plausible
     ? 'border-emerald-400/50'
     : s.size_class === 'too_big'
@@ -71,6 +79,14 @@ function SurvivorCard({ s }: { s: MonotransitSurvivor }) {
           {periodNote && <p>{periodNote}</p>}
           {tempNote && <p>{tempNote}</p>}
           {recurrenceNote && <p>{recurrenceNote}</p>}
+        </div>
+      )}
+      {followUpBrief && (
+        <div className="mb-3 rounded border border-cosmos-border bg-cosmos-surface p-3">
+          <p className="mb-1 font-mono text-[10px] tracking-widest text-cosmos-subtle">
+            후속확인 브리핑 — 관측자 프레임
+          </p>
+          <p className="text-xs text-cosmos-subtle">{followUpBrief}</p>
         </div>
       )}
       <ul className="flex flex-wrap gap-2">
