@@ -599,6 +599,34 @@ def earliest_recurrence_date(t0_btjd: float, min_period_days: float | None) -> s
     return jd_to_calendar_date(t0_btjd + min_period_days + _BTJD_OFFSET)
 
 
+# sub-11-11: the follow-up brief. A survivor's numbers are in our internal dialect — the epoch is
+# BTJD (a TESS-only offset) and the depth is a bare fraction. A follow-up observer, or an ExoFOP
+# entry, works in BJD_TDB and millimagnitudes. These two pure conversions move the numbers into
+# that frame so the flag can be handed off — a translation, never an upgrade of the claim.
+
+def epoch_bjd_tdb(t0_btjd: float) -> float:
+    """The transit epoch in BJD_TDB — the standard published/ExoFOP frame.
+
+    ``t0`` comes from a TESS SPOC light curve, whose TIME column is BTJD (``BJD_TDB - 2457000``).
+    Adding the offset back recovers the full Barycentric Julian Date in the TDB scale that every
+    ephemeris and follow-up campaign uses. A frame change, not a new measurement.
+    """
+    return t0_btjd + _BTJD_OFFSET
+
+
+def depth_to_millimag(depth: float) -> float | None:
+    """Transit depth in millimagnitudes — the unit a follow-up photometrist measures in.
+
+    Depth is a fractional flux drop; a photometrist reads it as a magnitude change,
+    ``Delta_mag = -2.5 log10(1 - depth)``, times 1000 for millimagnitudes. The conversion is
+    logarithmic (a genuine translation, not a rescale): a 1% transit is ~10.9 mmag. Returns
+    ``None`` for a non-physical depth (``<= 0`` or ``>= 1``), where the magnitude is undefined.
+    """
+    if depth <= 0 or depth >= 1:
+        return None
+    return float(-2.5 * np.log10(1.0 - depth) * 1000.0)
+
+
 # --- reachable entry point (Light 5) ------------------------------------------
 
 def run_monotransit(planet_name: str) -> dict:

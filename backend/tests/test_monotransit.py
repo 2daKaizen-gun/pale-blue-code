@@ -695,3 +695,33 @@ def test_earliest_recurrence_guards_a_missing_or_non_physical_period():
     assert mt.earliest_recurrence_date(10.0, None) is None    # no period bound -> no date
     assert mt.earliest_recurrence_date(10.0, 0.0) is None     # non-physical period
     assert mt.earliest_recurrence_date(10.0, -5.0) is None    # non-physical period
+
+
+# sub-11-11: the follow-up brief — a survivor's numbers in an observer's frame
+
+def test_epoch_bjd_tdb_adds_the_btjd_offset_back():
+    # BTJD is BJD_TDB - 2457000; the published/ExoFOP frame is BJD_TDB, so the epoch adds it back
+    assert mt.epoch_bjd_tdb(1500.0) == 1500.0 + mt._BTJD_OFFSET
+    assert mt.epoch_bjd_tdb(1500.0) == 2458500.0
+    assert mt.epoch_bjd_tdb(0.0) == mt._BTJD_OFFSET   # BTJD 0 is the reference epoch itself
+
+
+def test_depth_to_millimag_is_the_logarithmic_magnitude_drop():
+    # a photometrist reads depth as Delta_mag = -2.5 log10(1 - depth), times 1000 for mmag
+    assert mt.depth_to_millimag(0.01) == pytest.approx(10.912, abs=1e-3)   # 1% -> ~10.9 mmag
+    assert mt.depth_to_millimag(0.001) == pytest.approx(1.086, abs=1e-3)
+    # logarithmic, not a linear rescale: doubling depth does NOT double the mmag
+    assert mt.depth_to_millimag(0.02) != pytest.approx(2 * mt.depth_to_millimag(0.01), abs=1e-2)
+
+
+def test_depth_to_millimag_is_monotonic_in_depth():
+    # a deeper transit is always a larger magnitude drop
+    assert mt.depth_to_millimag(0.03) > mt.depth_to_millimag(0.01) > mt.depth_to_millimag(0.001)
+
+
+def test_depth_to_millimag_guards_a_non_physical_depth():
+    # the magnitude is undefined for a depth that is not a fractional flux drop in (0, 1)
+    assert mt.depth_to_millimag(0.0) is None
+    assert mt.depth_to_millimag(-0.01) is None
+    assert mt.depth_to_millimag(1.0) is None
+    assert mt.depth_to_millimag(1.5) is None
