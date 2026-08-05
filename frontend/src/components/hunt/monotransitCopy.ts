@@ -64,6 +64,58 @@ export function summarizeLedger(ledger: MonotransitLedgerEntry[]): DispositionCo
   }))
 }
 
+// --- readout redesign (2026-08-05): one star = one honest human sentence ---------------------
+//
+// After running our detector on real plausible dwarfs (docs/observations/instrument-log.md) the
+// hunt page's failure showed plainly: it scattered a star's story across seven panels and spoke
+// the machine's vocabulary (disposition / held / insignificant). This is the turn — every searched
+// star said as ONE plain-language verdict, with the evidence one layer below. A quiet star is a
+// first-class verdict here (the dominant real outcome), never an absence dressed as a failure.
+
+/** The one-word verdict a person reads, per disposition — the machine's jargon translated. */
+export const STAR_VERDICT: Record<HuntDisposition, string> = {
+  candidate: '후보',
+  rejected: '기각',
+  held: '보류',
+  insignificant: '잡음',
+  no_event: '조용함',
+  not_fetched: '미관측',
+}
+
+/** Depth floor as a reading percentage, or null when there is none to state. */
+function floorPct(depthFloor: number | null): string | null {
+  if (depthFloor == null || !Number.isFinite(depthFloor) || depthFloor <= 0) return null
+  return `${(depthFloor * 100).toFixed(2)}%`
+}
+
+/**
+ * One honest sentence for a single searched star — the heart of the readout. It translates the
+ * disposition into plain language and folds in the evidence that matters for that verdict: how deep
+ * a transit the curve could have shown (the sensitivity floor) for a quiet star, or which
+ * discriminator caught a rejected event. Never jargon, never an absence dressed as a failure.
+ */
+export function starVerdictSentence(entry: MonotransitLedgerEntry): string {
+  const floor = floorPct(entry.depth_floor)
+  switch (entry.disposition) {
+    case 'candidate':
+      return '유의성과 네 판별을 모두 통과한 단일 트랜짓 후보 — 사람이 직접 볼 가치가 있습니다.'
+    case 'rejected': {
+      const reasons = entry.failed.map((f) => DISCRIMINATOR_LABEL[f] ?? f).join(', ')
+      return `딥이 있었지만 ${reasons || '판별에서 걸려'} — 행성이 아니라 계기·항성 신호로 판정했습니다.`
+    }
+    case 'held':
+      return '딥은 있었지만 관측 구간이 짧아 유의성을 잴 수 없었습니다 — 정직하게 판단 보류.'
+    case 'insignificant':
+      return '딥이 있었지만 유의성 문턱을 넘지 못했습니다 — 잡음 수준.'
+    case 'no_event':
+      return floor
+        ? `단일 트랜짓이 없습니다. 이 곡선은 ${floor}까지 볼 수 있었는데도 — 조용합니다.`
+        : '단일 트랜짓이 없습니다 — 조용합니다.'
+    case 'not_fetched':
+      return '아직 빛을 받아오지 않았습니다 — 이 별은 보지 않았습니다.'
+  }
+}
+
 /**
  * The representative detection floor of a finished hunt: the median of the per-star
  * sensitivity floors, over the stars actually searched. `null` when nothing was searched

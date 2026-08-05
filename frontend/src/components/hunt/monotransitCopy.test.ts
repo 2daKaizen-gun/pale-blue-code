@@ -15,6 +15,8 @@ import {
   huntHeadline,
   sensitivityCaption,
   sensitivityFloor,
+  STAR_VERDICT,
+  starVerdictSentence,
   summarizeLedger,
   survivorFollowUpBrief,
   survivorPeriodNote,
@@ -230,6 +232,70 @@ describe('survivorRecurrenceNote', () => {
   it('is null when no date is known (no period bound), so the caller omits the line', () => {
     expect(survivorRecurrenceNote(null)).toBeNull()
     expect(survivorRecurrenceNote('')).toBeNull()
+  })
+})
+
+describe('readout: one star = one honest sentence', () => {
+  const led = (
+    disposition: MonotransitLedgerEntry['disposition'],
+    over: Partial<MonotransitLedgerEntry> = {},
+  ): MonotransitLedgerEntry => ({
+    planet_name: 'TIC 1',
+    disposition,
+    n_events: 0,
+    significance: null,
+    failed: [],
+    depth_floor: null,
+    size_class: null,
+    min_planet_rjup: null,
+    min_planet_rearth: null,
+    ...over,
+  })
+
+  it('the verdict chips are plain words, not the machine vocabulary', () => {
+    expect(STAR_VERDICT.no_event).toBe('조용함')
+    expect(STAR_VERDICT.insignificant).toBe('잡음')
+    expect(STAR_VERDICT.not_fetched).toBe('미관측')
+    // never leaks the API disposition keys to the reader
+    for (const word of Object.values(STAR_VERDICT)) {
+      expect(word).not.toMatch(/no_event|insignificant|disposition|held/)
+    }
+  })
+
+  it('a quiet star reads as an honest result and states how deep it could have seen', () => {
+    const s = starVerdictSentence(led('no_event', { depth_floor: 0.0005 }))
+    expect(s).toContain('0.05%') // the sensitivity floor, as evidence the quiet is real
+    expect(s).toContain('조용') // quiet, a verdict — not "no results" as a failure
+  })
+
+  it('a quiet star with no floor still reads honestly, without inventing a number', () => {
+    const s = starVerdictSentence(led('no_event', { depth_floor: null }))
+    expect(s).toContain('조용')
+    expect(s).not.toContain('%')
+  })
+
+  it('a rejected star names the discriminator in human terms, never "planet"', () => {
+    const s = starVerdictSentence(led('rejected', { failed: ['symmetry'] }))
+    expect(s).toContain('비대칭') // the human reading of the symmetry gate
+    expect(s).toContain('계기·항성') // framed as an instrument/stellar signal
+    expect(s).toContain('행성이 아니라') // explicitly framed as NOT a planet
+  })
+
+  it('a held star says the baseline was too short, an honest unknown', () => {
+    const s = starVerdictSentence(led('held'))
+    expect(s).toContain('짧아')
+    expect(s).toContain('보류')
+  })
+
+  it('a candidate reads as worth a human look', () => {
+    const s = starVerdictSentence(led('candidate'))
+    expect(s).toContain('후보')
+    expect(s).toContain('볼 가치')
+  })
+
+  it('an unfetched star never implies it was looked at', () => {
+    const s = starVerdictSentence(led('not_fetched'))
+    expect(s).toContain('보지 않')
   })
 })
 
