@@ -214,6 +214,40 @@ export function survivorRecurrenceNote(earliestRecurrence: string | null): strin
   return `두 번째 통과는 아무리 일러도 ${earliestRecurrence} 이후 — 관측 시각에 최소 주기를 더한 날로, 그 전에는 다시 스칠 수 없는 후속 관측 창의 앞 끝입니다 (t0는 TESS BTJD 기준). 진짜 주기는 더 길 수 있어 실제 재통과는 이보다 늦습니다.`
 }
 
+// sub-11-11: the follow-up brief. A survivor's numbers translated into an observer's frame — the
+// epoch in BJD_TDB (the published/ExoFOP frame, not TESS-internal BTJD) and the depth in
+// millimagnitudes (what a photometrist measures) — assembled as a copy-ready hand-off. A
+// translation, never an upgrade: still a candidate, still one-sided bounds.
+
+/** The epoch in BJD_TDB rendered for reading — full Julian Date, four decimals of a day. */
+export function formatEpochBjdTdb(epoch: number): string {
+  return epoch.toFixed(4)
+}
+
+/** Depth in millimagnitudes, one decimal — the observer's magnitude unit, not a fraction. */
+export function formatMmag(mmag: number): string {
+  return mmag.toFixed(1)
+}
+
+/**
+ * The follow-up brief for a survivor: the same numbers in an observer's frame, ready to hand to a
+ * confirmation campaign — the epoch in BJD_TDB, the depth in millimagnitudes, the duration in
+ * hours, and (when known) the earliest a second transit could appear. It carries the caveats with
+ * the numbers: still a light-curve single-transit candidate (not a planet), the bounds one-sided.
+ * `null` when the core observer numbers (epoch and depth) are missing, so the caller omits it.
+ */
+export function survivorFollowUpBrief(
+  epochBjdTdb: number | null,
+  depthMmag: number | null,
+  durationDays: number,
+  earliestRecurrence: string | null,
+): string | null {
+  if (epochBjdTdb == null || depthMmag == null) return null
+  const hours = (durationDays * 24).toFixed(1)
+  const recur = earliestRecurrence ? ` 두 번째 통과는 아무리 일러도 ${earliestRecurrence} 이후.` : ''
+  return `후속확인용 브리핑 — 에포크 BJD_TDB ${formatEpochBjdTdb(epochBjdTdb)}, 깊이 ${formatMmag(depthMmag)} mmag(밀리등급), 지속 ${hours}시간.${recur} 관측자 프레임으로 옮긴 같은 숫자일 뿐 — 여전히 광도곡선 단일 트랜짓 후보(행성 아님)이고 주기·온도는 한쪽 경계입니다. 이대로 Planet Hunters·ExoFOP 후속확인에 넘길 수 있습니다.`
+}
+
 /**
  * The honest headline for a finished hunt: a candidate count when something survived,
  * else the empty-handed truth — searched N, none survived — never framed as failure.

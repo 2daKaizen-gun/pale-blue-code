@@ -8,12 +8,15 @@ import {
   fetchPlanBestTarget,
   fetchPlanHeadline,
   fetchPlanPendingNote,
+  formatEpochBjdTdb,
+  formatMmag,
   formatPeriodDays,
   formatTempK,
   huntHeadline,
   sensitivityCaption,
   sensitivityFloor,
   summarizeLedger,
+  survivorFollowUpBrief,
   survivorPeriodNote,
   survivorRecurrenceNote,
   survivorSizeNote,
@@ -227,6 +230,44 @@ describe('survivorRecurrenceNote', () => {
   it('is null when no date is known (no period bound), so the caller omits the line', () => {
     expect(survivorRecurrenceNote(null)).toBeNull()
     expect(survivorRecurrenceNote('')).toBeNull()
+  })
+})
+
+describe('survivorFollowUpBrief', () => {
+  it('reads the epoch in BJD_TDB and the depth in millimagnitudes, with the duration in hours', () => {
+    const brief = survivorFollowUpBrief(2458500.1234, 10.9, 0.3, null) as string
+    expect(brief).toContain('BJD_TDB')
+    expect(brief).toContain('2458500.1234')
+    expect(brief).toContain('mmag')
+    expect(brief).toContain('10.9')
+    expect(brief).toContain('7.2시간') // 0.3 d * 24 = 7.2 h
+  })
+
+  it('carries the candidate and one-sided-bound caveats — never a confirmed planet', () => {
+    const brief = survivorFollowUpBrief(2458500.0, 10.9, 0.3, null) as string
+    expect(brief).toContain('행성 아님') // still a candidate, not a planet
+    expect(brief).toContain('한쪽 경계') // the bounds are still one-sided
+  })
+
+  it('folds in the earliest recurrence when it is known', () => {
+    const brief = survivorFollowUpBrief(2458500.0, 10.9, 0.3, '2019-05-15') as string
+    expect(brief).toContain('2019-05-15')
+    expect(brief).toContain('아무리 일러도')
+  })
+
+  it('omits the recurrence clause when there is no date', () => {
+    const brief = survivorFollowUpBrief(2458500.0, 10.9, 0.3, null) as string
+    expect(brief).not.toContain('아무리 일러도')
+  })
+
+  it('is null when the core observer numbers are missing, so the caller omits it', () => {
+    expect(survivorFollowUpBrief(null, 10.9, 0.3, null)).toBeNull()
+    expect(survivorFollowUpBrief(2458500.0, null, 0.3, null)).toBeNull()
+  })
+
+  it('formats the epoch to four decimals and the depth to one', () => {
+    expect(formatEpochBjdTdb(2458500.123456)).toBe('2458500.1235')
+    expect(formatMmag(10.912)).toBe('10.9')
   })
 })
 
