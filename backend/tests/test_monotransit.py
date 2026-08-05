@@ -420,6 +420,32 @@ def test_hunt_stamps_the_earliest_recurrence_date_onto_survivors(tmp_path):
     assert surv["recur-noradius"]["earliest_recurrence"] is None
 
 
+def test_hunt_stamps_the_observer_frame_numbers_onto_survivors(tmp_path):
+    # sub-11-11: every survivor carries its epoch in BJD_TDB and its depth in millimagnitudes —
+    # the same numbers translated into a follow-up observer's frame, from its own t0 and depth.
+    # These need no radius (a frame change, not a bound), so they are present even with no triage.
+    rng = np.random.default_rng(42)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    dip = mt.transit_model(time, 13.0, 0.3, 0.01) + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("brief-noradius", time, dip)
+    size_index = {
+        "brief-noradius": {"size_class": "unknown", "min_planet_rjup": None,
+                           "min_planet_rearth": None, "stellar_radius": None},
+    }
+    try:
+        out = mt.hunt_monotransit(["brief-noradius"], size_index=size_index)
+    finally:
+        (bls_service._CACHE_DIR / "bls_lc_brief-noradius.json").unlink(missing_ok=True)
+        (bls_service._CACHE_DIR / "lc_brief-noradius_tess.json").unlink(missing_ok=True)
+
+    s = {sv["planet_name"]: sv for sv in out["survivors"]}["brief-noradius"]
+    # the epoch is t0 shifted into BJD_TDB; the depth is its millimagnitude drop
+    assert s["epoch_bjd_tdb"] == mt.epoch_bjd_tdb(s["t0"])
+    assert s["depth_mmag"] == mt.depth_to_millimag(s["depth"])
+    # present without a radius: a translation of numbers already in hand, not a bound
+    assert s["epoch_bjd_tdb"] is not None and s["depth_mmag"] is not None
+
+
 def test_hunt_ranks_plausible_star_survivors_ahead_of_star_sized_ones(tmp_path):
     # sub-11-6 Light 2: a candidate where a detection could be a PLANET leads one where it could
     # only be a star, even when the star-sized one is the louder signal. A giant's deeper dip does

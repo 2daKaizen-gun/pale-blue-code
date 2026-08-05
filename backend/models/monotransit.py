@@ -44,6 +44,11 @@ class MonotransitSurvivor(MonotransitCandidate, SizeVerdict):
     # sub-11-10: earliest calendar date (YYYY-MM-DD) a second transit could appear — t0 + min
     # period, in BTJD. The earliest edge of the follow-up window, None when no period bound.
     earliest_recurrence: str | None = None
+    # sub-11-11: the same numbers in an observer's frame, so the flag can be handed off — the epoch
+    # in BJD_TDB (t0 + 2457000, the published/ExoFOP frame) and the depth in millimagnitudes (what
+    # a follow-up photometrist measures). depth_mmag is None only for a non-physical depth.
+    epoch_bjd_tdb: float | None = None
+    depth_mmag: float | None = None
 
 
 class MonotransitLedgerEntry(SizeVerdict):

@@ -765,9 +765,12 @@ def hunt_monotransit(planet_names: list[str], size_index: dict | None = None) ->
                 max_t = max_equilibrium_temp_k(min_p, teff, radius)
                 # and the earliest that shortest orbit could bring it round again — "no earlier"
                 recur = earliest_recurrence_date(c["t0"], min_p)
+                # and the same numbers in an observer's frame, so the flag can be handed off
                 survivors.append({"planet_name": name, **c, **size,
                                   "min_period_days": min_p, "max_eq_temp_k": max_t,
-                                  "earliest_recurrence": recur})
+                                  "earliest_recurrence": recur,
+                                  "epoch_bjd_tdb": epoch_bjd_tdb(c["t0"]),
+                                  "depth_mmag": depth_to_millimag(c["depth"])})
 
     # plausible-star candidates lead star-sized ones; significance breaks ties within a class
     survivors.sort(key=lambda c: (

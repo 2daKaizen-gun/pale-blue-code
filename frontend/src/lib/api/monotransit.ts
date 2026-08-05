@@ -52,6 +52,11 @@ export interface MonotransitSurvivor extends SizeVerdict {
   // sub-11-10: the earliest calendar date (YYYY-MM-DD) a second transit could appear — t0 + the
   // minimum period. The earliest edge of the follow-up window; null when there is no period bound.
   earliest_recurrence: string | null
+  // sub-11-11: the same numbers in an observer's frame for a follow-up hand-off — the epoch in
+  // BJD_TDB (t0 + 2457000, the published/ExoFOP frame) and the depth in millimagnitudes (what a
+  // photometrist measures). depth_mmag is null only for a non-physical depth.
+  epoch_bjd_tdb: number | null
+  depth_mmag: number | null
 }
 
 export interface MonotransitLedgerEntry extends SizeVerdict {
