@@ -17,6 +17,8 @@ Light 1 is just the primitive: the transit shape, and the score at a fixed
 lone-event discriminators build on top of it in later Lights.
 """
 
+import json
+
 import numpy as np
 
 # A real transit is not a box: the planet takes finite time to cross the limb, so
@@ -674,6 +676,82 @@ def run_monotransit(planet_name: str) -> dict:
     return {"planet_name": planet_name, "candidates": candidates, "depth_floor": depth_floor}
 
 
+# --- memoizing the search on disk (sub-11-12) ---------------------------------
+#
+# run_monotransit is the expensive unit — lc load, detrend, sliding search,
+# significance, four discriminators. The hunt runs it across the whole frontier
+# pool, and re-running it on every request is the multi-minute spinner that makes
+# the "legible to anyone" page un-openable. But the search is deterministic given
+# the curve: same curve in, same events out. So we memoize the result on disk,
+# keyed to the source light curve's mtime, and only recompute when the curve
+# changes (a re-fetch) or the pipeline itself changes.
+#
+# ★ _MONO_CACHE_VERSION is load-bearing. A stale derived cache that still parses is
+# exactly the trap the vet cache sprang once: old numbers pass the schema and lie.
+# ANY change to the detection pipeline — the significance floor, _N_MIN_TRANSITS,
+# the detrend, the discriminators, the shape model — MUST bump this tag so every
+# stored result is recomputed instead of silently trusted. When in doubt, bump it.
+_MONO_CACHE_VERSION = "mono-v1"
+
+
+def _mono_cache_path(planet_name: str):
+    from services import bls as bls_service
+    return bls_service._CACHE_DIR / f"mono_{bls_service._slug(planet_name)}.json"
+
+
+def _lc_source_path(planet_name: str):
+    """The full-resolution light curve that IS the search input (bls_lc_*.json).
+
+    Keying on this file's mtime is what makes the memo correct: a re-fetch rewrites
+    it, changing the mtime, which invalidates the stored result automatically.
+    """
+    from services import bls as bls_service
+    return bls_service._CACHE_DIR / f"bls_lc_{bls_service._slug(planet_name)}.json"
+
+
+def run_monotransit_cached(planet_name: str) -> dict:
+    """``run_monotransit`` memoized on disk — an instant read once a star is warm.
+
+    Returns the cached result when the source light curve's mtime and the pipeline
+    version both match; otherwise recomputes and stores it. A corrupt or partial
+    cache file is ignored (recompute), never fatal. Writes are atomic (temp +
+    replace) so a killed process leaves either the old result or the new one, never
+    a half-written file that happens to parse. Falls through to ``run_monotransit``
+    verbatim when there is no cached curve, so the honest FileNotFoundError still
+    surfaces for an unfetched star.
+    """
+    src = _lc_source_path(planet_name)
+    cache = _mono_cache_path(planet_name)
+    stamp = src.stat().st_mtime_ns if src.exists() else None
+
+    if stamp is not None and cache.exists():
+        try:
+            stored = json.loads(cache.read_text(encoding="utf-8"))
+            if stored.get("version") == _MONO_CACHE_VERSION and stored.get("lc_mtime_ns") == stamp:
+                return stored["result"]
+        except (json.JSONDecodeError, OSError, KeyError):
+            pass  # corrupt or stale-shaped cache: fall through and recompute
+
+    result = run_monotransit(planet_name)
+
+    # re-read the source: it may have appeared during the run (a fetch inside
+    # _get_full_lc), and its mtime is the key we must store against.
+    src = _lc_source_path(planet_name)
+    if src.exists():
+        payload = json.dumps({
+            "version": _MONO_CACHE_VERSION,
+            "lc_mtime_ns": src.stat().st_mtime_ns,
+            "result": result,
+        })
+        tmp = cache.with_suffix(".json.tmp")
+        try:
+            tmp.write_text(payload, encoding="utf-8")
+            tmp.replace(cache)  # atomic on the same filesystem
+        except OSError:
+            pass  # a failed write must never break the search — just skip the cache
+    return result
+
+
 # --- the hunt: many stars, one honest ledger (sub-11-3 Light 1) ----------------
 #
 # run_monotransit judges one star. A hunt runs it across the frontier pool and keeps
@@ -747,7 +825,7 @@ def hunt_monotransit(planet_names: list[str], size_index: dict | None = None) ->
     for name in planet_names:
         size = size_index.get(name, _NO_SIZE)
         try:
-            result = run_monotransit(name)
+            result = run_monotransit_cached(name)
         except FileNotFoundError:
             ledger.append({"planet_name": name, "disposition": "not_fetched",
                            "n_events": 0, "significance": None, "failed": [], "depth_floor": None,

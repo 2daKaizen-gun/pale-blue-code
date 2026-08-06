@@ -750,4 +750,121 @@ def test_depth_to_millimag_guards_a_non_physical_depth():
     assert mt.depth_to_millimag(0.0) is None
     assert mt.depth_to_millimag(-0.01) is None
     assert mt.depth_to_millimag(1.0) is None
+
+
+# --- sub-11-12: memoizing the search on disk -----------------------------------
+
+
+def _clean_cache(slug):
+    for name in (f"bls_lc_{slug}.json", f"lc_{slug}_tess.json", f"mono_{slug}.json"):
+        (bls_service._CACHE_DIR / name).unlink(missing_ok=True)
+
+
+def _counting_spy(monkeypatch):
+    """Replace run_monotransit with a counting wrapper over the real one."""
+    real = mt.run_monotransit
+    calls = {"n": 0}
+
+    def spy(name):
+        calls["n"] += 1
+        return real(name)
+
+    monkeypatch.setattr(mt, "run_monotransit", spy)
+    return calls
+
+
+def test_cached_result_matches_the_uncached_search():
+    # the memo must never change the answer — same events, same dispositions
+    rng = np.random.default_rng(41)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    dip = mt.transit_model(time, 13.0, 0.3, 0.01) + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("cache-match", time, dip)
+    try:
+        direct = mt.run_monotransit("cache-match")
+        cached = mt.run_monotransit_cached("cache-match")
+    finally:
+        _clean_cache("cache-match")
+    assert cached == direct
+
+
+def test_cached_hit_skips_the_recompute(monkeypatch):
+    # once warm, a second call reads the stored result — run_monotransit is not run again
+    rng = np.random.default_rng(42)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flat = 1.0 + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("cache-hit", time, flat)
+    try:
+        first = mt.run_monotransit_cached("cache-hit")   # computes + stores
+        calls = _counting_spy(monkeypatch)
+        second = mt.run_monotransit_cached("cache-hit")   # must be a pure read
+        assert calls["n"] == 0
+        assert second == first
+    finally:
+        _clean_cache("cache-hit")
+
+
+def test_cached_invalidates_when_the_curve_changes(monkeypatch):
+    # a re-fetch rewrites the light curve (new mtime) — the stale result must be recomputed
+    import os
+
+    rng = np.random.default_rng(43)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flat = 1.0 + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("cache-mtime", time, flat)
+    try:
+        mt.run_monotransit_cached("cache-mtime")          # warm
+        calls = _counting_spy(monkeypatch)
+        mt.run_monotransit_cached("cache-mtime")          # hit — no recompute
+        assert calls["n"] == 0
+        # bump the source mtime the way a re-fetch would
+        src = bls_service._CACHE_DIR / "bls_lc_cache-mtime.json"
+        st = src.stat()
+        os.utime(src, ns=(st.st_atime_ns, st.st_mtime_ns + 10_000_000_000))
+        mt.run_monotransit_cached("cache-mtime")          # miss — recompute
+        assert calls["n"] == 1
+    finally:
+        _clean_cache("cache-mtime")
+
+
+def test_cached_invalidates_on_a_version_bump(monkeypatch):
+    # a changed pipeline bumps _MONO_CACHE_VERSION; every stored result must be recomputed
+    rng = np.random.default_rng(44)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flat = 1.0 + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("cache-ver", time, flat)
+    try:
+        mt.run_monotransit_cached("cache-ver")            # stored under mono-v1
+        calls = _counting_spy(monkeypatch)
+        monkeypatch.setattr(mt, "_MONO_CACHE_VERSION", "mono-v2-test")
+        mt.run_monotransit_cached("cache-ver")            # version mismatch — recompute
+        assert calls["n"] == 1
+    finally:
+        _clean_cache("cache-ver")
+
+
+def test_cached_falls_back_on_a_corrupt_file(monkeypatch):
+    # a half-written or garbage cache must never crash the search — recompute and heal
+    rng = np.random.default_rng(45)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flat = 1.0 + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("cache-corrupt", time, flat)
+    (bls_service._CACHE_DIR / "mono_cache-corrupt.json").write_text("{not json", encoding="utf-8")
+    try:
+        calls = _counting_spy(monkeypatch)
+        result = mt.run_monotransit_cached("cache-corrupt")
+        assert calls["n"] == 1                            # recomputed past the garbage
+        assert "candidates" in result and "depth_floor" in result
+        # and the corrupt file was healed into a valid hit
+        again = mt.run_monotransit_cached("cache-corrupt")
+        assert calls["n"] == 1                            # now a clean read
+        assert again == result
+    finally:
+        _clean_cache("cache-corrupt")
+
+
+def test_cached_falls_through_for_an_unfetched_star():
+    # no cached curve — the honest FileNotFoundError from run_monotransit still surfaces
+    _clean_cache("cache-absent")
+    with pytest.raises(FileNotFoundError):
+        mt.run_monotransit_cached("cache-absent")
     assert mt.depth_to_millimag(1.5) is None
