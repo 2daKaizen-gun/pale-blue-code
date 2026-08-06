@@ -3,7 +3,7 @@
    it exports `router` (a non-component) alongside lazy() route elements.
    Fast refresh never applies here, so the rule is a false positive. */
 import { lazy } from 'react'
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import AppLayout from './components/layout/AppLayout'
 import HomePage from './pages/HomePage'
 
@@ -35,7 +35,6 @@ const SignalPage = lazy(() => import('./pages/SignalPage'))
 const HuntPage = lazy(() => import('./pages/HuntPage'))
 const FrontierHubPage = lazy(() => import('./pages/FrontierHubPage'))
 const FrontierHuntPage = lazy(() => import('./pages/FrontierHuntPage'))
-const MonotransitHuntPage = lazy(() => import('./pages/MonotransitHuntPage'))
 const PoolTargetsPage = lazy(() => import('./pages/PoolTargetsPage'))
 
 export const router = createBrowserRouter([
@@ -55,9 +54,10 @@ export const router = createBrowserRouter([
       // chosen sky in :mission (kepler|tess).
       { path: 'hunt/frontier',          element: <FrontierHubPage /> },
       { path: 'hunt/frontier/:mission', element: <FrontierHuntPage /> },
-      // Phase 11 — the single-transit hunt over the pool. Its own page, off the
-      // auto-derived phase nav, reached from the frontier hub.
-      { path: 'hunt/monotransit',       element: <MonotransitHuntPage /> },
+      // Phase 11 — the single-transit hunt. It no longer has its own page: the hunt
+      // now runs INLINE on the frontier front door (/hunt/frontier). This redirect
+      // keeps the old link alive so nothing 404s.
+      { path: 'hunt/monotransit',       element: <Navigate to="/hunt/frontier" replace /> },
       // sub-11-5 — which pool stars are worth a hunt at all (detectable planet radius).
       { path: 'hunt/pool',              element: <PoolTargetsPage /> },
     ],

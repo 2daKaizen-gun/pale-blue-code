@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   monotransitHunt,
   type HuntDisposition,
   type MonotransitHunt,
   type MonotransitLedgerEntry,
   type MonotransitSurvivor,
-} from '../lib/api/monotransit'
+} from '../../lib/api/monotransit'
 import {
   DISCRIMINATOR_LABEL,
   DISPOSITION_ORDER,
@@ -17,16 +16,16 @@ import {
   survivorRecurrenceNote,
   survivorSizeNote,
   survivorTempNote,
-} from '../components/hunt/monotransitCopy'
-import Spinner from '../components/ui/Spinner'
+} from './monotransitCopy'
+import Spinner from '../ui/Spinner'
 
 /**
- * Phase 11 — the single-transit hunt. Readout redesign (2026-08-05): after running the detector
- * on real plausible dwarfs (docs/observations/instrument-log.md), the page was rebuilt around one
- * principle — a first-time reader should understand it in three seconds, and every searched star
- * should read as ONE honest human sentence, with the evidence one layer below. A quiet star is a
- * first-class verdict (the dominant real outcome), never an absence dressed as a failure. Reached
- * via a separate link — NOT added to constants/phases.ts, the same frontier/roadmap separation.
+ * Phase 11 — the single-transit hunt, as a self-contained block (extracted from the old
+ * MonotransitHuntPage so the frontier front door can render the live hunt inline). One principle:
+ * a first-time reader should understand it in three seconds, and every searched star should read
+ * as ONE honest human sentence, with the evidence one layer below. A quiet star is a first-class
+ * verdict — the dominant real outcome — never an absence dressed as a failure. The disk memo
+ * (sub-11-12) makes this an instant read, which is what lets it sit on the entry page at all.
  */
 
 // Verdict chip colour per disposition — emerald only for a real candidate, calm greys for the rest.
@@ -160,7 +159,13 @@ function HowItWorks() {
   )
 }
 
-export default function MonotransitHuntPage() {
+/**
+ * The live single-transit hunt: fetches the cached hunt, then renders the honest readout —
+ * a one-line summary, the survivor cards worth a human look, and every searched star as one
+ * plain sentence. Self-contained (its own data + loading + error), so it drops into the
+ * frontier front door with no props.
+ */
+export default function SingleTransitHunt() {
   const [data, setData] = useState<MonotransitHunt | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -188,9 +193,6 @@ export default function MonotransitHuntPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-4">
         <div>
-          <p className="mb-1 font-mono text-xs tracking-widest text-cosmos-muted">
-            프론티어 · 기계가 놓친 곳
-          </p>
           <h1 className="mb-2 flex items-center gap-2 text-3xl font-semibold text-cosmos-text">
             <span aria-hidden>🛰️</span> 기계가 놓친 행성 찾기
           </h1>
@@ -272,12 +274,6 @@ export default function MonotransitHuntPage() {
           )}
         </>
       )}
-
-      <p className="mt-2 text-xs text-cosmos-subtle">
-        <Link to="/hunt/frontier" className="text-cosmos-nebula hover:text-cosmos-text">
-          ← 개척지 허브로
-        </Link>
-      </p>
     </div>
   )
 }
