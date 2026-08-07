@@ -5,6 +5,7 @@ import {
   type MonotransitHunt,
   type MonotransitLedgerEntry,
   type MonotransitSurvivor,
+  type PoolClassification,
 } from '../../lib/api/monotransit'
 import {
   DISCRIMINATOR_LABEL,
@@ -17,6 +18,7 @@ import {
   survivorSizeNote,
   survivorTempNote,
 } from './monotransitCopy'
+import { SIZE_CLASS_CHIP, SIZE_CLASS_GLOSS } from './vocabulary'
 import Spinner from '../ui/Spinner'
 
 /**
@@ -26,6 +28,12 @@ import Spinner from '../ui/Spinner'
  * as ONE honest human sentence, with the evidence one layer below. A quiet star is a first-class
  * verdict — the dominant real outcome — never an absence dressed as a failure. The disk memo
  * (sub-11-12) makes this an instant read, which is what lets it sit on the entry page at all.
+ *
+ * 2026-08-07 — the three overlapping star lists (making-the-tool-legible §2: raw pool → planet-size
+ * targets → searched stars) collapse into ONE filterable pool here. Every ledger entry already
+ * carries both axes — a size class (행성 크기 표적 / 검출돼도 별) AND a hunt verdict — so the §2
+ * table is just two filters over one list, not three separate pages. Each row expands to its
+ * evidence (the honest drilldown), so a star's whole story reads without leaving the page.
  */
 
 // Verdict chip colour per disposition — emerald only for a real candidate, calm greys for the rest.
@@ -38,20 +46,74 @@ const VERDICT_CHIP: Record<HuntDisposition, string> = {
   not_fetched: 'border-cosmos-border bg-cosmos-surface text-cosmos-subtle',
 }
 
-// One star, one honest sentence. The heart of the readout: the plain-language verdict chip, the
-// star's name, and the one sentence that says what we saw — jargon translated, quiet made honest.
-function StarRow({ e }: { e: MonotransitLedgerEntry }) {
+// Size chip colour — emerald for a planet-size target (the prize), calm grey for the rest.
+const SIZE_CHIP: Record<PoolClassification, string> = {
+  plausible: 'border-emerald-400/30 bg-emerald-400/5 text-emerald-300/80',
+  too_big: 'border-cosmos-border bg-cosmos-surface text-cosmos-subtle',
+  unknown: 'border-cosmos-border bg-cosmos-surface text-cosmos-subtle',
+}
+
+// One evidence stat in an expanded row.
+function EvidenceStat({ label, value }: { label: string; value: string }) {
   return (
-    <li className="flex items-start gap-3 border-b border-cosmos-border/40 py-3 last:border-0">
-      <span
-        className={`mt-0.5 shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] tracking-widest ${VERDICT_CHIP[e.disposition]}`}
+    <div className="flex flex-col">
+      <dt className="font-mono text-[10px] tracking-widest text-cosmos-subtle">{label}</dt>
+      <dd className="font-mono text-xs text-cosmos-text">{value}</dd>
+    </div>
+  )
+}
+
+// One star, one honest sentence — now clickable to reveal the evidence one layer below (the
+// drilldown). The row header carries BOTH axes: what a detection there would mean (size chip)
+// and what the hunt actually found (verdict chip). Expanded, it shows the numbers behind the
+// sentence — size, significance, detection floor — never jargon dressed as a conclusion.
+function StarRow({ e }: { e: MonotransitLedgerEntry }) {
+  const [open, setOpen] = useState(false)
+  const size = e.size_class ?? 'unknown'
+  const floorPct = e.depth_floor != null && e.depth_floor > 0 ? `${(e.depth_floor * 100).toFixed(2)}%` : '—'
+  const sig = e.significance != null ? `${e.significance.toFixed(1)}σ` : '—'
+  const minR = e.min_planet_rjup != null ? `≥ ${e.min_planet_rjup.toFixed(2)} R♃` : '—'
+  return (
+    <li className="border-b border-cosmos-border/40 last:border-0">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-start gap-3 py-3 text-left transition-colors hover:bg-cosmos-elevated/40"
       >
-        {STAR_VERDICT[e.disposition]}
-      </span>
-      <div className="min-w-0">
-        <div className="font-mono text-xs text-cosmos-text">{e.planet_name}</div>
-        <p className="mt-0.5 text-sm text-cosmos-muted">{starVerdictSentence(e)}</p>
-      </div>
+        <span className="mt-0.5 flex shrink-0 flex-col items-start gap-1">
+          <span
+            className={`rounded border px-2 py-0.5 font-mono text-[10px] tracking-widest ${VERDICT_CHIP[e.disposition]}`}
+          >
+            {STAR_VERDICT[e.disposition]}
+          </span>
+          <span className={`rounded border px-2 py-0.5 font-mono text-[9px] tracking-widest ${SIZE_CHIP[size]}`}>
+            {SIZE_CLASS_CHIP[size]}
+          </span>
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-baseline gap-2">
+            <span className="font-mono text-xs text-cosmos-text">{e.planet_name}</span>
+            <span className="font-mono text-[10px] text-cosmos-subtle">{open ? '▾' : '▸'}</span>
+          </span>
+          <span className="mt-0.5 block text-sm text-cosmos-muted">{starVerdictSentence(e)}</span>
+        </span>
+      </button>
+      {open && (
+        <div className="mb-3 ml-1 border-l-2 border-cosmos-nebula/40 pl-4">
+          <dl className="mb-2 flex flex-wrap gap-x-6 gap-y-1">
+            <EvidenceStat label="크기 판정" value={SIZE_CLASS_CHIP[size]} />
+            <EvidenceStat label="검출 시 최소" value={minR} />
+            <EvidenceStat label="유의성" value={sig} />
+            <EvidenceStat label="검출 바닥" value={floorPct} />
+            <EvidenceStat label="딥 개수" value={String(e.n_events)} />
+          </dl>
+          <p className="text-xs text-cosmos-subtle">{SIZE_CLASS_GLOSS[size]}</p>
+          {e.failed.length > 0 && (
+            <p className="mt-1 text-xs text-cosmos-subtle">
+              걸린 판별: {e.failed.map((f) => DISCRIMINATOR_LABEL[f] ?? f).join(', ')}
+            </p>
+          )}
+        </div>
+      )}
     </li>
   )
 }
@@ -159,16 +221,35 @@ function HowItWorks() {
   )
 }
 
+// The one pool, three filters — the §2 table made into a control. Each filter is a lens over the
+// SAME list of stars, not a separate page: 살펴본 별 (we actually searched its light), 행성 크기
+// 표적 (small enough a dip could be a planet), 전체 풀 (every frontier star). Default is the
+// stars we searched — the honest, dominant view.
+type PoolFilter = 'searched' | 'targets' | 'all'
+
+const FILTER_LABEL: Record<PoolFilter, string> = {
+  searched: '살펴본 별',
+  targets: '행성 크기 표적',
+  all: '전체 풀',
+}
+
+function matchesFilter(e: MonotransitLedgerEntry, f: PoolFilter): boolean {
+  if (f === 'all') return true
+  if (f === 'targets') return e.size_class === 'plausible'
+  return e.disposition !== 'not_fetched' // 'searched'
+}
+
 /**
  * The live single-transit hunt: fetches the cached hunt, then renders the honest readout —
- * a one-line summary, the survivor cards worth a human look, and every searched star as one
- * plain sentence. Self-contained (its own data + loading + error), so it drops into the
- * frontier front door with no props.
+ * a one-line summary, the survivor cards worth a human look, and every star as one plain
+ * sentence in a single filterable pool. Self-contained (its own data + loading + error), so it
+ * drops into the frontier front door with no props.
  */
 export default function SingleTransitHunt() {
   const [data, setData] = useState<MonotransitHunt | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [filter, setFilter] = useState<PoolFilter>('searched')
 
   const run = () => {
     setLoading(true)
@@ -183,11 +264,11 @@ export default function SingleTransitHunt() {
 
   const survivors = data?.survivors ?? []
   const ledger = data?.ledger ?? []
-  // every star the hunt actually looked at — sorted most-interesting-first (candidate down to quiet)
-  const searched = ledger
-    .filter((e) => e.disposition !== 'not_fetched')
+  // the pool under the active filter, sorted most-interesting-first (candidate down to quiet)
+  const shown = ledger
+    .filter((e) => matchesFilter(e, filter))
     .sort((a, b) => DISPOSITION_ORDER.indexOf(a.disposition) - DISPOSITION_ORDER.indexOf(b.disposition))
-  const notFetched = ledger.filter((e) => e.disposition === 'not_fetched').length
+  const count = (f: PoolFilter) => ledger.filter((e) => matchesFilter(e, f)).length
 
   return (
     <div className="flex flex-col gap-6">
@@ -250,27 +331,49 @@ export default function SingleTransitHunt() {
             </section>
           )}
 
-          {searched.length > 0 && (
+          {ledger.length > 0 && (
             <section>
               <h2 className="mb-1 text-sm font-semibold text-cosmos-text">
-                살펴본 별 — 하나에 한 문장
+                하나의 풀 — 별마다 크기와 판정, 한 문장
               </h2>
-              <p className="mb-2 text-xs text-cosmos-subtle">
-                각 별에서 무엇을 봤는지, 그리고 왜 그렇게 판정했는지.
+              <p className="mb-3 text-xs text-cosmos-subtle">
+                별 하나에 두 개의 딱지: <strong className="text-cosmos-muted">크기</strong>(딥이 검출되면
+                행성일 수 있나) 와 <strong className="text-cosmos-muted">판정</strong>(실제로 무엇이
+                나왔나). 행을 누르면 그 근거가 펼쳐집니다.
               </p>
-              <ul className="rounded-lg border border-cosmos-border bg-cosmos-surface px-4">
-                {searched.map((e) => (
-                  <StarRow key={e.planet_name} e={e} />
+              <div className="mb-3 flex flex-wrap gap-2">
+                {(['searched', 'targets', 'all'] as PoolFilter[]).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`rounded-full border px-3 py-1 font-mono text-[11px] tracking-wide transition-colors ${
+                      filter === f
+                        ? 'border-cosmos-nebula bg-cosmos-nebula/10 text-cosmos-text'
+                        : 'border-cosmos-border bg-cosmos-surface text-cosmos-muted hover:border-cosmos-nebula/60'
+                    }`}
+                  >
+                    {FILTER_LABEL[f]} <span className="text-cosmos-subtle">{count(f)}</span>
+                  </button>
                 ))}
-              </ul>
+              </div>
+              {shown.length > 0 ? (
+                <ul className="rounded-lg border border-cosmos-border bg-cosmos-surface px-4">
+                  {shown.map((e) => (
+                    <StarRow key={e.planet_name} e={e} />
+                  ))}
+                </ul>
+              ) : (
+                <p className="rounded-lg border border-cosmos-border bg-cosmos-surface px-4 py-6 text-center text-xs text-cosmos-subtle">
+                  이 필터에 해당하는 별이 없습니다.
+                </p>
+              )}
+              {filter !== 'all' && (
+                <p className="mt-2 text-xs text-cosmos-subtle">
+                  “전체 풀”에는 아직 빛을 받아오지 않은 별도 있습니다 — 도구는 보지 않은 곳을 봤다고
+                  말하지 않습니다.
+                </p>
+              )}
             </section>
-          )}
-
-          {notFetched > 0 && (
-            <p className="border-l-2 border-cosmos-nebula/40 pl-3 text-xs text-cosmos-subtle">
-              아직 빛을 받아오지 않은 별이 {notFetched}개 있습니다 — 로컬에서 받아와야 볼 수
-              있습니다. 도구는 보지 않은 곳을 봤다고 말하지 않습니다.
-            </p>
           )}
         </>
       )}
