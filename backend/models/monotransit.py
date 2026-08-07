@@ -25,6 +25,29 @@ class MonotransitResponse(BaseModel):
     depth_floor: float | None = None   # shallowest transit this curve's noise would admit
 
 
+# sub-11-13: the light curve behind a verdict, for the drilldown. The decimated, detrended
+# curve the search actually saw, plus the events it found so the view can mark each dip.
+class MonotransitCurveEvent(BaseModel):
+    t0: float                          # event center, days (same frame as the curve's time)
+    duration: float                    # first-to-last contact, days
+    depth: float                       # fitted trapezoid depth
+    significance: float | None         # red-noise significance; None = held
+    significant: bool                  # cleared the significance floor
+    passed: bool                       # passed every discriminator
+    candidate: bool                    # significant AND passed
+
+
+class MonotransitCurve(BaseModel):
+    planet_name: str
+    mission: str
+    time: list[float]                  # display-decimated time samples
+    flux: list[float]                  # normalized flux, baselined to 1 (as the search sees it)
+    point_count: int                   # samples sent
+    original_count: int                # samples before decimation
+    depth_floor: float | None = None   # shallowest transit this curve's noise would admit
+    events: list[MonotransitCurveEvent]
+
+
 # sub-11-6: what a detection on this star would MEAN (from the sub-11-5 pool triage). A survivor
 # on a too_big star is still reported, but named star-sized and ranked below plausible ones.
 class SizeVerdict(BaseModel):

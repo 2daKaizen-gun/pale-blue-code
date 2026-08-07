@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.concurrency import run_in_threadpool
 
-from models.monotransit import MonotransitResponse, MonotransitHunt, PoolAssessment, FetchPlan
+from models.monotransit import (
+    MonotransitResponse, MonotransitHunt, MonotransitCurve, PoolAssessment, FetchPlan,
+)
 from services import monotransit as mono_service
 from services import hunt as hunt_service
 from services import pool_assessment as pool_service
@@ -59,6 +61,25 @@ async def hunt_the_pool(mission: str = Query("tess")):
     result = await run_in_threadpool(mono_service.hunt_monotransit, names, size_index)
     searched = sum(1 for e in result["ledger"] if e["disposition"] != "not_fetched")
     return MonotransitHunt(mission="tess", searched=searched, **result)
+
+
+# Declared before /monotransit/{planet_name} so "{planet_name}/curve" resolves here.
+@router.get("/monotransit/{planet_name}/curve", response_model=MonotransitCurve)
+async def get_monotransit_curve(planet_name: str):
+    """The light curve behind a star's verdict, for the drilldown (sub-11-13).
+
+    Returns the same detrended, normalized curve the single-transit search saw — decimated
+    for the browser — plus the events it found so the view can mark each dip and colour it
+    by verdict. 424 for an unfetched star: the tool never draws a curve it has not searched.
+    """
+    try:
+        data = await run_in_threadpool(mono_service.monotransit_curve, planet_name)
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=424,
+            detail={"message": "Light curve not cached — fetch it locally first", "planet": planet_name},
+        )
+    return MonotransitCurve(**data)
 
 
 @router.get("/monotransit/{planet_name}", response_model=MonotransitResponse)

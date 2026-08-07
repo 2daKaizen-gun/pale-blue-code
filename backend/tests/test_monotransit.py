@@ -6,6 +6,7 @@ drives it — no folding, no repetition, one event.
 """
 
 import json
+import math
 
 import numpy as np
 import pytest
@@ -868,3 +869,61 @@ def test_cached_falls_through_for_an_unfetched_star():
     with pytest.raises(FileNotFoundError):
         mt.run_monotransit_cached("cache-absent")
     assert mt.depth_to_millimag(1.5) is None
+
+
+# --- the drilldown curve (sub-11-13) -------------------------------------------
+
+def test_curve_decimates_and_stays_json_finite():
+    # a long curve is decimated to the display cap, and every sample is finite (strict JSON)
+    rng = np.random.default_rng(51)
+    time = np.arange(0.0, _SPAN, _CADENCE)          # ~1900 pts < cap, so no decimation here
+    dip = mt.transit_model(time, 13.0, 0.3, 0.01) + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("curve-real", time, dip)
+    try:
+        out = mt.monotransit_curve("curve-real", max_points=500)
+    finally:
+        _clean_cache("curve-real")
+    assert out["point_count"] == 500 and out["original_count"] == len(time)
+    assert len(out["time"]) == 500 and len(out["flux"]) == 500
+    assert all(math.isfinite(x) for x in out["time"])
+    assert all(math.isfinite(x) for x in out["flux"])
+    json.dumps(out)  # must not raise (no NaN/Inf)
+
+
+def test_curve_carries_the_events_the_search_found():
+    # the injected dip surfaces as an event the view can mark, in the curve's own time frame
+    rng = np.random.default_rng(52)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    dip = mt.transit_model(time, 13.0, 0.3, 0.01) + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("curve-event", time, dip)
+    try:
+        out = mt.monotransit_curve("curve-event")
+    finally:
+        _clean_cache("curve-event")
+    assert len(out["events"]) >= 1
+    ev = out["events"][0]
+    assert abs(ev["t0"] - 13.0) < 1.0           # near the injected epoch
+    assert set(ev) == {"t0", "duration", "depth", "significance", "significant", "passed", "candidate"}
+
+
+def test_curve_matches_the_searched_events_exactly():
+    # the curve view's events must be the SAME the hunt records — never a re-derived answer
+    rng = np.random.default_rng(53)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    dip = mt.transit_model(time, 13.0, 0.3, 0.01) + rng.normal(0.0, 5e-4, size=time.shape)
+    _write_lc("curve-same", time, dip)
+    try:
+        curve = mt.monotransit_curve("curve-same")
+        search = mt.run_monotransit_cached("curve-same")
+    finally:
+        _clean_cache("curve-same")
+    assert len(curve["events"]) == len(search["candidates"])
+    for ce, sc in zip(curve["events"], search["candidates"]):
+        assert ce["t0"] == sc["t0"] and ce["candidate"] == sc["candidate"]
+
+
+def test_curve_raises_for_an_unfetched_star():
+    # never draw a curve we have not searched — the honest 424 signal
+    _clean_cache("curve-absent")
+    with pytest.raises(FileNotFoundError):
+        mt.monotransit_curve("curve-absent")

@@ -752,6 +752,73 @@ def run_monotransit_cached(planet_name: str) -> dict:
     return result
 
 
+# --- the light curve behind a verdict, for the drilldown (sub-11-13) -----------
+#
+# The hunt says one honest sentence per star and the drilldown shows its numbers, but a
+# person cannot SEE what the detector saw. This returns the same detrended, normalized
+# curve the single-transit search actually worked on — not a differently-processed one —
+# decimated for the browser, plus the events it found so the view can mark each dip and
+# colour it by verdict. Honest by construction: the picture is the search's own input.
+
+# Points to send the browser. The full curve is ~10^5 samples; a uniform stride down to a
+# few thousand keeps the shape (and gaps) legible while the event markers pin the dips.
+_CURVE_DISPLAY_POINTS = 3000
+
+
+def monotransit_curve(planet_name: str, max_points: int = _CURVE_DISPLAY_POINTS) -> dict:
+    """The searched light curve for display: the SAME curve the single-transit search saw
+    (loaded, detrended, baselined to 1), decimated to ``max_points`` for the browser, plus
+    the events the search found (t0, duration, depth, significance, verdict) so the view can
+    mark each dip. Raises ``FileNotFoundError`` for an unfetched star — never invents a curve.
+    """
+    from services import bls as bls_service
+
+    lc_meta = bls_service._find_lc_cache(planet_name)
+    if lc_meta is None:
+        raise FileNotFoundError(f"No light curve cache found for '{planet_name}'")
+
+    time, flux = bls_service._get_full_lc(planet_name, lc_meta)
+    flux = bls_service._detrend(time, flux)
+    med = float(np.median(flux))
+    if med != 0:
+        flux = flux / med  # baseline to 1, exactly as the search sees it
+
+    # drop any non-finite sample so the JSON stays strict (Starlette forbids NaN/Inf)
+    finite = np.isfinite(time) & np.isfinite(flux)
+    time, flux = time[finite], flux[finite]
+    original = int(len(time))
+
+    if original > max_points:
+        idx = np.unique(np.linspace(0, original - 1, max_points).astype(int))
+        t_show, f_show = time[idx], flux[idx]
+    else:
+        t_show, f_show = time, flux
+
+    # events come from the memoized search — instant once the star is warm
+    result = run_monotransit_cached(planet_name)
+    events = [{
+        "t0": float(c["t0"]),
+        "duration": float(c["duration"]),
+        "depth": float(c["depth"]),
+        "significance": (float(c["significance"]) if c["significance"] is not None else None),
+        "significant": bool(c["significant"]),
+        "passed": bool(c["passed"]),
+        "candidate": bool(c["candidate"]),
+    } for c in result["candidates"]]
+
+    floor = result.get("depth_floor")
+    return {
+        "planet_name": planet_name,
+        "mission": lc_meta.get("mission", "TESS"),
+        "time": [float(x) for x in t_show],
+        "flux": [float(x) for x in f_show],
+        "point_count": int(len(t_show)),
+        "original_count": original,
+        "depth_floor": (float(floor) if floor is not None and np.isfinite(floor) else None),
+        "events": events,
+    }
+
+
 # --- the hunt: many stars, one honest ledger (sub-11-3 Light 1) ----------------
 #
 # run_monotransit judges one star. A hunt runs it across the frontier pool and keeps
