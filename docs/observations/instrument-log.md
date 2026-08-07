@@ -15,24 +15,30 @@
 The 16 plausible dwarfs from the frontier-pool triage (`fetch_plan`) — stars where a *detectable*
 single transit could be a planet, not a star. Best (smallest detectable planet) first.
 
-| # | star | min planet (R♃) | fetched | events | disposition |
-|---|------|-----------------|---------|--------|-------------|
-| 1 | TIC 156004112 | ≥ 0.60 | yes (2026-08-05) | 1 | insignificant (blip, sig 0.06 « 4.0) |
-| 2 | TIC 231631019 | ≥ 0.61 | yes (2026-08-05) | 2 | 0 candidates (symmetry + insignificant) |
-| 3 | TIC 352402781 | ≥ 0.65 | yes (2026-08-05) | **0** | no single transit |
-| 4 | TIC 365725318 | ≥ 0.71 | yes (prior) | **0** | no single transit |
-| 5 | TIC 219990936 | ≥ 1.06 | yes (2026-08-05) | *running* | — |
-| 6 | TIC 404034859 | ≥ 1.09 | yes (2026-08-05) | *not run* | — |
-| 7 | TIC 156016697 | ≥ 1.10 | yes (2026-08-05) | *not run* | — |
-| 8 | TIC 219306160 | ≥ 1.17 | yes (2026-08-05) | *not run* | — |
-| 9 | TIC 396167830 | ≥ 1.34 | — | — | — |
-| 10 | TIC 156084350 | ≥ 1.35 | — | — | — |
-| 11 | TIC 372203352 | ≥ 1.38 | — | — | — |
-| 12 | TIC 372066117 | ≥ 1.43 | — | — | — |
-| 13 | TIC 341460220 | ≥ 1.51 | — | — | — |
-| 14 | TIC 352404492 | ≥ 1.54 | — | — | — |
-| 15 | TIC 374347620 | ≥ 1.71 | — | — | — |
-| 16 | TIC 382252939 | ≥ 1.95 | — | — | — |
+**All 16 fetched and searched (2026-08-07).** Zero candidates. Best (smallest detectable planet) first.
+
+| # | star | min planet (R♃) | events | disposition |
+|---|------|-----------------|--------|-------------|
+| 1 | TIC 156004112 | ≥ 0.60 | 1 | insignificant (blip, sig 0.06 « 4.0) |
+| 2 | TIC 231631019 | ≥ 0.61 | 2 | insignificant (both events far below floor) |
+| 3 | TIC 352402781 | ≥ 0.65 | **0** | no single transit (quiet) |
+| 4 | TIC 365725318 | ≥ 0.71 | **0** | no single transit (quiet) |
+| 5 | TIC 219990936 | ≥ 1.06 | 3 | insignificant (sig ≈ 0) |
+| 6 | TIC 404034859 | ≥ 1.09 | **0** | no single transit (quiet) |
+| 7 | TIC 156016697 | ≥ 1.10 | **0** | no single transit (quiet) |
+| 8 | TIC 219306160 | ≥ 1.17 | 1 | insignificant (sig 0.00) |
+| 9 | TIC 396167830 | ≥ 1.34 | 1 | insignificant (sig 0.08) |
+| 10 | TIC 156084350 | ≥ 1.35 | **0** | no single transit (quiet) |
+| 11 | TIC 372203352 | ≥ 1.38 | 1 | insignificant (sig 0.02) |
+| 12 | TIC 372066117 | ≥ 1.43 | **0** | no single transit (quiet) |
+| 13 | TIC 341460220 | ≥ 1.51 | **0** | no single transit (quiet) |
+| 14 | TIC 352404492 | ≥ 1.54 | 1 | **rejected — sig 74, killed by edge + symmetry** |
+| 15 | TIC 374347620 | ≥ 1.71 | 1 | insignificant (sig 0.03) |
+| 16 | TIC 382252939 | ≥ 1.95 | **0** | no single transit (quiet) |
+
+**Tally of the 16 planet-size targets:** 8 quiet (no event) · 7 insignificant blips · 1 rejected · **0 candidates.**
+Three giants (`too_big`) that happened to be cached were also swept: TIC 469906369 (sig 11.7 → edge+symmetry),
+TIC 102029734 (sig 14.2 → edge), TIC 253825414 (insignificant). Their dips, correctly, never became candidates.
 
 ## Runs
 
@@ -92,9 +98,42 @@ A clean, sensitive look and nothing there. Quiet, recorded as a result.
 
 ---
 
-**Running tally (4 of 16 searched):** every one quiet — zero candidates so far. The dominant
-outcome of a real single-transit search is *nothing*, and that nothing is the whole point: it is
-the noise floor a real detection would have to rise above. Four more curves fetched and searching;
-eight still pending a fetch.
+### TIC 352404492 — 2026-08-07 — 1 event, sig 74, REJECTED (the discriminators earn their keep)
 
-*More runs appended as targets are fetched and searched.*
+```
+depth_floor:  0.03%   (a clean, very sensitive curve)
+events found: 1
+  event: sig 74.30  ->  FAILED edge + symmetry  ->  NOT a candidate
+```
+
+The most important run in this log. A *planet-size target* — one of the 16 dwarfs where a real
+transit could be a planet — produced a genuinely huge single event: significance **74**, far above
+the `_SIG_MIN = 4.0` floor. On significance alone it would have sailed through. But the shape gates
+caught it: it failed **edge** (the dip sits on a segment boundary, where the spacecraft's own
+systematics live) *and* **symmetry** (an asymmetric ramp, not a transit's clean U). These are the
+exact discriminators sub-10-3 nearly deleted as over-engineering. On real starlight they just
+stopped a significance-74 artifact from being called a candidate. That is the whole reason the
+shape gates exist, demonstrated on real data: significance is necessary, never sufficient.
+
+(Two cached giants told the same story: TIC 102029734 at sig 14 and TIC 469906369 at sig 12, both
+killed by edge — deep systematics on bright stars, correctly refused.)
+
+---
+
+## Final tally — the full pool searched (2026-08-07)
+
+**16 planet-size targets, every one fetched and searched. Zero candidates.**
+
+- **8 quiet** (no single-transit event at all),
+- **7 insignificant** (a blip surfaced, but below the significance floor — noise),
+- **1 rejected** (TIC 352404492: a significance-74 event, refused by the shape discriminators).
+
+Zero survivors. This is the honest, expected texture of a real single-transit search: the sky is
+mostly quiet, and the one loud thing was an instrument artifact the gates caught. Nothing was
+invented, nothing was dressed up. The empty hands *are* the result — they are the noise floor a
+real detection would have to clear, and the proof that the tool declines to lie when there is
+nothing there. If a real world is hiding in these curves, it is shallower than these floors or
+buried in a gap; finding it would take deeper data, not a louder claim.
+
+*More runs appended as the frontier pool refreshes (the biweekly GitHub Action) and new targets are
+fetched and searched.*
