@@ -122,6 +122,40 @@ export async function monotransitPool(): Promise<PoolAssessment> {
   return res.json()
 }
 
+// sub-11-13: the light curve behind a star's verdict, for the drilldown. The same detrended,
+// normalized curve the search saw (decimated for the browser) plus the events it found, so the
+// view can mark each dip and colour it by verdict.
+export interface MonotransitCurveEvent {
+  t0: number // event center, same time frame as the curve
+  duration: number
+  depth: number
+  significance: number | null
+  significant: boolean
+  passed: boolean
+  candidate: boolean
+}
+
+export interface MonotransitCurve {
+  planet_name: string
+  mission: string
+  time: number[]
+  flux: number[]
+  point_count: number
+  original_count: number
+  depth_floor: number | null
+  events: MonotransitCurveEvent[]
+}
+
+// Fetch the searched curve for one star; 424 (rejected promise) if its light was never fetched.
+export async function monotransitCurve(planetName: string): Promise<MonotransitCurve> {
+  const res = await fetch(`${API_BASE_URL}/api/monotransit/${encodeURIComponent(planetName)}/curve`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail?.message ?? body.detail ?? `request failed: ${res.status}`)
+  }
+  return res.json()
+}
+
 // sub-11-7: the fetch plan — which plausible dwarfs are worth fetching, cached or pending, best
 // target first. Deterministic; the actual fetch is a separate local step, never this request.
 export interface FetchTarget {

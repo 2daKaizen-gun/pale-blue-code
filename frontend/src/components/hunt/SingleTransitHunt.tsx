@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import {
+  monotransitCurve,
   monotransitHunt,
   type HuntDisposition,
+  type MonotransitCurve,
   type MonotransitHunt,
   type MonotransitLedgerEntry,
   type MonotransitSurvivor,
   type PoolClassification,
 } from '../../lib/api/monotransit'
+import MonotransitCurveChart from './MonotransitCurveChart'
 import {
   DISCRIMINATOR_LABEL,
   DISPOSITION_ORDER,
@@ -69,7 +72,23 @@ function EvidenceStat({ label, value }: { label: string; value: string }) {
 // sentence — size, significance, detection floor — never jargon dressed as a conclusion.
 function StarRow({ e }: { e: MonotransitLedgerEntry }) {
   const [open, setOpen] = useState(false)
+  const [curve, setCurve] = useState<MonotransitCurve | null>(null)
+  const [curveState, setCurveState] = useState<'idle' | 'loading' | 'error'>('idle')
   const size = e.size_class ?? 'unknown'
+  const searched = e.disposition !== 'not_fetched'
+
+  // The curve is heavy (thousands of points), so it loads only when a person asks to see it.
+  const loadCurve = () => {
+    if (curve || curveState === 'loading') return
+    setCurveState('loading')
+    monotransitCurve(e.planet_name)
+      .then((c) => {
+        setCurve(c)
+        setCurveState('idle')
+      })
+      .catch(() => setCurveState('error'))
+  }
+
   const floorPct = e.depth_floor != null && e.depth_floor > 0 ? `${(e.depth_floor * 100).toFixed(2)}%` : '—'
   const sig = e.significance != null ? `${e.significance.toFixed(1)}σ` : '—'
   const minR = e.min_planet_rjup != null ? `≥ ${e.min_planet_rjup.toFixed(2)} R♃` : '—'
@@ -111,6 +130,26 @@ function StarRow({ e }: { e: MonotransitLedgerEntry }) {
             <p className="mt-1 text-xs text-cosmos-subtle">
               걸린 판별: {e.failed.map((f) => DISCRIMINATOR_LABEL[f] ?? f).join(', ')}
             </p>
+          )}
+          {searched && (
+            <div className="mt-2">
+              {!curve && curveState !== 'loading' && (
+                <button
+                  onClick={loadCurve}
+                  className="font-mono text-[11px] text-cosmos-nebula hover:text-cosmos-text"
+                >
+                  {curveState === 'error' ? '광곡선 불러오기 실패 — 다시 시도 →' : '광곡선 보기 →'}
+                </button>
+              )}
+              {curveState === 'loading' && (
+                <p className="font-mono text-[11px] text-cosmos-subtle">광곡선 불러오는 중…</p>
+              )}
+              {curve && (
+                <div className="mt-1 rounded border border-cosmos-border bg-cosmos-surface p-2">
+                  <MonotransitCurveChart curve={curve} />
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
