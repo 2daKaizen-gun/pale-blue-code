@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { monotransitPool, type PoolAssessment, type PoolTarget } from '../lib/api/monotransit'
 import { CLASSIFICATION_LABEL, minPlanetLabel, poolHeadline } from '../components/hunt/poolCopy'
+import { SIZE_CLASS_CHIP } from '../components/hunt/vocabulary'
 import Spinner from '../components/ui/Spinner'
 
 /**
@@ -73,7 +74,7 @@ export default function PoolTargetsPage() {
           FRONTIER · 어디를 겨눌까
         </p>
         <h1 className="mb-2 flex items-center gap-2 text-3xl font-semibold text-cosmos-text">
-          <span aria-hidden>🎯</span> 사냥할 가치가 있는 별
+          <span aria-hidden>🎯</span> 행성 크기 표적
         </h1>
         <p className="max-w-2xl text-sm text-cosmos-muted">
           트랜짓 깊이는 별의 원반에서 가려진 넓이 — 즉 동반체의 반지름을 말합니다 (R
@@ -107,14 +108,14 @@ export default function PoolTargetsPage() {
 
           <div className="flex flex-wrap gap-2 font-mono text-[11px]">
             <span className="rounded border border-emerald-400/40 bg-emerald-400/5 px-2.5 py-1 text-emerald-300/90">
-              행성 가능 <span className="text-cosmos-text">{data.summary.plausible}</span>
+              {SIZE_CLASS_CHIP.plausible} <span className="text-cosmos-text">{data.summary.plausible}</span>
             </span>
             <span className="rounded border border-cosmos-border bg-cosmos-surface px-2.5 py-1 text-cosmos-muted">
-              검출돼도 별 <span className="text-cosmos-text">{data.summary.too_big}</span>
+              {SIZE_CLASS_CHIP.too_big} <span className="text-cosmos-text">{data.summary.too_big}</span>
             </span>
             {data.summary.unknown > 0 && (
               <span className="rounded border border-cosmos-border bg-cosmos-surface px-2.5 py-1 text-cosmos-muted">
-                반지름 미상 <span className="text-cosmos-text">{data.summary.unknown}</span>
+                {SIZE_CLASS_CHIP.unknown} <span className="text-cosmos-text">{data.summary.unknown}</span>
               </span>
             )}
           </div>

@@ -2,9 +2,9 @@ import type {
   FetchPlanSummary,
   HuntDisposition,
   MonotransitLedgerEntry,
-  PoolClassification,
   SizeVerdict,
 } from '../../lib/api/monotransit'
+import { SIZE_CLASS_CHIP } from './vocabulary'
 
 /**
  * Pure presentation for the single-transit hunt (sub-11-3 Light 4). The backend
@@ -143,12 +143,9 @@ export function sensitivityCaption(floor: number | null): string | null {
 }
 
 // sub-11-6: the size verdict as a short chip label. plausible/too_big/unknown from the pool
-// triage; a null class (star absent from the triage) reads the same as unknown.
-export const SIZE_LABEL: Record<PoolClassification, string> = {
-  plausible: '행성 크기',
-  too_big: '검출돼도 별',
-  unknown: '크기 미상',
-}
+// triage; a null class (star absent from the triage) reads the same as unknown. The words come
+// from `vocabulary.ts` (the one source of truth) — re-exported so callers keep their import site.
+export const SIZE_LABEL = SIZE_CLASS_CHIP
 
 /**
  * The honest size line for a survivor: whether a detection on this star could be a planet at all,
@@ -159,11 +156,11 @@ export const SIZE_LABEL: Record<PoolClassification, string> = {
 export function survivorSizeNote(s: SizeVerdict): string {
   if (s.size_class === 'plausible') {
     return s.min_planet_rjup != null
-      ? `행성 크기 · 검출 시 ≥ ${s.min_planet_rjup.toFixed(2)} R♃`
-      : SIZE_LABEL.plausible
+      ? `${SIZE_CLASS_CHIP.plausible} · 검출 시 ≥ ${s.min_planet_rjup.toFixed(2)} R♃`
+      : SIZE_CLASS_CHIP.plausible
   }
   if (s.size_class === 'too_big') return '검출돼도 별 (너무 큼)'
-  return SIZE_LABEL.unknown
+  return SIZE_CLASS_CHIP.unknown
 }
 
 // sub-11-7: the fetch plan — which plausible dwarfs are worth fetching. The hunt searches only

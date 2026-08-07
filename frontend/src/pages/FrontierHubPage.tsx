@@ -61,7 +61,7 @@ export default function FrontierHubPage() {
             <span>
               <span className="text-sm font-semibold text-cosmos-text">왜 이 별들을 봤나</span>
               <span className="ml-2 font-mono text-[11px] text-cosmos-muted">
-                검출돼도 행성일 수 있는 소수를 먼저 가려냅니다 →
+                풀에서 행성 크기 표적을 먼저 가려냅니다 →
               </span>
             </span>
           </span>

@@ -1,4 +1,5 @@
-import type { PoolClassification, PoolSummary, PoolTarget } from '../../lib/api/monotransit'
+import type { PoolSummary, PoolTarget } from '../../lib/api/monotransit'
+import { SIZE_CLASS_LABEL } from './vocabulary'
 
 /**
  * Pure presentation for the pool target list (sub-11-5 Light 4). A transit depth maps to a
@@ -6,13 +7,13 @@ import type { PoolClassification, PoolSummary, PoolTarget } from '../../lib/api/
  * star. Most of the bright frontier pool is giants, where a detection would be a star, not a
  * planet — the copy names that honestly and never dresses a giant up as a target. Kept pure
  * and unit-tested, like monotransitCopy.ts.
+ *
+ * The category words come from `vocabulary.ts` (the one source of truth) — this file no longer
+ * spells its own, so "행성 크기 표적" reads identically here and on the hunt front door.
  */
 
-export const CLASSIFICATION_LABEL: Record<PoolClassification, string> = {
-  plausible: '행성 가능',
-  too_big: '검출돼도 별 (너무 큼)',
-  unknown: '반지름 미상',
-}
+// Re-exported from the vocabulary so existing callers keep their import site; the words live once.
+export const CLASSIFICATION_LABEL = SIZE_CLASS_LABEL
 
 /**
  * The honest headline: how few of the pool could host a detectable planet. The point of the
