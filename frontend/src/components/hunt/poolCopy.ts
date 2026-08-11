@@ -22,6 +22,11 @@ export const CLASSIFICATION_LABEL = SIZE_CLASS_LABEL
 export function poolHeadline(summary: PoolSummary): string {
   const { total, plausible, too_big, unknown } = summary
   const tail = unknown > 0 ? `, ${unknown}개는 반지름을 알 수 없습니다` : ''
+  // The pool is now selected for the hunt (smallest stars first), so it can be all planet-size —
+  // the honest headline then leads with that, not with a "only M of N" that implies giants dominate.
+  if (too_big === 0 && plausible > 0) {
+    return `별 ${total}개 전부가 행성 크기 표적입니다 — 작은 별만 골라 담았기 때문입니다${tail}`
+  }
   return `별 ${total}개 중 ${plausible}개만이 행성을 품을 수 있습니다 — 나머지 ${too_big}개는 검출돼도 별입니다${tail}`
 }
 

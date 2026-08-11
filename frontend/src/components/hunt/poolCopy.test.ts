@@ -24,6 +24,12 @@ describe('poolHeadline', () => {
   it('mentions the radiusless stars only when there are any', () => {
     expect(poolHeadline(summary({ unknown: 3 }))).toContain('반지름을 알 수 없습니다')
   })
+
+  it('leads with "all planet-size" when the dwarf-selected pool has no giants', () => {
+    const line = poolHeadline(summary({ plausible: 50, too_big: 0 }))
+    expect(line).toContain('전부가 행성 크기 표적')
+    expect(line).not.toContain('검출돼도 별') // no giants to name
+  })
 })
 
 describe('minPlanetLabel', () => {
