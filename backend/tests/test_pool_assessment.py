@@ -83,14 +83,14 @@ def test_assess_pool_summary_accounts_for_every_star():
     assert s["plausible"] + s["too_big"] + s["unknown"] == s["total"]
 
 
-def test_assess_pool_on_the_real_pool_is_mostly_giants():
-    # the honest finding: the fresh-sky pool is bright because it is full of giants, so most
-    # stars are too_big — a detection there would be a star, not a planet
+def test_assess_pool_on_the_real_pool_is_dwarf_dominant():
+    # sub-11-14 re-selects the pool for the hunt (select_for_hunt: smallest stars first), so nearly
+    # every star is now planet-size — the opposite of the old brightness-ranked, giant-heavy pool
     out = pa.assess_pool()
     s = out["summary"]
     assert s["total"] == 50
     assert s["plausible"] + s["too_big"] + s["unknown"] == 50
-    assert s["too_big"] > s["plausible"]          # the majority cannot host a detectable planet
+    assert s["plausible"] > s["too_big"]          # a dwarf-dominant, planet-size pool
     assert out["targets"][0]["classification"] == "plausible"   # best target leads
 
 

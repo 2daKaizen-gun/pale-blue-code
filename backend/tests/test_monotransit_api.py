@@ -160,7 +160,7 @@ def test_pool_endpoint_ranks_and_summarizes_the_real_pool():
 
     assert summary["total"] == len(targets)
     assert summary["plausible"] + summary["too_big"] + summary["unknown"] == summary["total"]
-    assert summary["too_big"] > summary["plausible"]        # a giant-heavy pool
+    assert summary["plausible"] > summary["too_big"]        # a dwarf-dominant, hunt-selected pool
     # ranked plausible-first, and a plausible target carries a real planet radius
     assert targets[0]["classification"] == "plausible"
     assert targets[0]["min_planet_rjup"] is not None

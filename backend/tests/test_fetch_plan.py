@@ -57,11 +57,11 @@ def test_plan_touches_no_network_and_does_not_fetch():
     assert plan["summary"]["pending"] == 2
 
 
-def test_plan_on_the_real_pool_targets_sixteen_dwarfs():
-    # the honest finding sub-11-5 measured: 16 of the 50 fresh-sky stars are worth a fetch
+def test_plan_on_the_real_pool_targets_the_dwarfs():
+    # sub-11-14 re-selected the pool for the hunt, so nearly all 50 stars are planet-size targets
     plan = fp.fetch_plan(is_cached=_NONE_CACHED)
-    assert plan["summary"]["plausible"] == 16
-    assert plan["summary"]["pending"] == 16          # forced-uncached: all pending
+    assert plan["summary"]["plausible"] >= 40          # a dwarf-dominant pool worth fetching
+    assert plan["summary"]["pending"] == plan["summary"]["plausible"]   # forced-uncached: all pending
     # the best target is a real planet-sized reach, not a star
     assert plan["summary"]["best_min_planet_rjup"] < 2.0
 
