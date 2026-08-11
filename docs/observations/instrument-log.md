@@ -120,7 +120,7 @@ killed by edge — deep systematics on bright stars, correctly refused.)
 
 ---
 
-## Final tally — the full pool searched (2026-08-07)
+## Tally — the bright pool's dwarfs searched (2026-08-07)
 
 **16 planet-size targets, every one fetched and searched. Zero candidates.**
 
@@ -135,5 +135,43 @@ real detection would have to clear, and the proof that the tool declines to lie 
 nothing there. If a real world is hiding in these curves, it is shallower than these floors or
 buried in a gap; finding it would take deeper data, not a louder claim.
 
-*More runs appended as the frontier pool refreshes (the biweekly GitHub Action) and new targets are
-fetched and searched.*
+---
+
+## The pool grew up — 50 dwarfs, and a first M-dwarf batch (2026-08-11)
+
+The bright pool searched above was mostly the wrong stars. It was ranked by *brightness*, and bright
+TESS stars are giants, so only 16 of 50 were planet-size targets. sub-11-14 rebuilt the selection
+for the hunt (`select_for_hunt`): smallest stars first, bright enough to search. The same sector 104
+now yields **50 planet-size targets out of 50** — 0 giants — and the smallest are real **M dwarfs**
+(R ~0.15–0.30 R_sun), where the detection floor implies a planet as small as ~0.09–0.16 R_jup,
+roughly **1–2 Earth radii**. The bright pool's best target bottomed out at 0.60 R_jup (~7 Earth
+radii); this reaches Earth-size. For the first time the pool is pointed where a small planet could
+actually show.
+
+**First batch: the 10 smallest M dwarfs fetched and searched.** (37 targets still pending a fetch —
+stated `not_fetched`, never faked.)
+
+| star | R (R_sun) | events | disposition |
+|------|-----------|--------|-------------|
+| TIC 469981019 | 0.15 | 0 | no single transit (quiet) |
+| TIC 120506718 | 0.19 | 0 | no single transit (quiet) |
+| TIC 352438054 | 0.19 | 0 | no single transit (quiet) |
+| TIC 370142187 | 0.22 | 1 | **rejected — sig 13.6, killed by edge + symmetry** |
+| TIC 142216895 | 0.25 | 1 | insignificant (sig −0.02) |
+| TIC 394481268 | 0.26 | 0 | no single transit (quiet) |
+| TIC 322051865 | 0.29 | 0 | no single transit (quiet) |
+| TIC 79491341  | 0.29 | 0 | no single transit (quiet) |
+| TIC 49594649  | 0.30 | 0 | no single transit (quiet) |
+| TIC 77111302  | 0.56 | 1 | insignificant (sig 0.06) |
+
+**Tally of the 10 M dwarfs:** 7 quiet · 2 insignificant · 1 rejected · **0 candidates.**
+
+The rejection tells the same story a third time. TIC 370142187 — an R=0.22 M dwarf, one of the
+tiniest targets — produced a **significance-13.6** single event, well past the floor. The shape
+gates caught it: **edge + symmetry**, an asymmetric ramp on a segment boundary — a systematic, not a
+transit. On the smallest, most planet-friendly stars we have yet searched, the loudest thing was
+still an instrument artifact, and the tool still refused it. Zero candidates, honestly. The search
+has finally reached Earth-size sensitivity on real M dwarfs; the sky there, so far, is quiet.
+
+*More runs appended as the remaining 37 dwarfs are fetched and searched, and as the biweekly
+GitHub Action refreshes the pool (now dwarf-selected) with each new sector.*
