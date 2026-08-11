@@ -173,5 +173,24 @@ transit. On the smallest, most planet-friendly stars we have yet searched, the l
 still an instrument artifact, and the tool still refused it. Zero candidates, honestly. The search
 has finally reached Earth-size sensitivity on real M dwarfs; the sky there, so far, is quiet.
 
-*More runs appended as the remaining 37 dwarfs are fetched and searched, and as the biweekly
+### Second batch — 10 more dwarfs (2026-08-12)
+
+Fetched and searched the next 10 planet-size dwarfs. Same texture: **3 quiet, 6 insignificant, 1
+rejected, 0 candidates.**
+
+- **TIC 100918677 — sig 20.6, REJECTED** (edge + symmetry). A second loud artifact caught by the
+  shape gates in the dwarf pool. Significance well past the floor; shape betrayed it as a systematic.
+- **TIC 91636864 — sig 4.98, insignificant.** The closest call in the whole search: the mono
+  significance floor is `_SIG_MIN_MONO = 5.0`, and this event landed at **4.98** — a hair *under* the
+  line, so it was not promoted. Exactly the discipline the floor is for: a threshold only means
+  something if the tool honours it when the number is close. It did.
+- The other eight: quiet or blips far below the floor.
+
+**Cumulative dwarf-pool tally (20 of 50 searched):** 10 quiet · 8 insignificant · 2 rejected
+(sig 13.6, sig 20.6, both edge+symmetry) · **0 candidates.** Thirty targets still pending a fetch,
+stated `not_fetched`. Twenty real M/K dwarfs searched at Earth-to-Neptune sensitivity, and the sky
+is quiet — the loud things were instrument artifacts, the closest real-looking event fell 0.02
+under the floor. The empty hands are honest, and they are exactly what a real search mostly returns.
+
+*More runs appended as the remaining 30 dwarfs are fetched and searched, and as the biweekly
 GitHub Action refreshes the pool (now dwarf-selected) with each new sector.*
