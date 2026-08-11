@@ -178,12 +178,46 @@ def select_bright(stars: list[dict], n: int) -> list[dict]:
     return sorted(stars, key=key)[:n]
 
 
+def select_for_hunt(stars: list[dict], n: int) -> list[dict]:
+    """Keep the N best *single-transit hunt* targets: small stars, bright enough to search.
+
+    select_bright ranks by brightness, and bright TESS stars are mostly giants — which is
+    exactly why the frontier pool came out ~2/3 too_big, with only a handful of stars where a
+    detectable dip could be a planet (sub-11-5). The hunt wants the opposite: SMALL stars. A
+    transit depth fixes companion radius (R_planet = sqrt(depth) * R_star), so the smaller the
+    star, the smaller — and more planet-like — a detectable dip.
+
+    So this ranks the hunt's real targets first: bright ENOUGH to register a transit
+    (Tmag <= _TMAG_MAX) and characterized (a real Teff AND radius), then SMALLEST radius first
+    (dwarfs), with brightness only as the final tiebreak. A star with no radius cannot be called
+    a dwarf, so it sinks below every measured one. Deterministic, like select_bright.
+    """
+    def key(s):
+        tmag = s.get("tmag")
+        radius = s.get("radius")
+        bright = tmag is not None and tmag <= _TMAG_MAX
+        characterized = s.get("teff") is not None and radius is not None
+        return (
+            not bright,                                  # observable stars first
+            not characterized,                           # ones we can size first
+            radius if radius is not None else 99.0,      # smallest (dwarfs) first
+            tmag if tmag is not None else 99.0,          # brightest as the tiebreak
+        )
+    return sorted(stars, key=key)[:n]
+
+
+_SELECTORS = {"hunt": select_for_hunt, "bright": select_bright}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=50, help="target seed count")
     ap.add_argument("--sectors", type=int, nargs="+", default=None,
                     help="pin specific sectors (default: auto-detect newest)")
     ap.add_argument("--seed", type=int, default=10, help="RNG seed for the sample")
+    ap.add_argument("--select", choices=sorted(_SELECTORS), default="hunt",
+                    help="'hunt' = smallest stars first (planet-size targets); "
+                         "'bright' = brightest first (the old Phase-10 feed order)")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = ap.parse_args()
 
@@ -212,15 +246,19 @@ def main() -> int:
     pool_size = min(len(unrecorded), max(args.n * 8, 300))
     candidates = (sorted(rng.sample(unrecorded, pool_size))
                   if len(unrecorded) > pool_size else unrecorded)
-    print(f"enriching {len(candidates)} candidates, keeping {args.n} brightest...",
+    selector = _SELECTORS[args.select]
+    print(f"enriching {len(candidates)} candidates, keeping {args.n} by '{args.select}'...",
           flush=True)
     enriched = enrich(candidates, obs_mjd)
-    stars = select_bright(enriched, args.n)
+    stars = selector(enriched, args.n)
 
     payload = {
         "schema": "pale-blue-code/frontier-seeds-tess@2",
         "built_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "criteria": "newest SPOC sector; tid absent from toi_catalog; 2-min light curve exists",
+        "criteria": ("newest SPOC sector; tid absent from toi_catalog; 2-min light curve exists; "
+                     f"selected by '{args.select}'"
+                     + (" (smallest stars first — planet-size hunt targets)"
+                        if args.select == "hunt" else " (brightest first)")),
         "latest_sector": latest,
         "sectors": used_sectors,
         "count": len(stars),
