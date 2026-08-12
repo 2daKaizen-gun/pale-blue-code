@@ -133,6 +133,7 @@ export interface MonotransitCurveEvent {
   significant: boolean
   passed: boolean
   candidate: boolean
+  failed_checks: string[] // shape gates this event failed (edge|coherence|flare|symmetry), even below the floor
 }
 
 export interface MonotransitCurve {

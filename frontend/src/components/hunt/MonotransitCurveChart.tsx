@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import * as d3 from 'd3'
 import type { MonotransitCurve, MonotransitCurveEvent } from '../../lib/api/monotransit'
+import { DISCRIMINATOR_LABEL } from './monotransitCopy'
 
 /**
  * The light curve behind a star's verdict (sub-11-13) — the last legibility piece. It draws the
@@ -18,6 +19,20 @@ function eventColor(e: MonotransitCurveEvent): string {
   if (e.candidate) return '#34d399' // emerald — cleared every gate
   if (e.significant) return '#f87171' // red — loud, but a discriminator caught it
   return '#64748b' // grey — a blip below the significance floor
+}
+
+// The one-word fate of an event, matching its marker colour.
+function eventFate(e: MonotransitCurveEvent): string {
+  if (e.candidate) return '후보'
+  if (e.significant) return '기각'
+  return '잡음'
+}
+
+// The short reason each failed gate gives — the first phrase of its plain-language label. Shown
+// for EVERY event with a failed gate, even an insignificant one: a sub-threshold blip that also
+// sits on a segment edge reads as the instrument artifact it is, not a wistful near-miss.
+function failedShort(e: MonotransitCurveEvent): string {
+  return (e.failed_checks ?? []).map((f) => DISCRIMINATOR_LABEL[f]?.split(' ')[0] ?? f).join(' · ')
 }
 
 export default function MonotransitCurveChart({ curve }: { curve: MonotransitCurve }) {
@@ -129,6 +144,22 @@ export default function MonotransitCurveChart({ curve }: { curve: MonotransitCur
         )}{' '}
         · 세로선 = 검출기가 찾은 딥 (초록 후보 · 빨강 기각 · 회색 잡음)
       </p>
+      {curve.events.length > 0 && (
+        <ul className="mt-1 space-y-0.5">
+          {curve.events.map((e, i) => (
+            <li key={i} className="flex items-baseline gap-1.5 font-mono text-[10px] text-cosmos-subtle">
+              <span aria-hidden style={{ color: eventColor(e) }}>
+                ●
+              </span>
+              <span>
+                딥 {curve.events.length > 1 ? i + 1 : ''} {e.significance != null ? `${e.significance.toFixed(2)}σ` : '유의성 보류'} ·{' '}
+                {eventFate(e)}
+                {(e.failed_checks ?? []).length > 0 && <> · {failedShort(e)}에 걸림</>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
