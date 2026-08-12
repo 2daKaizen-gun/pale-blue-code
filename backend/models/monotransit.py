@@ -35,6 +35,11 @@ class MonotransitCurveEvent(BaseModel):
     significant: bool                  # cleared the significance floor
     passed: bool                       # passed every discriminator
     candidate: bool                    # significant AND passed
+    # which shape gates this event failed, if any — reported for EVERY event, even below the
+    # significance floor. A quiet blip that also sits on a segment edge is more clearly an
+    # instrument artifact than a bare "insignificant"; showing the failed gate keeps a reader
+    # (or a future me) from romanticizing a sub-threshold edge blip as a near-candidate.
+    failed_checks: list[str] = []      # subset of edge | coherence | flare | symmetry
 
 
 class MonotransitCurve(BaseModel):

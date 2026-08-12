@@ -804,6 +804,8 @@ def monotransit_curve(planet_name: str, max_points: int = _CURVE_DISPLAY_POINTS)
         "significant": bool(c["significant"]),
         "passed": bool(c["passed"]),
         "candidate": bool(c["candidate"]),
+        # the shape gates this event failed, computed for every event regardless of significance
+        "failed_checks": [ch["name"] for ch in c["checks"] if not ch["passed"]],
     } for c in result["candidates"]]
 
     floor = result.get("depth_floor")

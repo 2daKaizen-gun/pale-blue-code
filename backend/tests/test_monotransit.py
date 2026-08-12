@@ -903,7 +903,10 @@ def test_curve_carries_the_events_the_search_found():
     assert len(out["events"]) >= 1
     ev = out["events"][0]
     assert abs(ev["t0"] - 13.0) < 1.0           # near the injected epoch
-    assert set(ev) == {"t0", "duration", "depth", "significance", "significant", "passed", "candidate"}
+    assert set(ev) == {"t0", "duration", "depth", "significance", "significant",
+                       "passed", "candidate", "failed_checks"}
+    # a clean central candidate passed every gate, so nothing failed
+    assert ev["failed_checks"] == []
 
 
 def test_curve_matches_the_searched_events_exactly():
@@ -920,6 +923,8 @@ def test_curve_matches_the_searched_events_exactly():
     assert len(curve["events"]) == len(search["candidates"])
     for ce, sc in zip(curve["events"], search["candidates"]):
         assert ce["t0"] == sc["t0"] and ce["candidate"] == sc["candidate"]
+        # the failed-gate list is read off the SAME checks, not re-derived — for every event
+        assert ce["failed_checks"] == [ch["name"] for ch in sc["checks"] if not ch["passed"]]
 
 
 def test_curve_raises_for_an_unfetched_star():
