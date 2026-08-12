@@ -199,5 +199,40 @@ is quiet — every loud thing was an instrument artifact. The one event that fli
 than a near-candidate: sub-threshold *and* shape-rejected, not a real transit 0.02 short. The empty
 hands are honest, and they are exactly what a real search mostly returns.
 
-*More runs appended as the remaining 30 dwarfs are fetched and searched, and as the biweekly
+### Third batch — 10 more dwarfs (2026-08-12)
+
+Fetched the next 10 planet-size dwarfs from MAST (one, TIC 142169644, dropped a MAST connection
+mid-fetch and was recorded `failed`, not faked — re-tried past it) and searched them. Same texture:
+**5 quiet, 3 insignificant, 2 rejected, 0 candidates.** Best (smallest detectable planet) first.
+
+| star | min planet (R♃) | events | disposition |
+|------|-----------------|--------|-------------|
+| TIC 158532040 | ≥ 0.42 | 1 | **rejected — sig 18.5, killed by edge** |
+| TIC 370082510 | ≥ 0.43 | **0** | no single transit (quiet) |
+| TIC 382523691 | ≥ 0.44 | 1 | insignificant (sig −0.03) |
+| TIC 152359002 | ≥ 0.46 | 1 | insignificant (sig 0.03) |
+| TIC 1988262284 | ≥ 0.46 | 1 | insignificant (sig 0.05) |
+| TIC 293482838 | ≥ 0.46 | 3 | **rejected — sig 6.4, killed by edge + symmetry** |
+| TIC 206598072 | ≥ 0.47 | **0** | no single transit (quiet) |
+| TIC 616335579 | ≥ 0.47 | **0** | no single transit (quiet) |
+| TIC 79305434 | ≥ 0.48 | **0** | no single transit (quiet) |
+| TIC 220511221 | ≥ 0.49 | **0** | no single transit (quiet) |
+
+Both loud events were edge artifacts again. TIC 158532040 produced a **sig-18.5** dip (depth 1.26%)
+sitting on a segment boundary — edge refused it. TIC 293482838 surfaced three events; the loudest,
+**sig 6.4** (above the floor), failed **edge + symmetry**, an asymmetric ramp on a boundary. Four
+significant single events across the dwarf pool now (sig 13.6, 20.6, 18.5, 6.4) — **every one caught
+by the edge gate**, and none of them a candidate. The workhorse discriminator is the boundary check.
+
+*This batch is also the first the drilldown can fully explain: the curve view now names each dip's
+fate and the gate it failed (sub-11-15), so an edge artifact reads as an edge artifact on screen —
+no hand-computation needed, the way the sig-4.98 blip above once required.*
+
+**Cumulative dwarf-pool tally (30 of 50 searched):** 15 quiet · 11 insignificant · 4 rejected
+(all edge, two also symmetry) · **0 candidates.** Twenty targets still pending a fetch, stated
+`not_fetched`. Thirty real M/K dwarfs searched at Earth-to-Neptune sensitivity, and the sky is
+quiet — every loud thing was an instrument artifact the edge gate caught. Empty hands, honestly
+kept: exactly what a real single-transit search returns most of the time.
+
+*More runs appended as the remaining 20 dwarfs are fetched and searched, and as the biweekly
 GitHub Action refreshes the pool (now dwarf-selected) with each new sector.*
