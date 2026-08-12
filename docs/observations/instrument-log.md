@@ -180,17 +180,24 @@ rejected, 0 candidates.**
 
 - **TIC 100918677 — sig 20.6, REJECTED** (edge + symmetry). A second loud artifact caught by the
   shape gates in the dwarf pool. Significance well past the floor; shape betrayed it as a systematic.
-- **TIC 91636864 — sig 4.98, insignificant.** The closest call in the whole search: the mono
-  significance floor is `_SIG_MIN_MONO = 5.0`, and this event landed at **4.98** — a hair *under* the
-  line, so it was not promoted. Exactly the discipline the floor is for: a threshold only means
-  something if the tool honours it when the number is close. It did.
+- **TIC 91636864 — sig 4.98, insignificant.** On the significance number alone this looked like the
+  closest call in the whole search: `_SIG_MIN_MONO = 5.0`, and the event landed at **4.98** — a hair
+  under the line. But re-reading the event honestly, the number is not the interesting part. The dip
+  sits **0.075 days from a segment boundary** (within one transit duration, 0.1 d), so it **fails the
+  edge gate** too — the same downlink/momentum-dump boundary signature that killed the sig-13.6 and
+  sig-20.6 events, only quieter. It is not a real-looking transit that merely lacked significance; it
+  is a fainter edge artifact that falls short on *two independent* counts. The right reading is "an
+  instrument-boundary blip, sub-threshold and shape-rejected," not a wistful near-miss. (The floor
+  did honour a close number — worth noting — but that is the smaller truth here.)
 - The other eight: quiet or blips far below the floor.
 
 **Cumulative dwarf-pool tally (20 of 50 searched):** 10 quiet · 8 insignificant · 2 rejected
 (sig 13.6, sig 20.6, both edge+symmetry) · **0 candidates.** Thirty targets still pending a fetch,
 stated `not_fetched`. Twenty real M/K dwarfs searched at Earth-to-Neptune sensitivity, and the sky
-is quiet — the loud things were instrument artifacts, the closest real-looking event fell 0.02
-under the floor. The empty hands are honest, and they are exactly what a real search mostly returns.
+is quiet — every loud thing was an instrument artifact. The one event that flirted with the floor
+(TIC 91636864, sig 4.98) turned out, on honest re-reading, to be another edge-boundary blip rather
+than a near-candidate: sub-threshold *and* shape-rejected, not a real transit 0.02 short. The empty
+hands are honest, and they are exactly what a real search mostly returns.
 
 *More runs appended as the remaining 30 dwarfs are fetched and searched, and as the biweekly
 GitHub Action refreshes the pool (now dwarf-selected) with each new sector.*
