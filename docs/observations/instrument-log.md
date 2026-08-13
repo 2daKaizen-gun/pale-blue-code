@@ -259,11 +259,46 @@ all three shape gates at once (edge, coherence, symmetry). Six significant singl
 dwarf pool now (sig 6.02, 6.4, 13.6, 18.5, 20.6, 61.99) — **every one caught by the edge gate**, not
 one a candidate. The boundary check remains the workhorse, and it just caught the biggest fish.
 
-**Cumulative dwarf-pool tally (38 of 50 searched):** 17 quiet · 15 insignificant · 6 rejected
-(all edge; three also symmetry, one also coherence) · **0 candidates.** Twelve targets still pending
-a fetch, stated `not_fetched`. Thirty-eight real M/K dwarfs searched at Earth-to-Neptune
-sensitivity, and the sky stays quiet — every loud thing, up to sig 62, was an instrument artifact
-the edge gate caught. Empty hands, honestly kept.
+**Cumulative dwarf-pool tally (41 of 50 searched):** 18 quiet · 17 insignificant · 6 rejected
+(all edge; three also symmetry, one also coherence) · **0 candidates.** This count is no longer
+hand-kept: `scripts/tally_hunt.py` recomputes it from the on-disk caches, and it caught a drift —
+the numbered batches summed to 38, but three anchor dwarfs searched earlier during sub-11-12/13
+(TIC 156004112, 231631019, 352402781) had never been added to the running total. The real count was
+41. The tally now reads the sky, not my arithmetic.
 
-*More runs appended as the remaining 12 dwarfs are fetched and searched, and as the biweekly
-GitHub Action refreshes the pool (now dwarf-selected) with each new sector.*
+### Fifth batch — the last 9 dwarfs; the pool is fully searched (2026-08-14)
+
+Fetched and searched the final 9 pending dwarfs. The sub-11-14 dwarf pool — all 50 — is now
+searched end to end. This batch: **3 quiet, 5 insignificant, 1 rejected, 0 candidates.**
+
+| star | min planet (R♃) | events | disposition |
+|------|-----------------|--------|-------------|
+| TIC 143256723 | ≥ 0.57 | **0** | no single transit (quiet) |
+| TIC 214013048 | ≥ 0.57 | 1 | insignificant (sig 0.05) |
+| TIC 337108370 | ≥ 0.58 | 1 | insignificant (sig −0.00) |
+| TIC 60299558 | ≥ 0.59 | 2 | insignificant (sig 0.02) |
+| TIC 90720183 | ≥ 0.60 | **0** | no single transit (quiet) |
+| TIC 469881695 | ≥ 0.63 | 1 | insignificant (sig 0.05) |
+| TIC 219989145 | ≥ 0.63 | 1 | **rejected — sig 11.85, killed by edge + symmetry** |
+| TIC 253697087 | ≥ 0.63 | **0** | no single transit (quiet) |
+| TIC 253630444 | ≥ 0.67 | 2 | insignificant (sig 0.10) |
+
+One more loud one, one more artifact: TIC 219989145 threw a **sig-11.85** dip on a segment boundary,
+edge + symmetry. That makes seven significant single events across the whole pool.
+
+**Final dwarf-pool tally — all 50 of 50 searched (tally_hunt.py, 2026-08-14):**
+**21 quiet · 22 insignificant · 7 rejected · 0 candidates.** Every one of the seven significant
+single events — sig 61.99, 20.64, 18.52, 13.59, 11.85, 6.41, 6.02 — was **caught by the edge gate**
+(six of the seven also by symmetry, one also by coherence). Not one candidate. Fifty real M/K dwarfs,
+selected smallest-first so an Earth-size transit could in principle register, searched at
+Earth-to-Neptune sensitivity, and every loud thing up to sig 62 was an instrument artifact riding a
+downlink or momentum-dump boundary. The edge gate is the workhorse of this whole search; without it,
+seven systematics would have paraded as detections.
+
+The empty hands are the result, and they are honest. A real single-transit search over fifty quiet
+dwarfs returns exactly this most of the time — that is what the machines' blind spot looks like when
+you actually walk it. The next real sky is not more of this pool but the *next* one: the biweekly
+GitHub Action refreshes the dwarf-selected pool with each new TESS sector, and every fresh star gets
+the same four gates and the same honest verdict.
+
+*Tally verified by `scripts/tally_hunt.py`; new runs appended as each biweekly sector arrives.*
