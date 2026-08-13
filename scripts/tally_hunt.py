@@ -69,14 +69,13 @@ def _disposition_from_cache(planet_name: str):
     return (mt._event_disposition(top), top)
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description="Recompute the dwarf-pool hunt tally from the caches.")
-    ap.add_argument("--rejected", action="store_true", help="list each rejected event's sig + gates")
-    args = ap.parse_args()
+def compute_tally(stars: list[dict]) -> dict:
+    """Tally the on-disk state of a star list — pure over the caches, no fetch, no recompute.
 
-    pool = json.loads(POOL.read_text(encoding="utf-8"))
-    stars = pool["stars"]
-
+    Each star is classified as searched (with a disposition), fetched-but-not-searched, or
+    not-fetched, exactly as ``main`` prints it. Returned as a dict so it is testable without
+    parsing stdout.
+    """
     tally = Counter()
     fetched_pending = 0
     not_fetched = 0
@@ -97,12 +96,38 @@ def main() -> None:
             failed = [ch["name"] for ch in top.get("checks", []) if not ch["passed"]]
             rejected_rows.append((s["tic"], top.get("significance"), failed))
 
-    searched = sum(tally.values())
-    quiet = tally.get("no_event", 0)
-    insignificant = tally.get("insignificant", 0)
-    held = tally.get("held", 0)
-    rejected = tally.get("rejected", 0)
-    candidates = tally.get("candidate", 0)
+    return {
+        "total": len(stars),
+        "searched": sum(tally.values()),
+        "quiet": tally.get("no_event", 0),
+        "insignificant": tally.get("insignificant", 0),
+        "held": tally.get("held", 0),
+        "rejected": tally.get("rejected", 0),
+        "candidates": tally.get("candidate", 0),
+        "fetched_pending": fetched_pending,
+        "not_fetched": not_fetched,
+        "rejected_rows": rejected_rows,
+    }
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description="Recompute the dwarf-pool hunt tally from the caches.")
+    ap.add_argument("--rejected", action="store_true", help="list each rejected event's sig + gates")
+    args = ap.parse_args()
+
+    pool = json.loads(POOL.read_text(encoding="utf-8"))
+    stars = pool["stars"]
+    t = compute_tally(stars)
+
+    searched = t["searched"]
+    quiet = t["quiet"]
+    insignificant = t["insignificant"]
+    held = t["held"]
+    rejected = t["rejected"]
+    candidates = t["candidates"]
+    fetched_pending = t["fetched_pending"]
+    not_fetched = t["not_fetched"]
+    rejected_rows = t["rejected_rows"]
 
     print("pool: %d stars  (sector %s, %s)" % (len(stars), pool.get("latest_sector"), pool.get("schema")))
     print("-" * 64)
