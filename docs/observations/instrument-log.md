@@ -234,5 +234,36 @@ no hand-computation needed, the way the sig-4.98 blip above once required.*
 quiet — every loud thing was an instrument artifact the edge gate caught. Empty hands, honestly
 kept: exactly what a real single-transit search returns most of the time.
 
-*More runs appended as the remaining 20 dwarfs are fetched and searched, and as the biweekly
+### Fourth batch — 8 more dwarfs (2026-08-14)
+
+Fetched the next 8 planet-size dwarfs (including TIC 142169644, whose MAST download had failed
+mid-fetch in the third batch and was carried as `failed` — this time the curve came down). Searched
+all eight. Same texture: **2 quiet, 4 insignificant, 2 rejected, 0 candidates.**
+
+| star | min planet (R♃) | events | disposition |
+|------|-----------------|--------|-------------|
+| TIC 142169644 | ≥ 0.43 | 1 | **rejected — sig 6.02, killed by edge + coherence + symmetry** |
+| TIC 464271372 | ≥ 0.49 | **0** | no single transit (quiet) |
+| TIC 308240938 | ≥ 0.50 | 2 | insignificant (sig 0.11) |
+| TIC 364637541 | ≥ 0.53 | 2 | insignificant (sig −0.01) |
+| TIC 253690076 | ≥ 0.55 | **0** | no single transit (quiet) |
+| TIC 61698163 | ≥ 0.55 | 1 | **rejected — sig 61.99, killed by edge + symmetry** |
+| TIC 50869431 | ≥ 0.55 | 1 | insignificant (sig −0.05) |
+| TIC 217298578 | ≥ 0.55 | 3 | insignificant (sig 0.07) |
+
+The headline is TIC 61698163: a **sig-61.99** dip — the loudest single event the dwarf pool has
+produced by a wide margin — and it is still an edge artifact, refused by edge + symmetry (an
+asymmetric ramp riding a segment boundary). Loud is not the same as real; a downlink discontinuity
+can dwarf any planet. TIC 142169644, back from its failed fetch, threw a sig-6.02 dip that tripped
+all three shape gates at once (edge, coherence, symmetry). Six significant single events across the
+dwarf pool now (sig 6.02, 6.4, 13.6, 18.5, 20.6, 61.99) — **every one caught by the edge gate**, not
+one a candidate. The boundary check remains the workhorse, and it just caught the biggest fish.
+
+**Cumulative dwarf-pool tally (38 of 50 searched):** 17 quiet · 15 insignificant · 6 rejected
+(all edge; three also symmetry, one also coherence) · **0 candidates.** Twelve targets still pending
+a fetch, stated `not_fetched`. Thirty-eight real M/K dwarfs searched at Earth-to-Neptune
+sensitivity, and the sky stays quiet — every loud thing, up to sig 62, was an instrument artifact
+the edge gate caught. Empty hands, honestly kept.
+
+*More runs appended as the remaining 12 dwarfs are fetched and searched, and as the biweekly
 GitHub Action refreshes the pool (now dwarf-selected) with each new sector.*
