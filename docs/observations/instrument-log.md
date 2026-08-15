@@ -302,3 +302,41 @@ GitHub Action refreshes the dwarf-selected pool with each new TESS sector, and e
 the same four gates and the same honest verdict.
 
 *Tally verified by `scripts/tally_hunt.py`; new runs appended as each biweekly sector arrives.*
+
+## The pool widened — 50 → 100 dwarfs of the same sky (2026-08-15)
+
+The 50-dwarf pool was fully searched, but sector 104 was not exhausted: it holds ~12,700 un-cataloged
+2-min targets, and `select_for_hunt` had kept only the 50 smallest. With no new TESS sector released
+yet (sector 105 is still empty on MAST), the honest next sky was the *next-smallest* dwarfs of the
+same sector. Rebuilt the pool at `--n 100`; it is still entirely planet-size (`assess_pool`: 100
+plausible, 0 too big). 48 of the searched 50 survive into the wider pool (the seed-10 resample
+dropped 2, whose verdicts stay recorded in sub-11-16); 52 new dwarfs are now pending.
+
+### First extension batch — 8 new dwarfs (2026-08-15)
+
+Fetched 9 of the new dwarfs (one MAST connection dropped: TIC 79248089, to retry) and searched the
+8 that landed. This batch: **4 quiet, 3 insignificant, 1 rejected, 0 candidates.**
+
+| star | R★ (R☉) | min planet (R♃ / R⊕) | events | disposition |
+|------|---------|----------------------|--------|-------------|
+| TIC 129138718 | 0.25 | ≥ 0.16 / ≥ 1.7 | **0** | no single transit (quiet) |
+| TIC 16909043 | 0.30 | ≥ 0.19 / ≥ 2.1 | 1 | insignificant (sig 0.08) |
+| TIC 363404040 | 0.35 | ≥ 0.22 / ≥ 2.4 | **0** | no single transit (quiet) |
+| TIC 404030766 | 0.37 | ≥ 0.24 / ≥ 2.6 | 1 | **rejected — sig 41.26, killed by symmetry** |
+| TIC 291319960 | 0.39 | ≥ 0.24 / ≥ 2.7 | **0** | no single transit (quiet) |
+| TIC 143514367 | 0.39 | ≥ 0.25 / ≥ 2.7 | **0** | no single transit (quiet) |
+| TIC 118278380 | 0.42 | ≥ 0.26 / ≥ 2.9 | 1 | insignificant (sig 0.04) |
+| TIC 156002545 | 0.46 | ≥ 0.29 / ≥ 3.1 | 1 | insignificant (sig −0.02) |
+
+The headline is **TIC 404030766, sig 41.26** — the second-loudest single event the whole pool has
+produced (behind only sig 61.99), and **the first significant event not caught by the edge gate.**
+Every one of the previous seven artifacts sat on a segment boundary and died to *edge*; this one is
+mid-segment, an asymmetric flux ramp, and the *symmetry* gate killed it alone. The guard that earns
+its keep is not always the same guard — the shape gates are a set, and a loud artifact that slips
+past one is caught by another. Still no candidate.
+
+**Cumulative tally — 56 of 100 searched (tally_hunt.py, 2026-08-15):**
+**24 quiet · 24 insignificant · 8 rejected · 0 candidates.** Eight significant single events across
+fifty-six real dwarfs (sig 61.99, **41.26**, 20.64, 18.52, 13.59, 11.85, 6.41, 6.02); seven caught by
+edge, one — the new 41.26 — by symmetry. Zero candidates. 44 dwarfs of the widened pool remain
+pending; the fetch+search continues in batches.
