@@ -30,7 +30,10 @@ jobs:
         run: pip install astroquery
 
       - name: Rebuild pool from the newest SPOC sector
-        run: python scripts/build_frontier_seeds_tess.py
+        # --n 100: the hunt pool is the 100 smallest planet-size dwarfs (sub-11-17
+        # widened it from 50). Without this the default n=50 would silently shrink
+        # the pool back on the next refresh, dropping half the searched stars.
+        run: python scripts/build_frontier_seeds_tess.py --n 100
 
       - name: Commit only if the pool content changed
         run: |
