@@ -191,6 +191,21 @@ Kepler/TESS는 하나의 **개척지 허브**에서 고르며, 판별 엔진(9-A
 > 관문은 하나의 요령이 아니라 한 벌입니다 — 한 관문을 빠져나간 큰 인공물을 다른 관문이 잡습니다.
 > 남은 44개는 배치로 계속 받아 검색합니다. 기록: `sub-11-17.md`, `docs/observations/instrument-log.md`.
 
+> **그리고 사냥 사상 첫 "후보"가 떴습니다 — 그리고 스스로 지웠습니다 (11-18).** 확장 배치를
+> 검색하다 **TIC 326691903**이 네 관문을 전부 통과하고 유의성 바닥까지 넘겼습니다(sig 10.86,
+> `candidate = True`) — 사냥 최초. 믿기 전에 raw 광곡선을 읽었습니다. 관측이 baseline보다 ~6% 낮게
+> *시작*해 ~0.15일에 걸쳐 1.0으로 기어오르는, 교과서적인 **구간 시작부 계기 회복 램프**였습니다.
+> edge 관문이 시작부 깊은 스파이크는 잡았지만, 한 duration 뒤 이웃(경계에서 0.15일)은 문턱을 빠져나가
+> 램프의 꼬리를 1.1% "딥"으로 오인했습니다. 후보는 행성이 아니라 계기 인공물이었습니다.
+> 네 관문 누구도 이걸 못 본 이유 — edge는 경계까지 거리만, symmetry는 좁은 창 *안*만 봅니다.
+> 그래서 **다섯 번째 판별자 `baseline`**을 더했습니다: 진짜 트랜짓은 평평한 baseline 위의 함몰이니,
+> 이벤트 양옆 out-of-transit 밝기가 같아야 합니다. 임계는 지어내지 않고 **측정**했습니다 —
+> 실곡선에 주입한 깨끗한 트랜짓은 깊이의 ≤0.32배로 어긋나고, 이 램프는 4.67배로 어긋납니다(갭 정중앙 1.0).
+> 캐시를 `mono-v2`로 올려 풀 전체를 재검색하니 **TIC 326691903은 candidate → 기각**, 사냥은 다시 후보 0.
+> 오늘 두 배치 20개 추가(누적 **76 of 100 — 33 조용 · 31 잡음 · 12 기각 · 후보 0**). 관문을 통과한 첫
+> 물체는 인공물이었고, 파이프라인은 그로부터 새 관문을 배웠습니다 — 마땅히 그래야 하는 방식으로.
+> 기록: `docs/checks/phase-11/sub-11-18.md`, `scripts/measure_baseline_step.py`.
+
 > 📜 Phase별 상세 작업은 `docs/phase-handoffs/` 에서 추적됩니다.
 
 <br/>
@@ -246,7 +261,10 @@ pale-blue-code/
 │   ├── measure_monotransit_false_alarm.py 단일 트랜짓 오경보율 실측 (Phase 11)
 │   ├── measure_monotransit_completeness.py 단일 트랜짓 완전성 (주입-회수, Phase 11)
 │   ├── measure_monotransit_significance.py 단일 트랜짓 유의성 임계 실측 (Phase 11)
-│   └── fetch_plausible.py           유력 왜성 광도곡선 로컬 fetch (Phase 11, MAST)
+│   ├── measure_baseline_step.py     baseline 판별자 임계 실측 — 램프/트랜짓 갭 (sub-11-18)
+│   ├── fetch_plausible.py           유력 왜성 광도곡선 로컬 fetch (Phase 11, MAST)
+│   ├── search_pending.py            fetch됐지만 미검색인 왜성 검색 (fetch/search/count 삼종의 가운데)
+│   └── tally_hunt.py                캐시에서 누적 사냥 집계 재계산 (Phase 11)
 │
 ├── docs/
 │   ├── COLLABORATION.md             📜 협업 헌장 (약속)
