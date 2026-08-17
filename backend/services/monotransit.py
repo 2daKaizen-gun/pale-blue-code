@@ -344,14 +344,29 @@ def sensitivity_depth_floor(
 # repeats — a monotransit gives them nothing to work with. A single event needs its
 # own guard against the false positives that don't repeat either: instrument glitches
 # at data-segment edges (momentum dumps, downlink resets), single-cadence spikes,
-# stellar flares (a brightening, not a dimming), and one-sided ramps that no real
-# central transit would leave. Each is a named rule with a physical reason, so a
-# rejection can say *why*, never a bare number.
+# stellar flares (a brightening, not a dimming), one-sided ramps that no real central
+# transit would leave, and dips that ride a baseline step instead of resting on a flat
+# one. Each is a named rule with a physical reason, so a rejection can say *why*, never
+# a bare number.
 _EDGE_CLEAR = 1.0        # reject if a segment edge sits within this * duration of t0
 _COHERENCE_MAX = 0.6     # deepest single cadence may carry at most this share of the dip
 _FLARE_DEPTH_MULT = 1.0  # a positive bump larger than the dip itself, and...
 _FLARE_SIGMA = 5.0       # ...louder than this many sigma, is a flare, not a transit
 _ASYM_MAX = 0.5          # |ingress depth - egress depth| / their sum, above this = asymmetric
+
+# baseline step (sub-11-18): a real transit is a depression against a FLAT local baseline —
+# the star's brightness just before ingress equals its brightness just after egress. An
+# instrumental ramp or step (a segment-start thermal recovery, a downlink-reset tail) leaves
+# the two out-of-transit shoulders at DIFFERENT levels: the "dip" is a slice of that slope,
+# not a symmetric transit. The internal symmetry check cannot catch this — it compares ingress
+# to egress only WITHIN the window, where a slow ramp still looks locally symmetric. Measured
+# by injection-recovery on real quiet TESS curves (scripts/measure_baseline_step.py): clean
+# recovered transits step by at most 0.32 * depth (p99 0.31); the hunt's first "candidate", a
+# segment-start recovery ramp on TIC 326691903 that slipped past the edge gate, steps by
+# 4.67 * depth. 1.0 sits in that empty gap — a real transit's two shoulders agree to within its
+# own depth. Shoulders that land in a gap (too few points) yield no test and pass, since the
+# edge gate already guards true segment boundaries.
+_BASELINE_STEP_MAX = 1.0
 
 
 def _segment_edges(time: np.ndarray) -> np.ndarray:
@@ -377,6 +392,7 @@ def discriminators(
       coherence  the deficit is spread across the dip, not dumped into one cadence
       flare      no brightening larger and louder than the dip beside it (stellar flare)
       symmetry   ingress and egress depths agree (a real central transit is symmetric)
+      baseline   the two out-of-transit shoulders sit at the same flux (no ramp/step under it)
     """
     time = np.asarray(time, dtype=float)
     flux = np.asarray(flux, dtype=float)
@@ -414,6 +430,19 @@ def discriminators(
     dl, dr = (float(np.mean(left)) if left.size else 0.0), (float(np.mean(right)) if right.size else 0.0)
     asym = abs(dl - dr) / (dl + dr) if (dl + dr) > 0 else 1.0
     checks.append({"name": "symmetry", "passed": asym < _ASYM_MAX, "value": round(asym, 3)})
+
+    # baseline: the two out-of-transit shoulders sit at the same flux ----------
+    # left/right shoulders start a quarter-duration past egress/ingress so the transit
+    # ramp itself is excluded; a step between them means the dip rides a slope, not a
+    # flat baseline (a segment-start recovery ramp the edge gate did not reach).
+    left_sh = flux[(time > t0 - 1.75 * dur) & (time < t0 - 0.75 * dur)]
+    right_sh = flux[(time > t0 + 0.75 * dur) & (time < t0 + 1.75 * dur)]
+    if left_sh.size >= _MIN_IN_TRANSIT and right_sh.size >= _MIN_IN_TRANSIT and depth > 0:
+        step_ratio = abs(float(np.median(left_sh)) - float(np.median(right_sh))) / depth
+        step_passed = step_ratio < _BASELINE_STEP_MAX
+    else:
+        step_ratio, step_passed = 0.0, True   # no baseline to test -> edge gate guards boundaries
+    checks.append({"name": "baseline", "passed": step_passed, "value": round(step_ratio, 3)})
 
     return {"checks": checks, "passed": all(c["passed"] for c in checks)}
 
@@ -691,7 +720,7 @@ def run_monotransit(planet_name: str) -> dict:
 # ANY change to the detection pipeline — the significance floor, _N_MIN_TRANSITS,
 # the detrend, the discriminators, the shape model — MUST bump this tag so every
 # stored result is recomputed instead of silently trusted. When in doubt, bump it.
-_MONO_CACHE_VERSION = "mono-v1"
+_MONO_CACHE_VERSION = "mono-v2"   # sub-11-18: added the baseline-step discriminator
 
 
 def _mono_cache_path(planet_name: str):
