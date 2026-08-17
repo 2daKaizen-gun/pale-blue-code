@@ -225,6 +225,32 @@ def test_event_on_a_segment_edge_fails_edge():
     assert not _check(res, "edge")["passed"]
 
 
+def test_dip_riding_a_baseline_step_fails_baseline(seed=35):
+    # a mid-segment dip whose two out-of-transit shoulders sit at different flux levels:
+    # the left baseline is 3% low, the right is nominal, so the "dip" is a slice of a step,
+    # not a symmetric transit on a flat floor. The edge gate cannot see this (t0 is nowhere
+    # near a boundary); the baseline check must. This is the first-candidate failure mode —
+    # a segment-start recovery ramp on TIC 326691903 that slipped past edge (sub-11-18).
+    rng = np.random.default_rng(seed)
+    time = np.arange(0.0, _SPAN, _CADENCE)
+    flux = 1.0 + rng.normal(0.0, _NOISE, size=time.shape)
+    flux[time < _T0] -= 0.03                              # a 3% step under the left shoulder
+    flux -= _DEPTH * mt.transit_shape(time, _T0, _DURATION)  # a shallow 1% dip on top
+    res = mt.discriminators(time, flux, _event())
+    assert not _check(res, "baseline")["passed"]          # step (3%) > depth (1%)
+    assert _check(res, "edge")["passed"]                  # mid-segment: not an edge artifact
+    assert not res["passed"]
+
+
+def test_flat_baseline_dip_passes_baseline():
+    # a clean transit on a flat baseline: the two shoulders agree to within noise, so the
+    # baseline step is a tiny fraction of the depth and the check passes.
+    time, flux = _lc(depth=_DEPTH, seed=36)
+    res = mt.discriminators(time, flux, _event())
+    assert _check(res, "baseline")["passed"]
+    assert _check(res, "baseline")["value"] < mt._BASELINE_STEP_MAX
+
+
 # ---- the hunt: many stars, one honest ledger (sub-11-3 Light 1) --------------
 
 def _cand(candidate=False, significant=False, significance=1.0, failed=()):

@@ -55,8 +55,8 @@ def test_monotransit_endpoint_finds_the_injected_candidate(cached_lc):
     assert top["significance"] is not None and top["significance"] > mono._SIG_MIN_MONO
     assert top["passed"] is True
     assert top["candidate"] is True
-    # the four named discriminators are all present in the report
-    assert {c["name"] for c in top["checks"]} == {"edge", "coherence", "flare", "symmetry"}
+    # the five named discriminators are all present in the report
+    assert {c["name"] for c in top["checks"]} == {"edge", "coherence", "flare", "symmetry", "baseline"}
 
 
 def test_monotransit_endpoint_missing_lc_returns_424():
