@@ -39,6 +39,7 @@ export const DISCRIMINATOR_LABEL: Record<string, string> = {
   coherence: '한 점에 몰린 딥 (스파이크)',
   flare: '옆의 밝아짐 (항성 플레어)',
   symmetry: '한쪽으로 치우친 램프 (비대칭)',
+  baseline: '양옆 밝기 어긋남 (램프/계단 위)',
 }
 
 export interface DispositionCount {

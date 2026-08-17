@@ -12,14 +12,14 @@ import { API_BASE_URL } from './base'
 // looked at" — the same order the backend ledger uses.
 export type HuntDisposition =
   | 'candidate' // cleared significance AND every discriminator — a single-transit candidate
-  | 'rejected' // significant, but a named discriminator (edge/coherence/flare/symmetry) caught it
+  | 'rejected' // significant, but a named discriminator (edge/coherence/flare/symmetry/baseline) caught it
   | 'held' // an event, but too little baseline to judge significance (the honest "unknown")
   | 'insignificant' // judged, and below the measured significance floor
   | 'no_event' // the search found no dip clearing the structural floors
   | 'not_fetched' // no light curve cached — nothing was searched, said plainly
 
 export interface DiscriminatorCheck {
-  name: string // edge | coherence | flare | symmetry
+  name: string // edge | coherence | flare | symmetry | baseline
   passed: boolean
   value: number
 }
@@ -133,7 +133,7 @@ export interface MonotransitCurveEvent {
   significant: boolean
   passed: boolean
   candidate: boolean
-  failed_checks: string[] // shape gates this event failed (edge|coherence|flare|symmetry), even below the floor
+  failed_checks: string[] // shape gates this event failed (edge|coherence|flare|symmetry|baseline), even below the floor
 }
 
 export interface MonotransitCurve {
