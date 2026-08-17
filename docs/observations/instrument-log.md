@@ -340,3 +340,59 @@ past one is caught by another. Still no candidate.
 fifty-six real dwarfs (sig 61.99, **41.26**, 20.64, 18.52, 13.59, 11.85, 6.41, 6.02); seven caught by
 edge, one — the new 41.26 — by symmetry. Zero candidates. 44 dwarfs of the widened pool remain
 pending; the fetch+search continues in batches.
+
+### Second extension batch — the first candidate, and a fifth discriminator (2026-08-17)
+
+Fetched and searched 20 more dwarfs of the widened pool (two batches of 10; two MAST connections
+dropped and were retried). This batch produced the hunt's **first-ever candidate** — and, on
+inspection, its first self-corrected false positive.
+
+**TIC 326691903** surfaced an event that cleared all four discriminators *and* the significance
+floor: sig 10.86, `candidate = True`. Before believing it, we read the raw light curve. It opens at
+t = 1657.127 already ~6 % below baseline and climbs monotonically back to 1.0 over ~0.15 d — a
+textbook segment-start thermal-recovery ramp. The search found the deep spike at the very start
+(sig 48.45, killed by **edge**) *and* its neighbour one duration later (sig 10.86), which sits 0.15 d
+from the boundary — just past the edge clearance — and rides the recovering ramp to a 1.1 % apparent
+"dip." The candidate was the tail of an instrument artifact, not a planet.
+
+None of the four gates could see it: edge measures only distance to a boundary; symmetry compares
+ingress to egress *within* the narrow window, where a slow ramp looks locally symmetric. So we added
+a fifth, `baseline`: a real transit is a depression against a **flat** local baseline, so its two
+out-of-transit shoulders must sit at the same flux. Threshold measured, not asserted — injected
+clean transits step by ≤ 0.32 × depth; this ramp steps by 4.67 ×. Under the new gate (cache bumped
+to `mono-v2`, whole pool re-searched) **TIC 326691903 flips candidate → rejected**, and the hunt is
+back to zero candidates.
+
+| star | R★ (R☉) | min planet (R♃ / R⊕) | disposition |
+|------|---------|----------------------|-------------|
+| TIC 79248089 | 0.30 | ≥ 0.19 / ≥ 2.1 | no single transit (quiet) |
+| TIC 326691903 | 0.53 | ≥ 0.33 / ≥ 3.7 | **rejected — first "candidate", a start-of-segment ramp (baseline)** |
+| TIC 213475170 | 0.58 | ≥ 0.36 / ≥ 4.0 | no single transit (quiet) |
+| TIC 144063051 | 0.60 | ≥ 0.38 / ≥ 4.3 | insignificant (sig 0.07) |
+| TIC 469319692 | 0.63 | ≥ 0.39 / ≥ 4.4 | no single transit (quiet) |
+| TIC 469940956 | 0.63 | ≥ 0.40 / ≥ 4.5 | no single transit (quiet) |
+| TIC 206598073 | 0.65 | ≥ 0.41 / ≥ 4.6 | insignificant (sig 0.05) |
+| TIC 393483292 | 0.68 | ≥ 0.43 / ≥ 4.8 | rejected — sig 18.26 (edge, coherence, symmetry) |
+| TIC 329099756 | 0.68 | ≥ 0.43 / ≥ 4.8 | rejected — sig 5.69 (edge, symmetry) |
+| TIC 1989174735 | 0.69 | ≥ 0.44 / ≥ 4.9 | insignificant (sig −0.06) |
+| TIC 381093768 | 0.71 | ≥ 0.45 / ≥ 5.0 | no single transit (quiet) |
+| TIC 126303934 | 0.71 | ≥ 0.45 / ≥ 5.0 | no single transit (quiet) |
+| TIC 331598534 | 0.73 | ≥ 0.46 / ≥ 5.2 | no single transit (quiet) |
+| TIC 63028103 | 0.75 | ≥ 0.47 / ≥ 5.3 | insignificant (sig 0.05) |
+| TIC 67643537 | 0.76 | ≥ 0.48 / ≥ 5.4 | no single transit (quiet) |
+| TIC 253676019 | 0.76 | ≥ 0.48 / ≥ 5.4 | insignificant (sig −0.10) |
+| TIC 212697670 | 0.76 | ≥ 0.48 / ≥ 5.4 | no single transit (quiet) |
+| TIC 23924218 | 0.76 | ≥ 0.48 / ≥ 5.4 | **rejected — sig 24.94, killed by symmetry alone** |
+| TIC 328778970 | 0.76 | ≥ 0.48 / ≥ 5.4 | insignificant (sig 0.02) |
+| TIC 80430369 | 0.79 | ≥ 0.50 / ≥ 5.6 | insignificant (sig 0.01) |
+
+Batch: **9 quiet · 7 insignificant · 4 rejected · 0 candidates.** Besides the corrected candidate,
+the other headline is **TIC 23924218, sig 24.94, rejected by symmetry alone** — a second loud
+mid-segment ramp off any boundary, caught not by edge but by shape. The gates keep proving they are
+a *set*: edge, symmetry, and now baseline each carry rejections no other gate would.
+
+**Cumulative tally — 76 of 100 searched (tally_hunt.py, 2026-08-17, under mono-v2):**
+**33 quiet · 31 insignificant · 12 rejected · 0 candidates.** Twelve significant single events across
+seventy-six real dwarfs; every one an instrument or a systematic, each named by the gate that caught
+it. The first thing that ever passed all the gates was an artifact — and the pipeline learned a new
+gate from it, the way it should. Zero candidates. 24 dwarfs of the widened pool remain pending.
