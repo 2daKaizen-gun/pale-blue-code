@@ -97,6 +97,35 @@ def test_assess_pool_on_the_real_pool_is_dwarf_dominant():
     assert out["targets"][0]["classification"] == "plausible"   # best target leads
 
 
+# ---- pool_completeness (sub-11-19: the sensitivity that bounds a null) --------
+
+def test_completeness_counts_stars_by_achieved_floor():
+    # three stars, all R_sun = 1.0, with measured floors that place them in different size bins:
+    #   floor 0.0001 -> ~1.1 R_earth (reaches the 1.25 bin), 0.004 -> ~7 R_earth, 0.04 -> ~22 R_earth
+    out = pa.pool_completeness([(1.0, 0.0001), (1.0, 0.004), (1.0, 0.04)])
+    assert out["searched"] == 3
+    # cumulative bins are monotonic non-decreasing
+    stars = [b["stars"] for b in out["bins"]]
+    assert stars == sorted(stars)
+    # only the cleanest curve reaches super-Earth (<= 2 R_earth)
+    bin2 = next(b for b in out["bins"] if b["max_rearth"] == 2.0)
+    assert bin2["stars"] == 1
+    # the best/median/worst reflect the three curves, best being the smallest planet
+    assert out["best_rearth"] < out["median_rearth"] < out["worst_rearth"]
+
+
+def test_completeness_skips_stars_with_no_radius_or_floor():
+    # a None radius and a non-positive floor carry nothing to bound -> not counted
+    out = pa.pool_completeness([(None, 0.004), (1.0, 0.0), (1.0, 0.004)])
+    assert out["searched"] == 1
+
+
+def test_completeness_empty_is_all_none():
+    out = pa.pool_completeness([])
+    assert out["searched"] == 0
+    assert out["best_rearth"] is None and out["median_rearth"] is None
+
+
 def test_size_class_by_name_keys_the_verdict_for_the_hunt():
     # sub-11-6 Light 1: the triage keyed by the hunt's star name, so hunt_monotransit can join it
     from services import hunt as hunt_service

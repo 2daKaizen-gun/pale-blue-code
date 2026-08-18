@@ -16,6 +16,7 @@ Light 1 is the pure geometry; the pool assessment builds on it in Light 2.
 """
 
 import math
+import statistics
 
 from services import hunt as hunt_service
 
@@ -129,6 +130,48 @@ def assess_pool(
         "planet_max_rjup": _PLANET_MAX_RJUP,
     }
     return {"targets": targets, "summary": summary}
+
+
+# --- achieved completeness: the sensitivity that bounds a null (sub-11-19) -----
+#
+# assess_pool uses the FIDUCIAL floor (a uniform planning number) to say what a detection COULD
+# mean. But a zero-candidate sweep is only worth the sensitivity it actually achieved, curve by
+# curve. Each searched star's real light curve has a MEASURED depth floor (the shallowest transit
+# it could have shown, from its own noise) — often far coarser than the fiducial on a noisy giant.
+# Completeness reads those measured floors and asks the honest question a null result must answer:
+# how many stars had curves clean enough to have revealed a planet at or below each physical size?
+# Finding nothing rules out only the planets the data could actually have seen.
+
+# Physical size bins in Earth radii: Earth, super-Earth, sub-Neptune, Neptune, Saturn, 2 R_jup
+# (the planet/star size boundary). Cumulative — a star counts in a bin if its floor reaches it.
+_COMPLETENESS_BINS_REARTH = (1.25, 2.0, 4.0, 6.0, 11.2, 22.4)
+
+
+def pool_completeness(floors) -> dict:
+    """Achieved detection completeness over a searched pool, from MEASURED per-star floors.
+
+    ``floors`` is an iterable of ``(stellar_radius_rsun, depth_floor)`` — the depth_floor being
+    the shallowest transit that star's *real* curve could have shown (``result["depth_floor"]`` in
+    the mono cache), not the planning fiducial. For each star it computes the smallest planet a
+    detection there could have revealed, then reports, cumulatively, how many stars reached each
+    physical size bin. This is the sensitivity that bounds a null: a zero-candidate sweep rules out
+    only the planets its curves were clean enough to have seen. Stars with no radius or no positive
+    floor are skipped (nothing measured to bound).
+    """
+    radii = []
+    for r_star, floor in floors:
+        if r_star and floor and r_star > 0 and floor > 0:
+            radii.append(rjup_to_rearth(planet_radius_from_depth(floor, r_star)))
+    radii.sort()
+    bins = [{"max_rearth": b, "stars": sum(1 for x in radii if x <= b)}
+            for b in _COMPLETENESS_BINS_REARTH]
+    return {
+        "searched": len(radii),
+        "best_rearth": radii[0] if radii else None,
+        "median_rearth": statistics.median(radii) if radii else None,
+        "worst_rearth": radii[-1] if radii else None,
+        "bins": bins,
+    }
 
 
 # --- the triage, keyed for the hunt (sub-11-6 Light 1) -------------------------
