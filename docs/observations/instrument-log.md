@@ -481,3 +481,42 @@ zero-candidate null does *not* mean "no Earths here" — it firmly rules out onl
 single transits across most of the pool, and Earth-to-super-Earth transits on the ~1/7 of stars whose
 curves reached that depth. The null is exactly this strong, no stronger — the sensitivity written down
 beside the result, so it is never read as more than the data supports.
+
+---
+
+### New sky — the pool rolls to TESS sector 105 (2026-08-19)
+
+The sub-11-19 sweep closed sector 104 as a complete, bounded null and named the only honest next
+step: *a new sector.* It arrived. Between 2026-08-15 (sub-11-17 probed 105 and found it empty) and
+today, MAST began serving sector 105 — 10,985 SPOC 2-min targets, 10,761 of them absent from the TOI
+catalog, genuinely un-picked-over sky. The frontier pool was rebuilt from 105 with the same
+smallest-first hunt selection: 100 dwarfs, radius 0.165–0.884 R☉ (median 0.623), the smallest an
+R★ 0.165 M dwarf in Grus (Teff 3008 K). This is not a bigger version of the last pool — it is a
+different patch of the sky, observed for the first time, that we now search for the first time.
+
+**First batch — the 8 smallest dwarfs of sector 105.** Fetched (0 failed) and searched:
+
+```
+8 of 100 searched:  4 quiet · 3 insignificant · 1 rejected · 0 candidates
+
+  tic-161174286   quiet          R★ 0.165  (the pool's smallest M dwarf — searched, nothing there)
+  tic-62020444    quiet
+  tic-100606049   quiet
+  tic-229142295   quiet
+  tic-168726017   insignificant  sig 0.00   baseline
+  tic-314017913   insignificant  sig -0.00  baseline
+  tic-279314127   insignificant  sig 0.01   baseline
+  tic-42071226    rejected       sig 25.0   edge, symmetry
+```
+
+The one significant event, TIC 42071226 at sig 25.0, is the same texture the whole sector-104 sweep
+taught us to read: a loud step caught by edge and symmetry — an instrument on a segment boundary, not
+a transit. Zero candidates, as expected on eight quiet stars.
+
+**Achieved completeness on this batch (the honest bound).** These are the pool's *smallest* dwarfs,
+so the sensitivity is the sharpest we have measured — from each curve's own noise, not the fiducial:
+best 0.6 R⊕ · median 1.7 R⊕ · worst 3.4 R⊕. Three of the eight had curves clean enough to have shown
+an Earth-size single transit, five a super-Earth, all eight a sub-Neptune. So the eight-star null is
+strong where it counts: on these particular M dwarfs, an Earth-to-super-Earth lone transit would
+mostly have been visible, and none is there. Ninety-two dwarfs of sector 105 remain unsearched — the
+new sky is barely opened.
