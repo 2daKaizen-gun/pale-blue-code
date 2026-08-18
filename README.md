@@ -212,10 +212,13 @@ Kepler/TESS는 하나의 **개척지 허브**에서 고르며, 판별 엔진(9-A
 > 새 기각 하나(TIC 380865605, sig 21.25, edge·symmetry)뿐이었습니다. 열세 개의 유의한 단일 이벤트는
 > 전부 계기 아니면 계통오차 — 잡은 관문 이름이 하나씩 붙어 있습니다(edge·symmetry가 주력, baseline이
 > 네 관문을 속인 하나를 잡고, coherence가 두 번 거듭). 후보로 살아남은 건 없습니다. 이건 실패가 아니라
-> **완전하게 진술된 null** 입니다: 100개 왜성을, 가장 작은 M왜성의 지구 크기(바닥 ~1 R⊕)부터 가장 큰
-> 왜성의 준토성(~7 R⊕)까지 닿는 감도로 훑어, 방어 가능한 단일 트랜짓은 하나도 없다 — 그 한계까지 적어
-> 둔 결과입니다. 이 풀은 닫혔고, 다음 진짜 하늘은 *새 섹터*입니다.
-> 기록: `docs/checks/phase-11/sub-11-19.md`, `scripts/tally_hunt.py`.
+> **완전하게 진술된 null** 입니다. 그리고 null은 **실제 달성한 감도만큼만** 유효합니다 —
+> 계획용 fiducial(0.4%)이 아니라 각 별의 *실측* 바닥으로 재니(`completeness_hunt.py`), 지구 크기(≤1.25 R⊕)를
+> 보여줄 만큼 곡선이 깨끗했던 별은 **100개 중 6개**, 슈퍼지구는 14개, 중앙값 별은 해왕성(4.7 R⊕)까지,
+> 7개는 행성 크기조차 못 닿았습니다. 즉 "여기 지구는 없다"가 아니라, 풀 대부분에서 준토성 이상만,
+> 곡선이 닿은 ~1/7 별에서만 지구~슈퍼지구까지 배제한 것 — 데이터가 뒷받침하는 딱 그만큼입니다.
+> 이 풀은 닫혔고, 다음 진짜 하늘은 *새 섹터*입니다.
+> 기록: `docs/checks/phase-11/sub-11-19.md`, `scripts/tally_hunt.py`, `scripts/completeness_hunt.py`.
 
 > 📜 Phase별 상세 작업은 `docs/phase-handoffs/` 에서 추적됩니다.
 
@@ -275,7 +278,8 @@ pale-blue-code/
 │   ├── measure_baseline_step.py     baseline 판별자 임계 실측 — 램프/트랜짓 갭 (sub-11-18)
 │   ├── fetch_plausible.py           유력 왜성 광도곡선 로컬 fetch (Phase 11, MAST)
 │   ├── search_pending.py            fetch됐지만 미검색인 왜성 검색 (fetch/search/count 삼종의 가운데)
-│   └── tally_hunt.py                캐시에서 누적 사냥 집계 재계산 (Phase 11)
+│   ├── tally_hunt.py                캐시에서 누적 사냥 집계 재계산 (Phase 11)
+│   └── completeness_hunt.py         실측 바닥에서 달성 감도 보고 — null의 정직한 한계 (sub-11-19)
 │
 ├── docs/
 │   ├── COLLABORATION.md             📜 협업 헌장 (약속)
