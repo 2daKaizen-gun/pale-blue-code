@@ -396,3 +396,77 @@ a *set*: edge, symmetry, and now baseline each carry rejections no other gate wo
 seventy-six real dwarfs; every one an instrument or a systematic, each named by the gate that caught
 it. The first thing that ever passed all the gates was an artifact — and the pipeline learned a new
 gate from it, the way it should. Zero candidates. 24 dwarfs of the widened pool remain pending.
+
+
+### Pool complete — the full 100-dwarf sweep (2026-08-18)
+
+The remaining 24 dwarfs of the widened pool were fetched and searched, and with them the pool is
+**fully swept for the first time: 100 of 100 stars searched.** This final batch is the *large* tail
+of the smallest-first pool — radii 0.72–1.02 R☉, so their detection floors are the pool's shallowest
+in radius terms, ~5–7 R⊕ (Neptune to sub-Saturn). Nothing Earth-sized could hide here; only a
+sub-Saturn or larger single transit would have shown, and none did that survives the gates.
+
+| star | R★ (R☉) | min planet (R♃ / R⊕) | disposition |
+|------|---------|----------------------|-------------|
+| TIC 47417325 | 0.72 | ≥ 0.46 / ≥ 5.0 | no single transit (quiet) |
+| TIC 469817399 | 0.80 | ≥ 0.50 / ≥ 5.5 | no single transit (quiet) |
+| TIC 1923973311 | 0.80 | ≥ 0.51 / ≥ 5.5 | insignificant (sig −0.01) |
+| TIC 406244405 | 0.82 | ≥ 0.51 / ≥ 5.6 | no single transit (quiet) |
+| TIC 380865605 | 0.82 | ≥ 0.51 / ≥ 5.6 | **rejected — sig 21.25 (edge, symmetry)** |
+| TIC 267061191 | 0.83 | ≥ 0.52 / ≥ 5.7 | insignificant (sig 0.02) |
+| TIC 466273811 | 0.83 | ≥ 0.52 / ≥ 5.8 | insignificant (sig 0.01) |
+| TIC 165124046 | 0.85 | ≥ 0.54 / ≥ 5.9 | insignificant (sig 0.01) |
+| TIC 123370808 | 0.86 | ≥ 0.54 / ≥ 5.9 | insignificant (sig −0.03) |
+| TIC 143821840 | 0.86 | ≥ 0.54 / ≥ 6.0 | no single transit (quiet) |
+| TIC 337559985 | 0.87 | ≥ 0.55 / ≥ 6.0 | insignificant (sig 0.07) |
+| TIC 219998026 | 0.92 | ≥ 0.58 / ≥ 6.4 | no single transit (quiet) |
+| TIC 25590004 | 0.92 | ≥ 0.58 / ≥ 6.4 | no single transit (quiet) |
+| TIC 321067501 | 0.94 | ≥ 0.59 / ≥ 6.5 | no single transit (quiet) |
+| TIC 352293031 | 0.95 | ≥ 0.60 / ≥ 6.5 | insignificant (sig 0.01) |
+| TIC 381903208 | 0.95 | ≥ 0.60 / ≥ 6.6 | insignificant (sig 0.06) |
+| TIC 321068820 | 0.96 | ≥ 0.60 / ≥ 6.6 | insignificant (sig 0.05) |
+| TIC 382600415 | 0.96 | ≥ 0.60 / ≥ 6.6 | no single transit (quiet) |
+| TIC 412461976 | 0.97 | ≥ 0.61 / ≥ 6.7 | insignificant (sig 0.02) |
+| TIC 147425925 | 0.97 | ≥ 0.61 / ≥ 6.7 | insignificant (sig 0.04) |
+| TIC 265214924 | 0.99 | ≥ 0.62 / ≥ 6.8 | insignificant (sig 0.03) |
+| TIC 424851267 | 0.99 | ≥ 0.62 / ≥ 6.8 | insignificant (sig −0.01) |
+| TIC 115273047 | 1.00 | ≥ 0.63 / ≥ 6.9 | insignificant (sig 0.01) |
+| TIC 125450206 | 1.02 | ≥ 0.64 / ≥ 7.0 | no single transit (quiet) |
+
+Batch: **9 quiet · 14 insignificant · 1 rejected · 0 candidates.** One new rejection — TIC 380865605,
+sig 21.25 (edge, symmetry) — the same texture as every other loud event in the pool: a systematic on
+or near a segment boundary, caught by the shape gates. The fourteen "insignificant" events are all
+sub-σ noise the significance floor turns away before a discriminator is even needed.
+
+**Cumulative tally — the full pool (tally_hunt.py, 2026-08-18, under mono-v2):**
+
+```
+100 of 100 searched:  42 quiet · 45 insignificant · 13 rejected · 0 candidates
+
+rejected events (loudest first):
+  TIC 61698163    sig 61.99   edge, symmetry
+  TIC 326691903   sig 48.45   edge          (its second event, sig 10.86 — the former "candidate" —
+                                             is rejected by baseline alone)
+  TIC 404030766   sig 41.26   symmetry
+  TIC 23924218    sig 24.94   symmetry
+  TIC 380865605   sig 21.25   edge, symmetry     <- new this batch
+  TIC 100918677   sig 20.64   edge, symmetry
+  TIC 158532040   sig 18.52   edge
+  TIC 393483292   sig 18.26   edge, coherence, symmetry
+  TIC 370142187   sig 13.59   edge, symmetry
+  TIC 219989145   sig 11.85   edge, symmetry
+  TIC 293482838   sig  6.41   edge, symmetry
+  TIC 142169644   sig  6.02   edge, coherence, symmetry
+  TIC 329099756   sig  5.69   edge, symmetry
+```
+
+**What a complete zero-candidate sweep says.** One hundred planet-size dwarf stars, sector 104,
+selected smallest-first so the search reaches Earth-radius planets around the smallest M dwarfs
+(R★ 0.15, floor ~1 R⊕) and sub-Saturns around the largest (R★ 1.0, floor ~7 R⊕). Every significant
+single event — thirteen of them — is an instrument or a systematic, each named by the gate that
+caught it; edge and symmetry carry the load, baseline caught the one that fooled the first four,
+coherence assists twice. Zero survive as candidates. This is the honest, expected texture of a
+single-transit hunt over quiet stars: most stars are quiet, loud events are almost always the
+telescope, and a real lone transit is rare enough that a hundred-star sweep turning up none is not a
+failure — it is the null result stated completely, with the sensitivity that bounds it written down
+next to it. The pool is closed; the next real sky is a *new* sector.
