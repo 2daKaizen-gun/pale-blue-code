@@ -520,3 +520,22 @@ an Earth-size single transit, five a super-Earth, all eight a sub-Neptune. So th
 strong where it counts: on these particular M dwarfs, an Earth-to-super-Earth lone transit would
 mostly have been visible, and none is there. Ninety-two dwarfs of sector 105 remain unsearched — the
 new sky is barely opened.
+
+**Second batch — the next 8 dwarfs (16 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  1 quiet · 5 insignificant · 2 rejected · 0 candidates
+
+  tic-79180677    rejected       sig 27.49  edge
+  tic-140142427   rejected       sig 21.04  coherence, symmetry
+  tic-143028327   quiet
+  (5 insignificant: 290920267, 291065047, 316878455, 197963243, 229141941 — sub-σ, baseline/symmetry)
+
+cumulative: 16 of 100 searched — 5 quiet · 8 insignificant · 3 rejected · 0 candidates
+```
+
+Both rejections are the familiar instrument texture — a loud step, caught by edge on one and by
+coherence+symmetry on the other; neither survives to a candidate. Cumulative achieved completeness
+over the 16 stays sharp (these are still the pool's small end): best 0.6 · median 1.8 R⊕, 4 of 16
+clean enough for an Earth, 9 of 16 for a super-Earth, 14 of 16 for a sub-Neptune. Zero candidates
+across the first sixteen dwarfs of the new sector; 84 remain.
