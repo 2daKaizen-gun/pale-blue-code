@@ -470,3 +470,14 @@ single-transit hunt over quiet stars: most stars are quiet, loud events are almo
 telescope, and a real lone transit is rare enough that a hundred-star sweep turning up none is not a
 failure — it is the null result stated completely, with the sensitivity that bounds it written down
 next to it. The pool is closed; the next real sky is a *new* sector.
+
+**Achieved completeness — the honest bound (self-correction).** The "floor ~1 R⊕ … ~7 R⊕" line above
+is the *fiducial* (planning) sensitivity. The real curves are noisier, so the sweep's *achieved*
+sensitivity is coarser — measured, not assumed, by `completeness_hunt.py` from each star's own depth
+floor. Achieved min detectable planet: best 0.9 R⊕ · median 4.7 R⊕ · worst 33.3 R⊕. Only **6 of 100**
+stars had curves clean enough to have shown an Earth (≤1.25 R⊕), 14 a super-Earth (≤2), 39 a
+sub-Neptune (≤4), 54 a Neptune (≤6); 7 were too noisy to reveal anything planet-size at all. So the
+zero-candidate null does *not* mean "no Earths here" — it firmly rules out only sub-Saturn-and-larger
+single transits across most of the pool, and Earth-to-super-Earth transits on the ~1/7 of stars whose
+curves reached that depth. The null is exactly this strong, no stronger — the sensitivity written down
+beside the result, so it is never read as more than the data supports.
