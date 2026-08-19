@@ -584,3 +584,23 @@ coherence+symmetry and one by edge+symmetry — instrument, not sky. Cumulative 
 over the 32 holds at best 0.6 · median 2.5 R⊕; 4 of 32 clean enough for an Earth, 10 of 32 for a
 super-Earth, 22 of 32 for a sub-Neptune. Zero candidates across the first thirty-two dwarfs of
 sector 105; 68 remain.
+
+**Fifth batch — the next 8 dwarfs (40 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  2 quiet · 5 insignificant · 1 rejected · 0 candidates
+
+  tic-137884175   rejected       sig 7.2   edge, symmetry
+  tic-140122311   quiet
+  tic-79564072    quiet
+  (5 insignificant: 360914079, 229147927, 387266782, 161382691, 142874516 — sub-σ, edge/baseline)
+
+cumulative: 40 of 100 searched — 16 quiet · 18 insignificant · 6 rejected · 0 candidates
+```
+
+Two-fifths of the new sector, and still the same story: the one significant event (sig 7.2, lower
+than the sector's louder steps but the same edge+symmetry signature) is an instrument boundary, not a
+transit. As the sweep leaves the pool's smallest dwarfs behind, the cumulative achieved completeness
+softens — best 0.6 · median 3.1 R⊕ (was 2.5 over 32); 4 of 40 clean enough for an Earth, 10 of 40 for
+a super-Earth, 25 of 40 for a sub-Neptune. Zero candidates across the first forty dwarfs of sector
+105; 60 remain.
