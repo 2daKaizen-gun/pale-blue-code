@@ -539,3 +539,27 @@ coherence+symmetry on the other; neither survives to a candidate. Cumulative ach
 over the 16 stays sharp (these are still the pool's small end): best 0.6 · median 1.8 R⊕, 4 of 16
 clean enough for an Earth, 9 of 16 for a super-Earth, 14 of 16 for a sub-Neptune. Zero candidates
 across the first sixteen dwarfs of the new sector; 84 remain.
+
+**Third batch — the next 8 dwarfs (24 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  6 quiet · 2 insignificant · 0 rejected · 0 candidates
+
+  tic-311403944   quiet
+  tic-80261924    quiet
+  tic-79661385    quiet
+  tic-389727431   quiet
+  tic-41976855    quiet
+  tic-209450385   quiet
+  tic-32399025    insignificant  sig 0.14  baseline
+  tic-441323622   insignificant  sig 0.01  baseline
+
+cumulative: 24 of 100 searched — 11 quiet · 10 insignificant · 3 rejected · 0 candidates
+```
+
+The quietest batch yet: not one event cleared the significance floor, so no discriminator was even
+asked to speak. Six curves are flat single-transit-free, two carry only sub-σ noise the floor turns
+away. Cumulative achieved completeness over the 24 softens as we move off the pool's smallest end —
+best 0.6 · median 2.4 R⊕ (was 1.8 over 16); 4 of 24 clean enough for an Earth, 10 of 24 for a
+super-Earth, 18 of 24 for a sub-Neptune. Zero candidates across the first twenty-four dwarfs of
+sector 105; 76 remain.
