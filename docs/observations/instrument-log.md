@@ -563,3 +563,24 @@ away. Cumulative achieved completeness over the 24 softens as we move off the po
 best 0.6 · median 2.4 R⊕ (was 1.8 over 16); 4 of 24 clean enough for an Earth, 10 of 24 for a
 super-Earth, 18 of 24 for a sub-Neptune. Zero candidates across the first twenty-four dwarfs of
 sector 105; 76 remain.
+
+**Fourth batch — the next 8 dwarfs (32 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  3 quiet · 3 insignificant · 2 rejected · 0 candidates
+
+  tic-142169368   rejected       sig 20.75  coherence, symmetry
+  tic-166789074   rejected       sig 22.35  edge, symmetry
+  tic-354671997   quiet
+  tic-90952332    quiet
+  tic-265590456   quiet
+  (3 insignificant: 631837983, 33576608, 62347919 — sub-σ, baseline)
+
+cumulative: 32 of 100 searched — 14 quiet · 13 insignificant · 5 rejected · 0 candidates
+```
+
+Both loud events are the sector's now-familiar hand: a step on a segment boundary, one caught by
+coherence+symmetry and one by edge+symmetry — instrument, not sky. Cumulative achieved completeness
+over the 32 holds at best 0.6 · median 2.5 R⊕; 4 of 32 clean enough for an Earth, 10 of 32 for a
+super-Earth, 22 of 32 for a sub-Neptune. Zero candidates across the first thirty-two dwarfs of
+sector 105; 68 remain.
