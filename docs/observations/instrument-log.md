@@ -604,3 +604,25 @@ transit. As the sweep leaves the pool's smallest dwarfs behind, the cumulative a
 softens — best 0.6 · median 3.1 R⊕ (was 2.5 over 32); 4 of 40 clean enough for an Earth, 10 of 40 for
 a super-Earth, 25 of 40 for a sub-Neptune. Zero candidates across the first forty dwarfs of sector
 105; 60 remain.
+
+**Sixth batch — the next 8 dwarfs (48 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  2 quiet · 5 insignificant · 1 rejected · 0 candidates
+
+  tic-126873403   rejected       sig 26.69  edge, symmetry
+  tic-382417565   quiet
+  tic-197962368   quiet
+  (5 insignificant: 142874517, 140072115, 165192539, 265592331, 140045538 — sub-σ, baseline;
+   140045538 also tripped flare — the sector's first stellar-flare flag, on a sub-σ blip)
+
+cumulative: 48 of 100 searched — 18 quiet · 23 insignificant · 7 rejected · 0 candidates
+```
+
+Nearly half the sector, and the pattern holds without a crack: the one loud event (sig 26.69) is an
+edge+symmetry step, instrument not sky. The batch's quiet note is that one sub-σ blip tripped the
+flare discriminator — the first time a stellar flare left a fingerprint in sector 105 — but it never
+came close to the significance floor, so it was already noise before flare weighed in. Cumulative
+achieved completeness over the 48 holds at best 0.6 · median 3.2 R⊕; 4 of 48 clean enough for an
+Earth, 10 of 48 for a super-Earth, 28 of 48 for a sub-Neptune. Zero candidates across the first
+forty-eight dwarfs of sector 105; 52 remain.
