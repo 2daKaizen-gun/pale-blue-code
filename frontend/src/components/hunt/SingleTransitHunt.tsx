@@ -13,6 +13,7 @@ import MonotransitCurveChart from './MonotransitCurveChart'
 import {
   DISCRIMINATOR_LABEL,
   DISPOSITION_ORDER,
+  jupiterRadiusLabel,
   STAR_VERDICT,
   starVerdictSentence,
   survivorFollowUpBrief,
@@ -90,8 +91,9 @@ function StarRow({ e }: { e: MonotransitLedgerEntry }) {
   }
 
   const floorPct = e.depth_floor != null && e.depth_floor > 0 ? `${(e.depth_floor * 100).toFixed(2)}%` : '—'
-  const sig = e.significance != null ? `${e.significance.toFixed(1)}σ` : '—'
-  const minR = e.min_planet_rjup != null ? `≥ ${e.min_planet_rjup.toFixed(2)} R♃` : '—'
+  // Significance read plainly: N sigma above the noise floor = "N times the noise" (2026-08-26).
+  const sig = e.significance != null ? `잡음의 ${e.significance.toFixed(1)}배` : '—'
+  const minR = e.min_planet_rjup != null ? jupiterRadiusLabel(e.min_planet_rjup, true) : '—'
   return (
     <li className="border-b border-cosmos-border/40 last:border-0">
       <button
@@ -123,7 +125,7 @@ function StarRow({ e }: { e: MonotransitLedgerEntry }) {
             <EvidenceStat label="검출 시 최소" value={minR} />
             <EvidenceStat label="유의성" value={sig} />
             <EvidenceStat label="검출 바닥" value={floorPct} />
-            <EvidenceStat label="딥 개수" value={String(e.n_events)} />
+            <EvidenceStat label="밝기 꺼짐 횟수" value={String(e.n_events)} />
           </dl>
           <p className="text-xs text-cosmos-subtle">{SIZE_CLASS_GLOSS[size]}</p>
           {e.failed.length > 0 && (
@@ -197,7 +199,7 @@ function SurvivorCard({ s }: { s: MonotransitSurvivor }) {
       </p>
       <dl className="mb-3 flex flex-wrap gap-x-6 gap-y-1">
         <Stat label="깊이" value={`${(s.depth * 100).toFixed(3)}%`} />
-        <Stat label="유의성" value={s.significance != null ? s.significance.toFixed(1) + 'σ' : '—'} />
+        <Stat label="유의성" value={s.significance != null ? `잡음의 ${s.significance.toFixed(1)}배` : '—'} />
         <Stat label="지속" value={`${(s.duration * 24).toFixed(1)}h`} />
         <Stat label="t0" value={`${s.t0.toFixed(2)} d`} />
       </dl>
@@ -319,8 +321,9 @@ export default function SingleTransitHunt() {
           <p className="max-w-2xl text-sm text-cosmos-muted">
             자동 탐색 소프트웨어는 행성이 별 앞을 <em>여러 번 반복</em>해서 지나가야 알아챕니다.
             수백 일에 딱 한 번 스쳐 지나가는 먼 행성은 그래서 버려집니다. 우리는 바로 그
-            <strong className="text-cosmos-text"> 한 번의 그림자</strong>를 찾습니다 — 기계가 눈먼
-            자리를요.
+            <strong className="text-cosmos-text"> 한 번의 그림자</strong>
+            <span className="text-cosmos-subtle">(천문학에서는 별 앞을 지나며 잠깐 어두워지는 이 현상을
+            ‘트랜짓’이라 부릅니다)</span>를 찾습니다 — 기계가 눈먼 자리를요.
           </p>
         </div>
         <HowItWorks />
@@ -376,9 +379,9 @@ export default function SingleTransitHunt() {
                 하나의 풀 — 별마다 크기와 판정, 한 문장
               </h2>
               <p className="mb-3 text-xs text-cosmos-subtle">
-                별 하나에 두 개의 딱지: <strong className="text-cosmos-muted">크기</strong>(딥이 검출되면
-                행성일 수 있나) 와 <strong className="text-cosmos-muted">판정</strong>(실제로 무엇이
-                나왔나). 행을 누르면 그 근거가 펼쳐집니다.
+                별 하나에 두 개의 딱지: <strong className="text-cosmos-muted">크기</strong>(밝기 꺼짐이
+                검출되면 행성일 수 있나) 와 <strong className="text-cosmos-muted">판정</strong>(실제로
+                무엇이 나왔나). 행을 누르면 그 근거가 펼쳐집니다.
               </p>
               <div className="mb-3 flex flex-wrap gap-2">
                 {(['searched', 'targets', 'all'] as PoolFilter[]).map((f) => (

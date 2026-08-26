@@ -90,7 +90,7 @@ function significanceNote(report: VettingReport): { label: string; body: string 
   }
   return {
     label: '검출 유의성 — 통과',
-    body: `이 봉우리는 트랜짓마다 같은 깊이로 어두워져, 잡음 바닥 위로 ${report.significance.toFixed(1)}만큼 솟았습니다 — 감식대에 올릴 만한 진짜 검출입니다. 그래서 네 관문을 돌렸고, 아래 판정은 그 위에서 내린 것입니다.`,
+    body: `이 봉우리는 트랜짓마다 같은 깊이로 어두워져, 잡음의 ${report.significance.toFixed(1)}배 크기로 솟았습니다 — 감식대에 올릴 만한 진짜 검출입니다. 그래서 네 관문을 돌렸고, 아래 판정은 그 위에서 내린 것입니다.`,
   }
 }
 
@@ -175,7 +175,7 @@ function InsignificantCard({ report }: Props) {
         <p className="mt-2 text-sm text-cosmos-text">
           트랜짓마다 깊이가 제각각이라 — 진짜 행성은 매번 똑같이 어두워집니다 — 이 봉우리는
           광도곡선의 잡음 바닥과 구별되지 않았습니다
-          {sig != null && ` (트랜짓-간 신호 세기 ${sig.toFixed(1)})`}. 감식할 지문이 아니라
+          {sig != null && ` (트랜짓 사이 신호 세기 = 잡음의 ${sig.toFixed(1)}배)`}. 감식할 지문이 아니라
           번진 얼룩이었습니다. 그래서 네 관문은 돌리지 않았습니다 — 없는 신호를 판별할
           수는 없으니까요. 실패가 아니라 정직한 결과입니다.
         </p>

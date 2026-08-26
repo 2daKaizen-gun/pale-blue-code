@@ -142,7 +142,7 @@ export default function MonotransitCurveChart({ curve }: { curve: MonotransitCur
         {curve.original_count !== curve.point_count && (
           <> · {curve.original_count.toLocaleString()}점에서 솎음</>
         )}{' '}
-        · 세로선 = 검출기가 찾은 딥 (초록 후보 · 빨강 기각 · 회색 잡음)
+        · 세로선 = 검출기가 찾은 밝기 꺼짐 (초록 후보 · 빨강 기각 · 회색 잡음)
       </p>
       {curve.events.length > 0 && (
         <ul className="mt-1 space-y-0.5">
@@ -152,7 +152,7 @@ export default function MonotransitCurveChart({ curve }: { curve: MonotransitCur
                 ●
               </span>
               <span>
-                딥 {curve.events.length > 1 ? i + 1 : ''} {e.significance != null ? `${e.significance.toFixed(2)}σ` : '유의성 보류'} ·{' '}
+                밝기 꺼짐 {curve.events.length > 1 ? i + 1 : ''} {e.significance != null ? `잡음의 ${e.significance.toFixed(2)}배` : '유의성 보류'} ·{' '}
                 {eventFate(e)}
                 {(e.failed_checks ?? []).length > 0 && <> · {failedShort(e)}에 걸림</>}
               </span>

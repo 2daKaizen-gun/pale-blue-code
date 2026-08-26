@@ -79,7 +79,7 @@ export default function PoolTargetsPage() {
         <p className="max-w-2xl text-sm text-cosmos-muted">
           트랜짓 깊이는 별의 원반에서 가려진 넓이 — 즉 동반체의 반지름을 말합니다 (R
           <sub>행성</sub> = √깊이 × R<sub>별</sub>). 그래서 <strong className="text-cosmos-text">별이
-          작을수록</strong> 검출되는 딥은 더 작은, 더 행성 같은 동반체를 뜻합니다. 개척지 풀은 이제
+          작을수록</strong> 검출되는 밝기 꺼짐은 더 작은, 더 행성 같은 동반체를 뜻합니다. 개척지 풀은 이제
           이 사냥을 위해 <strong className="text-cosmos-text">작은 별부터</strong> 골라 담습니다
           (밝기순이 아니라). 그래서 대부분이 행성 크기 표적이고, 가장 작은 건 진짜 M 왜성이라 검출
           바닥이 지구 크기 행성까지 닿습니다. 아래는 별마다 그 최소 검출가능 행성 반지름입니다.
@@ -128,7 +128,7 @@ export default function PoolTargetsPage() {
           </ul>
 
           <p className="text-xs text-cosmos-subtle">
-            바닥 깊이 {(data.summary.depth_floor * 100).toFixed(2)}% 기준, 행성/별 경계 {data.summary.planet_max_rjup} R♃.
+            바닥 깊이 {(data.summary.depth_floor * 100).toFixed(2)}% 기준, 행성/별 경계 목성 반지름의 {data.summary.planet_max_rjup}배.
             반지름은 크기만 말할 뿐 질량은 아닙니다 — 진짜 후보는 질량 확인이 더 필요합니다.
           </p>
         </>
