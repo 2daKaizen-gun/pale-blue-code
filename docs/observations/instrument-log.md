@@ -626,3 +626,28 @@ came close to the significance floor, so it was already noise before flare weigh
 achieved completeness over the 48 holds at best 0.6 · median 3.2 R⊕; 4 of 48 clean enough for an
 Earth, 10 of 48 for a super-Earth, 28 of 48 for a sub-Neptune. Zero candidates across the first
 forty-eight dwarfs of sector 105; 52 remain.
+
+**Seventh batch — the next 8 dwarfs (56 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  2 quiet · 2 insignificant · 4 rejected · 0 candidates  (the noisiest batch yet)
+
+  tic-354134555   rejected   sig 27.69  edge, symmetry
+  tic-369216808   rejected   sig 10.29  edge, coherence, flare, symmetry  ← all four gates
+  tic-67644239    rejected   sig  9.25  symmetry
+  tic-269589318   rejected   sig  6.17  edge
+  tic-389348810   quiet
+  tic-269380552   quiet
+  (2 insignificant: 214568688, 201248851 — sub-σ, baseline)
+
+cumulative: 56 of 100 searched — 20 quiet · 25 insignificant · 11 rejected · 0 candidates
+```
+
+Past the halfway mark, and the loudest batch of the sector — four significant events, every one an
+instrument artifact caught by the shape gates. The one to remember is TIC 369216808 (sig 10.29): it
+failed **all four** discriminators at once — edge, coherence, flare, and symmetry — a maximally messy
+segment-boundary event that a naive significance cut alone would have waved through as a strong
+detection. This is exactly the case the four gates exist for. Cumulative achieved completeness over
+the 56 softens to best 0.6 · median 3.5 R⊕ as the sweep works through larger dwarfs; 4 of 56 clean
+enough for an Earth, 10 of 56 for a super-Earth, 31 of 56 for a sub-Neptune. Zero candidates across
+the first fifty-six dwarfs of sector 105; 44 remain.
