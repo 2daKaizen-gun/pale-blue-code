@@ -29,17 +29,20 @@ export const DISPOSITION_LABEL: Record<HuntDisposition, string> = {
   rejected: '판별자에서 탈락',
   held: '판단 보류',
   insignificant: '유의성 미달',
-  no_event: '딥 없음',
+  no_event: '밝기 꺼짐 없음',
   not_fetched: '미수집',
 }
 
 // The four lone-event discriminators, in plain language for a rejection card.
+// Transliterations/instrument jargon unwound (2026-08-26): a person should read the *shape* that
+// gave the event away without a glossary — "세그먼트/램프/플레어" are named by what they look like,
+// the technical word kept in parentheses only where it still carries meaning.
 export const DISCRIMINATOR_LABEL: Record<string, string> = {
-  edge: '세그먼트 경계 (계기 인공물 자리)',
-  coherence: '한 점에 몰린 딥 (스파이크)',
-  flare: '옆의 밝아짐 (항성 플레어)',
-  symmetry: '한쪽으로 치우친 램프 (비대칭)',
-  baseline: '양옆 밝기 어긋남 (램프/계단 위)',
+  edge: '관측 구간 이음새 (망원경 잡티가 잘 끼는 자리)',
+  coherence: '한 점에 몰린 밝기 꺼짐 (뾰족한 스파이크)',
+  flare: '옆이 갑자기 밝아짐 (별의 폭발, 플레어)',
+  symmetry: '한쪽으로 기울어진 모양 (비대칭)',
+  baseline: '양옆 밝기가 어긋남 (기울기·계단 위에 얹힘)',
 }
 
 export interface DispositionCount {
@@ -102,12 +105,12 @@ export function starVerdictSentence(entry: MonotransitLedgerEntry): string {
       return '유의성과 네 판별을 모두 통과한 단일 트랜짓 후보 — 사람이 직접 볼 가치가 있습니다.'
     case 'rejected': {
       const reasons = entry.failed.map((f) => DISCRIMINATOR_LABEL[f] ?? f).join(', ')
-      return `딥이 있었지만 ${reasons || '판별에서 걸려'} — 행성이 아니라 계기·항성 신호로 판정했습니다.`
+      return `밝기가 잠깐 꺼졌지만 ${reasons || '판별에서 걸려'} — 행성이 아니라 계기·항성 신호로 판정했습니다.`
     }
     case 'held':
-      return '딥은 있었지만 관측 구간이 짧아 유의성을 잴 수 없었습니다 — 정직하게 판단 보류.'
+      return '밝기가 꺼졌지만 관측 구간이 짧아 유의성을 잴 수 없었습니다 — 정직하게 판단 보류.'
     case 'insignificant':
-      return '딥이 있었지만 유의성 문턱을 넘지 못했습니다 — 잡음 수준.'
+      return '밝기가 살짝 꺼졌지만 유의성 문턱을 넘지 못했습니다 — 잡음 수준.'
     case 'no_event':
       return floor
         ? `단일 트랜짓이 없습니다. 이 곡선은 ${floor}까지 볼 수 있었는데도 — 조용합니다.`
@@ -149,6 +152,16 @@ export function sensitivityCaption(floor: number | null): string | null {
 export const SIZE_LABEL = SIZE_CLASS_CHIP
 
 /**
+ * A radius in Jupiter radii, written for a person instead of the bare "R♃" symbol
+ * (2026-08-26 legibility pass). `atLeast` appends "이상" for the "≥" case — the honest
+ * form for a minimum detectable size. The single source of truth for this phrasing, so
+ * "목성 반지름의 N배" reads identically on every hunt/pool surface.
+ */
+export function jupiterRadiusLabel(rjup: number, atLeast = false): string {
+  return `목성 반지름의 ${rjup.toFixed(2)}배${atLeast ? ' 이상' : ''}`
+}
+
+/**
  * The honest size line for a survivor: whether a detection on this star could be a planet at all,
  * and how small. A plausible survivor names its minimum detectable planet radius (the real prize);
  * a too_big one is named star-sized — the dip is reported, but it cannot be a planet. A star with
@@ -157,7 +170,7 @@ export const SIZE_LABEL = SIZE_CLASS_CHIP
 export function survivorSizeNote(s: SizeVerdict): string {
   if (s.size_class === 'plausible') {
     return s.min_planet_rjup != null
-      ? `${SIZE_CLASS_CHIP.plausible} · 검출 시 ≥ ${s.min_planet_rjup.toFixed(2)} R♃`
+      ? `${SIZE_CLASS_CHIP.plausible} · 검출되면 ${jupiterRadiusLabel(s.min_planet_rjup, true)}`
       : SIZE_CLASS_CHIP.plausible
   }
   if (s.size_class === 'too_big') return '검출돼도 별 (너무 큼)'
@@ -183,7 +196,7 @@ export function fetchPlanHeadline(s: FetchPlanSummary): string {
  */
 export function fetchPlanBestTarget(s: FetchPlanSummary): string | null {
   if (!s.best_target || s.best_min_planet_rjup == null) return null
-  return `최우선 표적 ${s.best_target} — 검출 시 최소 ${s.best_min_planet_rjup.toFixed(2)} R♃ 크기의 행성`
+  return `최우선 표적 ${s.best_target} — 검출되면 ${jupiterRadiusLabel(s.best_min_planet_rjup, true)} 크기의 행성`
 }
 
 /**

@@ -13,6 +13,7 @@ import {
   formatPeriodDays,
   formatTempK,
   huntHeadline,
+  jupiterRadiusLabel,
   sensitivityCaption,
   sensitivityFloor,
   STAR_VERDICT,
@@ -360,5 +361,19 @@ describe('survivorSizeNote', () => {
   it('reads unknown for a star with no triage, not a guess', () => {
     expect(survivorSizeNote(sized({ size_class: null }))).toBe('크기 미상')
     expect(survivorSizeNote(sized({ size_class: 'unknown' }))).toBe('크기 미상')
+  })
+})
+
+describe('jupiterRadiusLabel', () => {
+  it('spells the radius in plain words, not the bare R♃ symbol', () => {
+    const label = jupiterRadiusLabel(0.11)
+    expect(label).toContain('목성 반지름')
+    expect(label).toContain('0.11')
+    expect(label).not.toContain('R♃')
+  })
+
+  it('appends "이상" only for the at-least (≥) form', () => {
+    expect(jupiterRadiusLabel(0.6, true)).toContain('이상')
+    expect(jupiterRadiusLabel(0.6, false)).not.toContain('이상')
   })
 })

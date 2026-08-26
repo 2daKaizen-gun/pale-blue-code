@@ -1,4 +1,5 @@
 import type { PoolSummary, PoolTarget } from '../../lib/api/monotransit'
+import { jupiterRadiusLabel } from './monotransitCopy'
 import { SIZE_CLASS_LABEL } from './vocabulary'
 
 /**
@@ -30,8 +31,8 @@ export function poolHeadline(summary: PoolSummary): string {
   return `별 ${total}개 중 ${plausible}개만이 행성을 품을 수 있습니다 — 나머지 ${too_big}개는 검출돼도 별입니다${tail}`
 }
 
-/** The minimum detectable planet radius as a label, in Jupiter radii; a dash when unknown. */
+/** The minimum detectable planet radius as a label, in plain Jupiter radii; a dash when unknown. */
 export function minPlanetLabel(t: PoolTarget): string {
   if (t.min_planet_rjup == null) return '—'
-  return `≥ ${t.min_planet_rjup.toFixed(2)} R♃` // R♃ (Jupiter)
+  return jupiterRadiusLabel(t.min_planet_rjup, true)
 }
