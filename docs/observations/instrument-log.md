@@ -693,3 +693,25 @@ picture of a small-dwarf field: half the searchable stars flat, half carrying on
 wobble, the loud events all instrument. Cumulative achieved completeness over the 72 holds at best
 0.6 · median 3.8 R⊕; 5 of 72 clean enough for an Earth, 12 of 72 for a super-Earth, 38 of 72 for a
 sub-Neptune. Zero candidates across the first seventy-two dwarfs of sector 105; 28 remain.
+
+**Tenth batch — the next 8 dwarfs (80 of 100).** Fetched (1 MAST download failed, transient) and
+searched:
+
+```
++8 this batch:  3 quiet · 3 insignificant · 2 rejected · 0 candidates
+
+  tic-316830752   rejected   sig 38.38  edge, symmetry
+  tic-126658868   rejected   sig 37.73  edge, symmetry
+  3 quiet: 88416685, 143361902, 183636776
+  (3 insignificant: 219989144, 424797993, 206528973 — sub-σ, baseline)
+
+cumulative: 80 of 100 searched — 31 quiet · 31 insignificant · 18 rejected · 0 candidates
+```
+
+Four-fifths of the pool. The two rejected events are the loudest of these late batches (sig 38.38 and
+37.73), and both are the same edge+symmetry segment-boundary step — the louder the artifact, the more
+plainly the gates read it. Quiet and noise stay locked even at 31 apiece. Cumulative achieved
+completeness over the 80 settles at best 0.6 · median 4.0 R⊕ — right at the sub-Neptune line, the
+honest floor once a pool includes its larger dwarfs; 5 of 80 clean enough for an Earth, 13 of 80 for
+a super-Earth, 40 of 80 for a sub-Neptune. Zero candidates across the first eighty dwarfs of sector
+105; 20 remain.
