@@ -672,3 +672,24 @@ flare, and symmetry together, the batch's messiest. Nothing survived to a candid
 achieved completeness over the 64 continues its slow softening as the sweep reaches larger dwarfs —
 best 0.6 · median 3.8 R⊕; 5 of 64 clean enough for an Earth, 12 of 64 for a super-Earth, 33 of 64 for
 a sub-Neptune. Zero candidates across the first sixty-four dwarfs of sector 105; 36 remain.
+
+**Ninth batch — the next 8 dwarfs (72 of 100).** Fetched (1 MAST download failed, transient) and
+searched:
+
+```
++8 this batch:  4 quiet · 2 insignificant · 2 rejected · 0 candidates
+
+  tic-159924384   rejected   sig 24.47  edge, symmetry
+  tic-65434220    rejected   sig 26.15  edge, symmetry
+  4 quiet: 235015452, 175517030, 101963752, 67668620
+  (2 insignificant: 220511224, 122618114 — sub-σ, baseline)
+
+cumulative: 72 of 100 searched — 28 quiet · 28 insignificant · 16 rejected · 0 candidates
+```
+
+Two more edge+symmetry steps, the sector's plainest instrument signature, both turned away. Nearly
+three-quarters of the pool now, and the quiet and noise columns have drawn even at 28 each — a fair
+picture of a small-dwarf field: half the searchable stars flat, half carrying only sub-threshold
+wobble, the loud events all instrument. Cumulative achieved completeness over the 72 holds at best
+0.6 · median 3.8 R⊕; 5 of 72 clean enough for an Earth, 12 of 72 for a super-Earth, 38 of 72 for a
+sub-Neptune. Zero candidates across the first seventy-two dwarfs of sector 105; 28 remain.
