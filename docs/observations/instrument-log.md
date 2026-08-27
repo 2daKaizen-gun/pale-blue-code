@@ -651,3 +651,24 @@ detection. This is exactly the case the four gates exist for. Cumulative achieve
 the 56 softens to best 0.6 · median 3.5 R⊕ as the sweep works through larger dwarfs; 4 of 56 clean
 enough for an Earth, 10 of 56 for a super-Earth, 31 of 56 for a sub-Neptune. Zero candidates across
 the first fifty-six dwarfs of sector 105; 44 remain.
+
+**Eighth batch — the next 8 dwarfs (64 of 100).** Fetched (1 target failed to download from MAST, a
+common transient; the run moved on) and searched:
+
+```
++8 this batch:  4 quiet · 1 insignificant · 3 rejected · 0 candidates
+
+  tic-389198736   rejected   sig 19.99  edge, flare, symmetry
+  tic-321068175   rejected   sig 19.41  edge, symmetry
+  tic-60969335    rejected   sig  6.1   symmetry
+  4 quiet: 91036194, 129478301, 278783528, 142958248
+  (1 insignificant: 129712515 — sub-σ, symmetry+baseline)
+
+cumulative: 64 of 100 searched — 24 quiet · 26 insignificant · 14 rejected · 0 candidates
+```
+
+Three more instrument steps turned away by the shape gates — TIC 389198736 (sig 19.99) tripped edge,
+flare, and symmetry together, the batch's messiest. Nothing survived to a candidate. Cumulative
+achieved completeness over the 64 continues its slow softening as the sweep reaches larger dwarfs —
+best 0.6 · median 3.8 R⊕; 5 of 64 clean enough for an Earth, 12 of 64 for a super-Earth, 33 of 64 for
+a sub-Neptune. Zero candidates across the first sixty-four dwarfs of sector 105; 36 remain.
