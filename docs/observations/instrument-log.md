@@ -759,3 +759,24 @@ Quiet edges ahead of noise for the first time in many batches, 38 to 36. Cumulat
 completeness over the 96 holds at best 0.6 · median 4.1 R⊕; 5 of 96 clean enough for an Earth, 14 of
 96 for a super-Earth, 46 of 96 for a sub-Neptune. Zero candidates across the first ninety-six dwarfs
 of sector 105; 4 remain — the last batch ahead.
+
+**Thirteenth batch — the final 4 dwarfs (100 of 100).** Fetched (the once-corrupt TIC 219987192
+re-downloaded clean after its stale cache was cleared) and searched:
+
+```
++4 this batch:  4 quiet · 0 insignificant · 0 rejected · 0 candidates
+
+  4 quiet: 219987192, 220369034, 175532610, 79304698
+
+cumulative: 100 of 100 searched — 42 quiet · 36 insignificant · 22 rejected · 0 candidates
+```
+
+The pool closes on its quietest note — four flat curves, no event of any kind. **Sector 105 is now
+swept in full: 100 of 100 smallest-first dwarfs searched, zero candidates.** The final ledger reads 42
+quiet, 36 insignificant, 22 rejected — quiet the plurality, every loud event named by the gate that
+turned it away (edge and symmetry the sector's signature, with a lone flare+baseline late), not one
+surviving all five shape gates with significance intact. Achieved completeness over the full 100
+settles at best 0.6 · median 4.1 R⊕: 5 of 100 clean enough for an Earth, 14 of 100 for a super-Earth,
+47 of 100 for a sub-Neptune, 65 of 100 for a Neptune. The null is exactly this strong and no stronger
+— across the hundred smallest dwarfs of a fresh, un-picked-over patch of sky, no single-transit
+planet candidate is present down to the size each curve was clean enough to have shown.
