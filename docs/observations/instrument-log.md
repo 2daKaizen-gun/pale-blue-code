@@ -715,3 +715,27 @@ completeness over the 80 settles at best 0.6 · median 4.0 R⊕ — right at the
 honest floor once a pool includes its larger dwarfs; 5 of 80 clean enough for an Earth, 13 of 80 for
 a super-Earth, 40 of 80 for a sub-Neptune. Zero candidates across the first eighty dwarfs of sector
 105; 20 remain.
+
+**Eleventh batch — the next 8 dwarfs (88 of 100).** Fetched (1 MAST download failed — a corrupt
+s0104 cache leftover, cleared — transient) and searched:
+
+```
++8 this batch:  3 quiet · 2 insignificant · 3 rejected · 0 candidates
+
+  tic-235010655   rejected   sig 26.11  symmetry
+  tic-197764453   rejected   sig 31.37  edge, symmetry
+  tic-122670753   rejected   sig 29.21  edge, symmetry
+  3 quiet: 44670257, 201234926, 211331165
+  (2 insignificant: 48937598, 91036193 — sub-σ, baseline)
+
+cumulative: 88 of 100 searched — 34 quiet · 33 insignificant · 21 rejected · 0 candidates
+```
+
+Eleven-twentieths swept — the final fifth begins. TIC 197764453 (sig 31.37) took eleven minutes to
+search, the heaviest curve of the whole sweep, and still resolved to the same edge+symmetry
+segment-boundary step; time on the CPU buys no mercy from the gates. TIC 235010655 is a rarer read —
+rejected on symmetry alone, sig 26.11, a lopsided dip with clean edges, the shape a real transit is
+not. Quiet and noise stay all but locked (34 and 33). Cumulative achieved completeness over the 88
+holds at best 0.6 · median 4.0 R⊕; 5 of 88 clean enough for an Earth, 14 of 88 for a super-Earth, 43
+of 88 for a sub-Neptune. Zero candidates across the first eighty-eight dwarfs of sector 105; 12
+remain.
