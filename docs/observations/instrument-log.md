@@ -739,3 +739,23 @@ not. Quiet and noise stay all but locked (34 and 33). Cumulative achieved comple
 holds at best 0.6 · median 4.0 R⊕; 5 of 88 clean enough for an Earth, 14 of 88 for a super-Earth, 43
 of 88 for a sub-Neptune. Zero candidates across the first eighty-eight dwarfs of sector 105; 12
 remain.
+
+**Twelfth batch — the next 8 dwarfs (96 of 100).** Fetched and searched:
+
+```
++8 this batch:  4 quiet · 3 insignificant · 1 rejected · 0 candidates
+
+  tic-129766568   rejected   sig 20.15  flare, baseline
+  4 quiet: 278709638, 231012651, 126916590, 175491080
+  (3 insignificant: 88478453, 166676586, 159836771 — sub-σ, baseline)
+
+cumulative: 96 of 100 searched — 38 quiet · 36 insignificant · 22 rejected · 0 candidates
+```
+
+The quietest batch of the late pool — only one significant event, and that one (TIC 129766568, sig
+20.15) is the rarer flare+baseline pairing rather than the sweep's usual edge+symmetry: a stellar
+brightening riding on a drifting baseline, not a segment-boundary step, but instrument all the same.
+Quiet edges ahead of noise for the first time in many batches, 38 to 36. Cumulative achieved
+completeness over the 96 holds at best 0.6 · median 4.1 R⊕; 5 of 96 clean enough for an Earth, 14 of
+96 for a super-Earth, 46 of 96 for a sub-Neptune. Zero candidates across the first ninety-six dwarfs
+of sector 105; 4 remain — the last batch ahead.
