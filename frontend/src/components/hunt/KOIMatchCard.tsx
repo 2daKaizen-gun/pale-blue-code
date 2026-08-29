@@ -10,8 +10,8 @@ interface Props {
 // matched harmonic is not 1:1, explain why the catalog and BLS periods differ.
 function harmonicNote(harmonic: number): string | null {
   if (Math.abs(harmonic - 1) < 1e-6) return null
-  if (harmonic > 1) return `BLS 피크는 카탈로그 주기의 ${Math.round(harmonic)}배 alias`
-  return `BLS 피크는 카탈로그 주기의 1/${Math.round(1 / harmonic)} 부고조파(alias)`
+  if (harmonic > 1) return `BLS 봉우리는 카탈로그 주기의 ${Math.round(harmonic)}배 되는 허상 주기`
+  return `BLS 봉우리는 카탈로그 주기의 1/${Math.round(1 / harmonic)} 되는 허상 주기`
 }
 
 const DISPOSITION_STYLE: Record<string, { badge: string; label: string }> = {
@@ -77,7 +77,7 @@ export default function KOIMatchCard({ kicId, period, matches }: Props) {
               </div>
               <div className="text-right">
                 <span className="font-mono text-xs text-cosmos-muted">
-                  catalog period {m.koi_period.toFixed(3)}d · BLS {period.toFixed(3)}d
+                  카탈로그 주기 {m.koi_period.toFixed(3)}일 · BLS {period.toFixed(3)}일
                 </span>
                 {note && <p className="font-mono text-xs text-cosmos-solar">{note}</p>}
               </div>

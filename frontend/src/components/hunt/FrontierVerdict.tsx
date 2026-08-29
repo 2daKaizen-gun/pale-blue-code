@@ -41,7 +41,7 @@ const FRAME: Record<
     ring: 'border-cosmos-border bg-cosmos-bg',
     badge: 'border-cosmos-subtle bg-cosmos-bg text-cosmos-muted',
     kicker: '검출 아님 — 판정할 신호가 없습니다',
-    body: 'BLS가 봉우리 하나를 골랐지만, 네 관문에 올리기 전에 물었습니다 — 이게 진짜 검출인가? 잡음 바닥과 구별되지 않아, 감식할 신호가 없다고 판단했습니다. 빈손이지만 정직한 빈손입니다 — 개척지에서 대부분의 별이 이렇습니다.',
+    body: '주기 신호 탐색기(BLS)가 봉우리 하나를 골랐지만, 네 관문에 올리기 전에 물었습니다 — 이게 진짜 검출인가? 잡음 바닥과 구별되지 않아, 감식할 신호가 없다고 판단했습니다. 빈손이지만 정직한 빈손입니다 — 개척지에서 대부분의 별이 이렇습니다.',
   },
 }
 

@@ -16,19 +16,19 @@ export default function BLSResultCard({ data }: Props) {
   const depthPct = (best.depth * 100).toFixed(4)
 
   const rows: Row[] = [
-    { label: 'Period', value: `${best.period.toFixed(3)} days` },
-    { label: 'Transit duration', value: `${durationHours} hours` },
-    { label: 'Transit depth', value: `${depthPct}%` },
-    { label: 'BLS power', value: best.power.toFixed(5), note: 'signal strength' },
+    { label: '주기', value: `${best.period.toFixed(3)}일` },
+    { label: '트랜짓 지속시간', value: `${durationHours}시간` },
+    { label: '트랜짓 깊이', value: `${depthPct}%` },
+    { label: 'BLS 세기', value: best.power.toFixed(5), note: '신호 세기' },
   ]
 
   return (
     <div className="rounded-lg border border-cosmos-border bg-cosmos-elevated p-5">
       <p className="mb-1 font-mono text-xs tracking-widest text-cosmos-muted">
-        TOP CANDIDATE — {data.planet_name}
+        가장 강한 후보 — {data.planet_name}
       </p>
       <p className="mb-4 text-xl font-semibold text-cosmos-text">
-        {best.period.toFixed(2)} day orbit
+        {best.period.toFixed(2)}일 주기 궤도
       </p>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
         {rows.map(({ label, value, note }) => (

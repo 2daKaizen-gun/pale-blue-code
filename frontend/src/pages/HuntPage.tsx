@@ -131,8 +131,8 @@ export default function HuntPage() {
         <p className="mb-1 font-mono text-xs tracking-widest text-cosmos-muted">PHASE 08</p>
         <h1 className="mb-1 text-3xl font-semibold text-cosmos-text">Hunt</h1>
         <p className="text-sm text-cosmos-muted">
-          케플러 데이터에서 아직 확인되지 않은 신호를 찾는다 — 별을 고르고, BLS를 겨냥하고, KOI
-          카탈로그와 대조한다
+          케플러 데이터에서 아직 확인되지 않은 신호를 찾는다 — 별을 고르고, 주기 신호 탐색기(BLS)를
+          겨냥하고, KOI 카탈로그와 대조한다
         </p>
       </header>
 

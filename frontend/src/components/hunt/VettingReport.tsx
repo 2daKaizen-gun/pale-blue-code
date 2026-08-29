@@ -63,7 +63,7 @@ function metricHint(check: VettingCheck): string | null {
   const f = (v: number | undefined, d = 4) => (v === undefined ? '—' : v.toFixed(d))
   switch (check.name) {
     case 'odd_even':
-      return `깊이 홀 ${f(m.depth_odd)} · 짝 ${f(m.depth_even)} · 차이 ${f(m.sigma, 1)}σ`
+      return `홀수 통과 깊이 ${f(m.depth_odd)} · 짝수 통과 깊이 ${f(m.depth_even)} · 차이 잡음의 ${f(m.sigma, 1)}배`
     case 'secondary':
       return `2차 깊이 ${f(m.sec_depth)} · S/N ${f(m.sec_snr, 1)}`
     case 'shape':
@@ -100,7 +100,7 @@ function aliasNote(report: VettingReport): string | null {
   if (Math.abs(report.alias_factor - 1) < 1e-6) return null
   const f = report.alias_factor
   const rel = f > 1 ? `${Math.round(f)}배` : `1/${Math.round(1 / f)}배`
-  return `BLS는 ${report.bls_period.toFixed(3)}일 신호에 반응했지만, 반복 구조가 진짜 주기는 그 ${rel}인 ${report.period.toFixed(3)}일임을 드러냈습니다 — 이 진짜 주기 위에서 판별했습니다.`
+  return `주기 신호 탐색기(BLS)는 ${report.bls_period.toFixed(3)}일 신호에 반응했지만, 반복 구조가 진짜 주기는 그 ${rel}인 ${report.period.toFixed(3)}일임을 드러냈습니다 — 이 진짜 주기 위에서 판별했습니다.`
 }
 
 // Nail 4 — a wide sky is seen shallowly. TESS watches ~27 days per sector, so the

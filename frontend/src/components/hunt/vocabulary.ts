@@ -28,7 +28,7 @@ export const SIZE_CLASS_CHIP: Record<PoolClassification, string> = {
 
 // One line saying what the category IS — for a subtitle or a filter legend.
 export const SIZE_CLASS_GLOSS: Record<PoolClassification, string> = {
-  plausible: '별이 작아서, 딥이 검출되면 행성 크기일 수 있는 표적',
-  too_big: '별이 커서, 딥이 검출돼도 행성이 아니라 별인 표적',
+  plausible: '별이 작아서, 밝기 꺼짐이 검출되면 행성 크기일 수 있는 표적',
+  too_big: '별이 커서, 밝기 꺼짐이 검출돼도 행성이 아니라 별인 표적',
   unknown: '별의 반지름을 몰라 크기를 판정할 수 없는 표적',
 }
