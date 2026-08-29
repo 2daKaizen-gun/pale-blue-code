@@ -2,6 +2,11 @@ import ApodWidget from '../components/apod/ApodWidget'
 import PhaseCard from '../components/phases/PhaseCard'
 import FrontierCTA from '../components/phases/FrontierCTA'
 import { PHASES } from '../constants/phases'
+import { learnPhases } from '../components/layout/navModel'
+
+// 토대 단계(Phase 0·1)는 전용 페이지가 없어 path='/' → 카드로 두면 홈으로
+// 되돌아오는 죽은 바로가기가 된다. 카드에서 빼되, 완료된 사실은 한 줄로 남긴다.
+const foundationPhases = PHASES.filter((p) => p.path === '/')
 
 export default function HomePage() {
   return (
@@ -34,24 +39,40 @@ export default function HomePage() {
       {/* 구분선 */}
       <div className="border-t border-cosmos-border mb-12" />
 
-      {/* 로드맵 섹션 */}
+      {/* 바로가기 — 홈 하단은 네비의 두 갈래(배우기 / 사냥하기)를 그대로 비춘다.
+          여기는 '배우기': 클릭 가능한 여정 카드만(learnPhases, nav와 같은 소스). */}
       <section>
         <h2 className="text-cosmos-nebula font-mono text-xs tracking-widest mb-2">
-          ROADMAP
+          📖 배우기 — ROADMAP
         </h2>
-        <p className="text-cosmos-muted text-sm mb-8">
-          인류가 우주를 이해해온 순서를 그대로 코드로 다시 그린다.
+        <p className="text-cosmos-muted text-sm mb-3">
+          인류가 우주를 이해해온 순서를 그대로 코드로 다시 그린다. 아래 단계를 순서대로
+          따라가면 된다.
         </p>
 
+        {/* 토대(Phase 0·1)는 완료된 사실만 한 줄로 — 클릭 대상 아님 */}
+        {foundationPhases.length > 0 && (
+          <p className="text-cosmos-subtle text-xs mb-8">
+            토대는 이미 놓였습니다 ·{' '}
+            {foundationPhases.map((p, i) => (
+              <span key={p.number}>
+                {i > 0 && ' · '}
+                {p.emoji} {p.title}
+              </span>
+            ))}{' '}
+            <span className="text-cosmos-aurora">✓ 완료</span>
+          </p>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {PHASES.map((phase) => (
+          {learnPhases.map((phase) => (
             <PhaseCard key={phase.number} phase={phase} />
           ))}
         </div>
       </section>
 
-      {/* The real hunt — deliberately outside the roadmap grid (separation
-          invariant): the frontier is not another lesson, it is leaving the lesson. */}
+      {/* '사냥하기' 진입 — 로드맵 격자 밖에 두는 분리 불변식: 개척지는 또 하나의
+          수업이 아니라, 수업을 떠나는 것. (nav의 손배치 🛰️ 링크와 같은 원칙) */}
       <FrontierCTA />
     </div>
   )
