@@ -77,11 +77,11 @@ export default function PlanetTable({ planets, onSelect }: Props) {
           type="text"
           value={query}
           onChange={(e) => handleQuery(e.target.value)}
-          placeholder="Search planet or host star..."
+          placeholder="행성·모항성 검색…"
           className="w-72 rounded border border-cosmos-border bg-cosmos-surface px-3 py-2 text-sm text-cosmos-text placeholder-cosmos-muted focus:border-cosmos-nebula focus:outline-none"
         />
         <span className="font-mono text-xs text-cosmos-muted">
-          {searched.length.toLocaleString()} results
+          {searched.length.toLocaleString()}개 결과
         </span>
       </div>
 

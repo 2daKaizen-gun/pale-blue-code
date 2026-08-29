@@ -33,7 +33,7 @@ export default function SignalPage() {
       const data = await fetchBLS(name.trim())
       setBlsData(data)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Unknown error')
+      setError(e instanceof Error ? e.message : '알 수 없는 오류')
     } finally {
       setLoading(false)
     }
@@ -50,7 +50,7 @@ export default function SignalPage() {
       })
       .catch((e: unknown) => {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : 'Unknown error')
+          setError(e instanceof Error ? e.message : '알 수 없는 오류')
           setLoading(false)
         }
       })

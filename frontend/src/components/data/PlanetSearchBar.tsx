@@ -65,7 +65,7 @@ export default function PlanetSearchBar({ planets, value, onSearch }: Props) {
           onClick={() => { setOpen(false); onSearch(input.trim()) }}
           className="rounded-lg border border-cosmos-border bg-cosmos-elevated px-4 py-2 font-mono text-sm text-cosmos-muted transition-colors hover:text-cosmos-text"
         >
-          SEARCH
+          검색
         </button>
       </div>
 

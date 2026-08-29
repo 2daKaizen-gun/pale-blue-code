@@ -179,7 +179,7 @@ export default function TimelineView({ planets }: Props) {
         .attr('text-anchor', 'middle')
         .attr('fill', '#64748b')
         .attr('font-size', '12px')
-        .text('Cumulative Discoveries')
+        .text('누적 발견 수')
 
       // Milestone markers
       MILESTONES.filter((m) => m.year <= currentYear).forEach(({ year, label }) => {
@@ -229,7 +229,7 @@ export default function TimelineView({ planets }: Props) {
     ? methods.reduce((sum, m) => sum + ((currentDatum[m] as number) ?? 0), 0)
     : 0
 
-  const btnLabel = playing ? '⏸ PAUSE' : currentYear >= maxYear ? '↺ REPLAY' : '▶ PLAY'
+  const btnLabel = playing ? '⏸ 일시정지' : currentYear >= maxYear ? '↺ 다시' : '▶ 재생'
 
   return (
     <div className="flex flex-col gap-4">
@@ -241,10 +241,10 @@ export default function TimelineView({ planets }: Props) {
           {btnLabel}
         </button>
         <div className="font-mono text-sm">
-          <span className="text-cosmos-muted">YEAR </span>
+          <span className="text-cosmos-muted">연도 </span>
           <span className="text-cosmos-nebula">{currentYear}</span>
           <span className="ml-3 text-xs text-cosmos-muted">
-            {currentTotal.toLocaleString()} planets
+            행성 {currentTotal.toLocaleString()}개
           </span>
         </div>
       </div>

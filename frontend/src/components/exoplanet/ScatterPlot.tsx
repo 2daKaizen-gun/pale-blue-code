@@ -104,7 +104,7 @@ export default function ScatterPlot({ planets, selectedPlanet, onSelect }: Props
         .attr('text-anchor', 'middle')
         .attr('fill', '#64748b')
         .attr('font-size', '12px')
-        .text('Orbital Period (days)')
+        .text('공전 주기 (일)')
 
       root
         .append('text')
@@ -114,7 +114,7 @@ export default function ScatterPlot({ planets, selectedPlanet, onSelect }: Props
         .attr('text-anchor', 'middle')
         .attr('fill', '#64748b')
         .attr('font-size', '12px')
-        .text('Radius (R⊕)')
+        .text('반지름 (지구=1)')
 
       const tooltip = d3.select(tooltipRef.current)
 

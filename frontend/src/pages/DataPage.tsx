@@ -125,7 +125,7 @@ export default function DataPage() {
 
       {error && (
         <div className="flex min-h-[40vh] items-center justify-center font-mono text-sm text-red-400">
-          ERROR: {error}
+          오류: {error}
         </div>
       )}
 
@@ -144,7 +144,7 @@ export default function DataPage() {
                       : 'text-cosmos-muted hover:text-cosmos-text'
                   }`}
                 >
-                  {v === 'raw' ? 'LIGHT CURVE' : 'PHASE FOLD'}
+                  {v === 'raw' ? '광곡선' : '위상 접기'}
                 </button>
               ))}
             </div>
@@ -152,11 +152,11 @@ export default function DataPage() {
               to={`/signal?planet=${encodeURIComponent(planetName)}`}
               className="font-mono text-xs text-cosmos-nebula transition-colors hover:text-cosmos-text"
             >
-              SIGNAL →
+              신호 →
             </Link>
             <span className="font-mono text-xs text-cosmos-muted">
               {lcData.hostname} · {lcData.mission}
-              {lcData.period != null && ` · period ${lcData.period.toFixed(2)} days`}
+              {lcData.period != null && ` · 주기 ${lcData.period.toFixed(2)}일`}
             </span>
           </div>
 

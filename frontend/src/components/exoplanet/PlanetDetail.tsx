@@ -22,47 +22,47 @@ export default function PlanetDetail({ planet, onClose }: Props) {
     <div className="absolute right-0 top-0 z-20 w-72 rounded-lg border border-cosmos-border bg-cosmos-surface p-4 shadow-xl">
       <div className="mb-4 flex items-start justify-between">
         <div>
-          <p className="mb-0.5 font-mono text-xs tracking-widest text-cosmos-muted">EXOPLANET</p>
+          <p className="mb-0.5 font-mono text-xs tracking-widest text-cosmos-muted">외계행성</p>
           <h2 className="text-base font-semibold text-cosmos-text">{planet.pl_name}</h2>
         </div>
         <button
           onClick={onClose}
-          aria-label="Close detail panel"
+          aria-label="상세 패널 닫기"
           className="mt-0.5 text-lg leading-none text-cosmos-muted transition-colors hover:text-cosmos-text"
         >
           ✕
         </button>
       </div>
 
-      <Row label="Host Star" value={planet.hostname} />
-      <Row label="Method" value={planet.discoverymethod} />
-      <Row label="Discovered" value={planet.disc_year} />
-      <Row label="Facility" value={planet.disc_facility} />
+      <Row label="모항성" value={planet.hostname} />
+      <Row label="발견 방법" value={planet.discoverymethod} />
+      <Row label="발견 연도" value={planet.disc_year} />
+      <Row label="발견 기관" value={planet.disc_facility} />
       <Row
-        label="Orbital Period"
-        value={planet.pl_orbper !== null ? `${planet.pl_orbper.toFixed(3)} days` : null}
+        label="공전 주기"
+        value={planet.pl_orbper !== null ? `${planet.pl_orbper.toFixed(3)}일` : null}
       />
       <Row
-        label="Radius"
-        value={planet.pl_rade !== null ? `${planet.pl_rade.toFixed(3)} R⊕` : null}
+        label="반지름"
+        value={planet.pl_rade !== null ? `지구의 ${planet.pl_rade.toFixed(3)}배` : null}
       />
       <Row
-        label="Mass"
-        value={planet.pl_masse !== null ? `${planet.pl_masse.toFixed(3)} M⊕` : null}
+        label="질량"
+        value={planet.pl_masse !== null ? `지구의 ${planet.pl_masse.toFixed(3)}배` : null}
       />
       <Row
-        label="Eq. Temperature"
+        label="평형 온도"
         value={planet.pl_eqt !== null ? `${Math.round(planet.pl_eqt)} K` : null}
       />
       <Row
-        label="Distance"
+        label="거리"
         value={planet.sy_dist !== null ? `${planet.sy_dist.toFixed(1)} pc` : null}
       />
       <Row
-        label="Star Temp."
+        label="항성 온도"
         value={planet.st_teff !== null ? `${Math.round(planet.st_teff)} K` : null}
       />
-      <Row label="Planets in System" value={planet.sy_pnum} />
+      <Row label="항성계 내 행성" value={planet.sy_pnum} />
 
       <Link
         to={`/data?planet=${encodeURIComponent(planet.pl_name)}`}

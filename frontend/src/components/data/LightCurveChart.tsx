@@ -157,11 +157,11 @@ export default function LightCurveChart({ data }: Props) {
     <div ref={containerRef} className="relative">
       <svg ref={svgRef} className="w-full" />
       <p className="mt-1 font-mono text-xs text-cosmos-muted">
-        {data.point_count.toLocaleString()} points shown
+        {data.point_count.toLocaleString()}개 점 표시
         {data.original_count !== data.point_count && (
-          <> · decimated from {data.original_count.toLocaleString()}</>
+          <> · 전체 {data.original_count.toLocaleString()}개에서 솎음</>
         )}{' '}
-        · scroll to zoom · drag to pan
+        · 스크롤로 확대 · 드래그로 이동
       </p>
     </div>
   )

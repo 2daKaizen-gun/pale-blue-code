@@ -74,9 +74,9 @@ const T_ORBIT = 2 * Math.PI * Math.sqrt(A_AXIS ** 3 / (G_CONST * M_TOT))
 
 export const TWO_BODY: Preset = {
   id: 'two-body',
-  name: 'Two-body (asymmetric, e = 0.3)',
+  name: '2체 (비대칭, 이심률 0.3)',
   description:
-    'A heavy star and a light companion on an elliptical orbit about their common barycenter. The shape of Kepler that emerges from F = G·m₁·m₂ / r².',
+    '무거운 별과 가벼운 동반성이 공통 무게중심을 도는 타원 궤도. F = G·m₁·m₂ / r² 에서 나오는 케플러의 모양.',
   G: G_CONST,
   // Deliberately coarse (T/120, not the T/600 of the other presets): TWO_BODY
   // is the Euler-vs-RK4 stage (PRD §3, the soul). At this step size RK4 still
@@ -93,13 +93,13 @@ export const TWO_BODY: Preset = {
       id: 'star-a', mass: M_A,
       position: new Vector3(-R_P * (M_B / M_TOT), 0, 0),
       velocity: new Vector3(0, -V_P * (M_B / M_TOT), 0),
-      color: '#fff1c2', radius: 0.08, label: 'Star A',
+      color: '#fff1c2', radius: 0.08, label: '별 A',
     },
     {
       id: 'star-b', mass: M_B,
       position: new Vector3(R_P * (M_A / M_TOT), 0, 0),
       velocity: new Vector3(0, V_P * (M_A / M_TOT), 0),
-      color: '#7ec8ff', radius: 0.04, label: 'Star B',
+      color: '#7ec8ff', radius: 0.04, label: '별 B',
     },
   ],
 }
@@ -113,9 +113,9 @@ const V_CIRC = Math.SQRT2 / 2
 
 export const TWO_BODY_CIRCULAR: Preset = {
   id: 'two-body-circular',
-  name: 'Two-body (verified circular binary)',
+  name: '2체 (검증된 원형 쌍성)',
   description:
-    'Equal-mass binary on a closed circle — the orbit sub-3-2 proved by conservation. The mathematically clean case.',
+    '같은 질량의 쌍성이 닫힌 원을 그림 — 보존 법칙으로 증명한 궤도. 수학적으로 가장 깨끗한 경우.',
   G: 1,
   recommendedDt: (Math.PI * Math.SQRT2) / 600,
   softening: 0,
@@ -125,13 +125,13 @@ export const TWO_BODY_CIRCULAR: Preset = {
       id: 'star-a', mass: 1,
       position: new Vector3(-0.5, 0, 0),
       velocity: new Vector3(0, -V_CIRC, 0),
-      color: '#f5b942', radius: 0.05, label: 'Star A',
+      color: '#f5b942', radius: 0.05, label: '별 A',
     },
     {
       id: 'star-b', mass: 1,
       position: new Vector3(0.5, 0, 0),
       velocity: new Vector3(0, V_CIRC, 0),
-      color: '#5fb1ff', radius: 0.05, label: 'Star B',
+      color: '#5fb1ff', radius: 0.05, label: '별 B',
     },
   ],
 }
@@ -154,9 +154,9 @@ const T_FIG8 = 6.32591398
 
 export const THREE_BODY: Preset = {
   id: 'three-body',
-  name: 'Three-body (figure-8)',
+  name: '3체 (figure-8 궤도)',
   description:
-    'Three equal masses chase each other along one ∞-shaped path — a published exact solution to the problem that has no general formula. Nudge nothing and it dances forever.',
+    '같은 질량 세 개가 하나의 ∞ 모양 경로를 따라 서로를 쫓음 — 일반 공식이 없는 문제의 알려진 정확해. 아무것도 건드리지 않으면 영원히 춤춘다.',
   G: 1,
   recommendedDt: T_FIG8 / 600,
   softening: 0,
@@ -166,19 +166,19 @@ export const THREE_BODY: Preset = {
       id: 'body-1', mass: 1,
       position: new Vector3(-0.97000436, 0.24308753, 0),
       velocity: new Vector3(-FIG8_V3X / 2, -FIG8_V3Y / 2, 0),
-      color: '#fff1c2', radius: 0.04, label: 'Body 1',
+      color: '#fff1c2', radius: 0.04, label: '천체 1',
     },
     {
       id: 'body-2', mass: 1,
       position: new Vector3(0.97000436, -0.24308753, 0),
       velocity: new Vector3(-FIG8_V3X / 2, -FIG8_V3Y / 2, 0),
-      color: '#7ec8ff', radius: 0.04, label: 'Body 2',
+      color: '#7ec8ff', radius: 0.04, label: '천체 2',
     },
     {
       id: 'body-3', mass: 1,
       position: new Vector3(0, 0, 0),
       velocity: new Vector3(FIG8_V3X, FIG8_V3Y, 0),
-      color: '#9ef0a0', radius: 0.04, label: 'Body 3',
+      color: '#9ef0a0', radius: 0.04, label: '천체 3',
     },
   ],
 }
@@ -202,9 +202,9 @@ const T_BIN = 2 * Math.PI * Math.sqrt(BIN_A ** 3 / (1 * BIN_MT))
 
 export const BINARY: Preset = {
   id: 'binary',
-  name: 'Binary stars (3:2, e = 0.4)',
+  name: '쌍성 (질량비 3:2, 이심률 0.4)',
   description:
-    'Two comparable-mass stars on a shared elliptical orbit. The lighter star swings wider — the wobble that, in real starlight, betrays an unseen companion.',
+    '질량이 비슷한 두 별이 공유하는 타원 궤도. 가벼운 별이 더 크게 흔들림 — 실제 별빛에서 보이지 않는 동반성을 드러내는 그 떨림.',
   G: 1,
   recommendedDt: T_BIN / 600,
   softening: 0,
@@ -214,13 +214,13 @@ export const BINARY: Preset = {
       id: 'star-a', mass: BIN_MA,
       position: new Vector3(-BIN_RP * (BIN_MB / BIN_MT), 0, 0),
       velocity: new Vector3(0, -BIN_VP * (BIN_MB / BIN_MT), 0),
-      color: '#ffd27f', radius: 0.07, label: 'Star A',
+      color: '#ffd27f', radius: 0.07, label: '별 A',
     },
     {
       id: 'star-b', mass: BIN_MB,
       position: new Vector3(BIN_RP * (BIN_MA / BIN_MT), 0, 0),
       velocity: new Vector3(0, BIN_VP * (BIN_MA / BIN_MT), 0),
-      color: '#9fd0ff', radius: 0.06, label: 'Star B',
+      color: '#9fd0ff', radius: 0.06, label: '별 B',
     },
   ],
 }
@@ -258,7 +258,7 @@ function buildSolarSystem(): Preset {
     id: 'sun', mass: 1,
     position: new Vector3(0, 0, 0),
     velocity: new Vector3(0, 0, 0),
-    color: '#fff1c2', radius: 0.15, label: SUN.name.en,
+    color: '#fff1c2', radius: 0.15, label: SUN.name.ko,
   }
 
   const planetBodies: PresetBody[] = PLANETS.map((p, i) => {
@@ -271,7 +271,7 @@ function buildSolarSystem(): Preset {
       id: p.id, mass,
       position: new Vector3(aAU * Math.cos(theta), aAU * Math.sin(theta), 0),
       velocity: new Vector3(-v * Math.sin(theta), v * Math.cos(theta), 0),
-      color: render.color, radius: render.radius, label: p.name.en,
+      color: render.color, radius: render.radius, label: p.name.ko,
     }
   })
 
@@ -285,9 +285,9 @@ function buildSolarSystem(): Preset {
 
   return {
     id: 'solar-system',
-    name: 'Our Solar System (N-body)',
+    name: '우리 태양계 (N체)',
     description:
-      'Phase 2 revisited — but now every body pulls on every other. The orbits are no longer drawn for them; they emerge from F = G·m₁·m₂ / r².',
+      'Phase 2를 다시 — 이번엔 모든 천체가 서로를 끌어당긴다. 궤도는 미리 그려주지 않는다; F = G·m₁·m₂ / r² 에서 저절로 나타난다.',
     G: SOLAR_G,
     recommendedDt: tMerc / 600,
     softening: 0.001,

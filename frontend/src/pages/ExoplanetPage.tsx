@@ -57,7 +57,7 @@ export default function ExoplanetPage() {
 
       {error && (
         <div className="flex min-h-[60vh] items-center justify-center font-mono text-sm text-red-400">
-          ERROR: {error}
+          오류: {error}
         </div>
       )}
 
@@ -75,12 +75,12 @@ export default function ExoplanetPage() {
                       : 'text-cosmos-muted hover:text-cosmos-text'
                   }`}
                 >
-                  {v.toUpperCase()}
+                  {{ scatter: '산점도', table: '표', timeline: '연표' }[v]}
                 </button>
               ))}
             </div>
             <span className="font-mono text-xs text-cosmos-muted">
-              {filtered.length.toLocaleString()} planets shown
+              행성 {filtered.length.toLocaleString()}개 표시
             </span>
           </div>
 

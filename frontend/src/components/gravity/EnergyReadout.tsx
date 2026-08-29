@@ -121,11 +121,11 @@ export function EnergyReadout({ bodiesRef, G, softening, presetId }: EnergyReado
   return (
     <div
       role="group"
-      aria-label="Conservation drift since preset load (energy and angular momentum)"
+      aria-label="프리셋 로드 이후 보존량 오차 (에너지·각운동량)"
       className="flex items-center gap-3"
     >
       <span className="text-xs font-medium uppercase tracking-wide text-white/40">
-        Conservation
+        보존량
       </span>
       <div className="flex items-end gap-3">
         <Gauge label="ΔE" pct={fmtPct(eDrift)} fill={eFill} />

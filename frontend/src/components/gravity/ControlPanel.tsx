@@ -216,9 +216,9 @@ export function ControlPanel({
         <div className="hidden md:block h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
 
         {/* Integrator toggle — the method axis (PRD §3, the soul) */}
-        <div role="group" aria-label="Integrator" className="flex items-center gap-1">
+        <div role="group" aria-label="적분기" className="flex items-center gap-1">
           <span className="px-1 text-xs font-medium uppercase tracking-wide text-white/40">
-            Integrator
+            적분기
           </span>
           <div className="flex items-center gap-1 rounded-xl bg-white/5 p-0.5">
             {INTEGRATORS.map(({ kind, label, hint }) => {
