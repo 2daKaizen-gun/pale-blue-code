@@ -103,7 +103,7 @@ export default function LightCurveChart({ data }: Props) {
         .attr('text-anchor', 'middle')
         .attr('fill', '#64748b')
         .attr('font-size', '12px')
-        .text(`Time (${data.mission === 'TESS' ? 'BTJD' : 'BKJD'} days)`)
+        .text(`시간 (${data.mission === 'TESS' ? 'BTJD' : 'BKJD'}, 일)`)
 
       root
         .append('text')
@@ -113,7 +113,7 @@ export default function LightCurveChart({ data }: Props) {
         .attr('text-anchor', 'middle')
         .attr('fill', '#64748b')
         .attr('font-size', '12px')
-        .text('Relative Brightness')
+        .text('상대 밝기')
 
       // scatter plot (faster than line for 5k points with dips)
       const chartGroup = root.append('g').attr('clip-path', 'url(#lc-clip)')

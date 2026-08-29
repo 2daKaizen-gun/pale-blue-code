@@ -54,12 +54,12 @@ const INTEGRATORS: { kind: IntegratorKind; label: string; hint: string }[] = [
   {
     kind: 'euler',
     label: 'Euler',
-    hint: 'Naive 1st-order: energy leaks, the orbit unwinds',
+    hint: '단순한 1차 방식: 에너지가 새어 궤도가 풀립니다',
   },
   {
     kind: 'rk4',
     label: 'RK4',
-    hint: '4th-order Runge–Kutta: the orbit stays closed',
+    hint: '4차 룽게-쿠타 방식: 궤도가 닫힌 채 유지됩니다',
   },
 ]
 
@@ -152,7 +152,7 @@ export function ControlPanel({
     setFollowIndex(next)
   }
   const followLabel =
-    followIndex == null ? 'Free' : presetBodies[followIndex]?.label ?? 'Free'
+    followIndex == null ? '자유 시점' : presetBodies[followIndex]?.label ?? '자유 시점'
 
   return (
     <div className="absolute bottom-4 md:bottom-6 left-1/2 z-10 -translate-x-1/2 max-w-[calc(100%-1rem)]">
@@ -271,7 +271,7 @@ export function ControlPanel({
               : 'text-white/70 hover:bg-white/10 hover:text-white',
           ].join(' ')}
         >
-          Follow: {followLabel}
+          추적: {followLabel}
         </button>
 
         {/* Chaos perturbation — the condition axis. Only the figure-8 is
