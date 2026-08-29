@@ -44,8 +44,8 @@ export default function ExoplanetPage() {
         <h1 className="mb-1 text-3xl font-semibold text-cosmos-text">Exoplanet</h1>
         <p className="text-sm text-cosmos-muted">
           {loading
-            ? 'Loading planet catalog…'
-            : `${planets.length.toLocaleString()} confirmed exoplanets · NASA Exoplanet Archive`}
+            ? '행성 카탈로그 불러오는 중…'
+            : `확인된 외계행성 ${planets.length.toLocaleString()}개 · 출처 NASA Exoplanet Archive`}
         </p>
       </header>
 

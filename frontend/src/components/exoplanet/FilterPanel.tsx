@@ -30,7 +30,7 @@ export default function FilterPanel({ methods, selected, onChange, planets }: Pr
         onClick={toggleAll}
         className="rounded border border-cosmos-border px-3 py-1 font-mono text-xs tracking-wider text-cosmos-muted transition-colors hover:text-cosmos-text"
       >
-        {allSelected ? 'NONE' : 'ALL'}
+        {allSelected ? '전체 해제' : '전체 선택'}
       </button>
       {methods.map((method) => {
         const active = selected.has(method)

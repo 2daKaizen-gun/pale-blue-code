@@ -15,13 +15,13 @@ type SortDir = 'asc' | 'desc'
 const PAGE_SIZE = 50
 
 const COLS: { key: SortKey; label: string; decimals?: number }[] = [
-  { key: 'pl_name', label: 'Planet' },
-  { key: 'hostname', label: 'Host Star' },
-  { key: 'discoverymethod', label: 'Method' },
-  { key: 'disc_year', label: 'Year' },
-  { key: 'pl_rade', label: 'Radius (R⊕)', decimals: 2 },
-  { key: 'pl_masse', label: 'Mass (M⊕)', decimals: 2 },
-  { key: 'pl_orbper', label: 'Period (days)', decimals: 3 },
+  { key: 'pl_name', label: '행성' },
+  { key: 'hostname', label: '모항성' },
+  { key: 'discoverymethod', label: '발견 방법' },
+  { key: 'disc_year', label: '발견 연도' },
+  { key: 'pl_rade', label: '반지름 (지구=1)', decimals: 2 },
+  { key: 'pl_masse', label: '질량 (지구=1)', decimals: 2 },
+  { key: 'pl_orbper', label: '공전 주기 (일)', decimals: 3 },
 ]
 
 function fmt(v: number | string | null | undefined, decimals = 2): string {
