@@ -1,18 +1,18 @@
+import { Link } from 'react-router-dom'
 import ApodWidget from '../components/apod/ApodWidget'
-import PhaseCard from '../components/phases/PhaseCard'
-import FrontierCTA from '../components/phases/FrontierCTA'
-import { PHASES } from '../constants/phases'
-import { learnPhases } from '../components/layout/navModel'
 
-// 토대 단계(Phase 0·1)는 전용 페이지가 없어 path='/' → 카드로 두면 홈으로
-// 되돌아오는 죽은 바로가기가 된다. 카드에서 빼되, 완료된 사실은 한 줄로 남긴다.
-const foundationPhases = PHASES.filter((p) => p.path === '/')
-
+/**
+ * 홈 = 두 갈래 허브. 맨 위에서 배우기/사냥하기 두 진입점만 제시하고, 여정의
+ * 상세(8단계 카드)는 사이드바 '배우기' 섹션이 담당한다 — 홈을 짧고 명확하게.
+ *
+ * ⚠️ 사냥하기 진입은 또 하나의 수업이 아니라 수업을 떠나는 것(분리 불변식). 옛
+ *    FrontierCTA의 정직한 프레이밍(대부분 빈손이지만 진짜 개척)을 이 카드가 잇는다.
+ */
 export default function HomePage() {
   return (
     <div className="max-w-5xl">
       {/* 헤더 */}
-      <header className="mb-12">
+      <header className="mb-10">
         <p className="text-cosmos-muted font-mono text-xs tracking-widest mb-2">
           PALE BLUE CODE
         </p>
@@ -21,59 +21,65 @@ export default function HomePage() {
         </h1>
         <p className="text-cosmos-muted text-sm leading-relaxed">
           비트가 모여 의미가 되고, 알고리즘이 우주를 그린다.<br />
-          NASA가 매일 보내주는 우주의 한 장면으로 시작하자.
+          두 갈래 중 하나로 시작하세요 — 배우거나, 직접 사냥하거나.
         </p>
       </header>
 
+      {/* 두 진입점 — 홈의 주된 선택 */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
+        {/* 배우기 */}
+        <Link
+          to="/solar"
+          className="group flex flex-col rounded-lg border border-cosmos-border bg-cosmos-surface p-6 transition-all hover:border-cosmos-nebula hover:bg-cosmos-elevated"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-2xl" aria-hidden>📖</span>
+            <span className="text-cosmos-text text-xl font-semibold">배우기</span>
+            <span className="text-cosmos-subtle font-mono text-xs tracking-widest ml-1">
+              THE JOURNEY
+            </span>
+          </div>
+          <p className="text-cosmos-muted text-sm leading-relaxed flex-1">
+            행성을 어떻게 찾는지, 인류가 우주를 이해해온 순서 그대로 —
+            태양계에서 신호까지 여덟 단계를 차근차근.
+          </p>
+          <span className="mt-5 inline-flex items-center gap-2 text-sm text-cosmos-text group-hover:text-cosmos-nebula transition-colors">
+            여정 시작 <span aria-hidden>→</span>
+          </span>
+        </Link>
+
+        {/* 사냥하기 — 진짜 도구(강조). 옛 FrontierCTA의 정직한 프레이밍을 잇는다. */}
+        <Link
+          to="/hunt/frontier"
+          className="group flex flex-col rounded-lg border border-cosmos-nebula/30 bg-gradient-to-br from-cosmos-elevated to-cosmos-surface p-6 transition-all hover:border-cosmos-nebula"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-2xl" aria-hidden>🛰️</span>
+            <span className="text-cosmos-text text-xl font-semibold">사냥하기</span>
+            <span className="text-cosmos-nebula font-mono text-xs tracking-widest ml-1">
+              THE FRONTIER · 라이브
+            </span>
+          </div>
+          <p className="text-cosmos-muted text-sm leading-relaxed flex-1">
+            진짜 하늘에서 직접. 아직 아무도 후보로 지목하지 않은 별을 우리 손으로 엽니다.
+            자동 파이프라인이 눈먼 틈을 겨눕니다 — 대부분은 빈손이지만, 그게 진짜 개척입니다.
+          </p>
+          <span className="mt-5 inline-flex items-center gap-2 text-sm text-cosmos-text group-hover:text-cosmos-nebula transition-colors">
+            개척지로 들어가기 <span aria-hidden>→</span>
+          </span>
+        </Link>
+      </section>
+
       {/* 구분선 */}
       <div className="border-t border-cosmos-border mb-12" />
 
-      {/* APOD 섹션 */}
-      <section className="mb-16">
+      {/* 오늘의 하늘 — 매일 바뀌는 곁들임 */}
+      <section>
         <h2 className="text-cosmos-nebula font-mono text-xs tracking-widest mb-6">
-          ASTRONOMY PICTURE OF THE DAY
+          ASTRONOMY PICTURE OF THE DAY · 오늘의 하늘
         </h2>
         <ApodWidget />
       </section>
-
-      {/* 구분선 */}
-      <div className="border-t border-cosmos-border mb-12" />
-
-      {/* 바로가기 — 홈 하단은 네비의 두 갈래(배우기 / 사냥하기)를 그대로 비춘다.
-          여기는 '배우기': 클릭 가능한 여정 카드만(learnPhases, nav와 같은 소스). */}
-      <section>
-        <h2 className="text-cosmos-nebula font-mono text-xs tracking-widest mb-2">
-          📖 배우기 — ROADMAP
-        </h2>
-        <p className="text-cosmos-muted text-sm mb-3">
-          인류가 우주를 이해해온 순서를 그대로 코드로 다시 그린다. 아래 단계를 순서대로
-          따라가면 된다.
-        </p>
-
-        {/* 토대(Phase 0·1)는 완료된 사실만 한 줄로 — 클릭 대상 아님 */}
-        {foundationPhases.length > 0 && (
-          <p className="text-cosmos-subtle text-xs mb-8">
-            토대는 이미 놓였습니다 ·{' '}
-            {foundationPhases.map((p, i) => (
-              <span key={p.number}>
-                {i > 0 && ' · '}
-                {p.emoji} {p.title}
-              </span>
-            ))}{' '}
-            <span className="text-cosmos-aurora">✓ 완료</span>
-          </p>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {learnPhases.map((phase) => (
-            <PhaseCard key={phase.number} phase={phase} />
-          ))}
-        </div>
-      </section>
-
-      {/* '사냥하기' 진입 — 로드맵 격자 밖에 두는 분리 불변식: 개척지는 또 하나의
-          수업이 아니라, 수업을 떠나는 것. (nav의 손배치 🛰️ 링크와 같은 원칙) */}
-      <FrontierCTA />
     </div>
   )
 }
