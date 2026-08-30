@@ -62,7 +62,7 @@ export default function DataPage() {
         setFoldData(folded)
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Unknown error')
+      setError(e instanceof Error ? e.message : '알 수 없는 오류')
     } finally {
       setLoading(false)
       setLoadingMsg('')
@@ -86,7 +86,7 @@ export default function DataPage() {
         }
       })
       .catch((e: unknown) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Unknown error')
+        if (!cancelled) setError(e instanceof Error ? e.message : '알 수 없는 오류')
       })
       .finally(() => {
         if (!cancelled) { setLoading(false); setLoadingMsg('') }

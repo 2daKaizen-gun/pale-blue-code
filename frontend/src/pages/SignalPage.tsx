@@ -110,7 +110,7 @@ export default function SignalPage() {
 
       {error && (
         <div className="flex min-h-[40vh] items-center justify-center font-mono text-sm text-red-400">
-          ERROR: {error}
+          오류: {error}
         </div>
       )}
 

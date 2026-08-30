@@ -104,7 +104,7 @@ export default function FrontierHuntPage() {
 
   const runHunt = useCallback(async (kicId: number) => {
     const fail = (e: unknown) =>
-      setError(e instanceof Error ? e.message : 'Unknown error')
+      setError(e instanceof Error ? e.message : '알 수 없는 오류')
 
     // Prime the LC cache so BLS won't 424. LC itself isn't displayed.
     setLcLoading(true)
@@ -118,7 +118,7 @@ export default function FrontierHuntPage() {
         // No light curve = never hunted; logged apart from the hunt count.
         setStats(computeStats(recordHunt(kicId, 'no_lc')))
       }
-      setError(noLc ? m.noLcHint : msg || 'Unknown error')
+      setError(noLc ? m.noLcHint : msg || '알 수 없는 오류')
       return
     } finally {
       setLcLoading(false)
@@ -145,7 +145,7 @@ export default function FrontierHuntPage() {
         // The hunt ran to a verdict — tally it by trust (the honest outcome).
         setStats(computeStats(recordHunt(kicId, report.trust)))
       })
-      .catch((e) => setVetError(e instanceof Error ? e.message : 'Unknown error'))
+      .catch((e) => setVetError(e instanceof Error ? e.message : '알 수 없는 오류'))
       .finally(() => setVetLoading(false))
   }, [mission, m])
 
@@ -165,7 +165,7 @@ export default function FrontierHuntPage() {
       try {
         rec = await checkRecorded(kicId, mission)
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Unknown error')
+        setError(e instanceof Error ? e.message : '알 수 없는 오류')
         return
       } finally {
         setCheckLoading(false)
@@ -266,7 +266,7 @@ export default function FrontierHuntPage() {
 
           {error && (
             <div className="flex min-h-[20vh] items-center justify-center px-4 text-center font-mono text-sm text-red-400">
-              {error}
+              오류: {error}
             </div>
           )}
 

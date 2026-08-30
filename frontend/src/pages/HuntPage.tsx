@@ -55,7 +55,7 @@ export default function HuntPage() {
     setVetError(null)
 
     const fail = (e: unknown) =>
-      setError(e instanceof Error ? e.message : 'Unknown error')
+      setError(e instanceof Error ? e.message : '알 수 없는 오류')
 
     // Step 1: prime the backend LC cache so the BLS endpoint won't 424.
     // The light curve itself is not displayed — BLS re-reads it server-side.
@@ -94,7 +94,7 @@ export default function HuntPage() {
 
     const vetRun = fetchVetting(kicId)
       .then(setVetReport)
-      .catch((e) => setVetError(e instanceof Error ? e.message : 'Unknown error'))
+      .catch((e) => setVetError(e instanceof Error ? e.message : '알 수 없는 오류'))
       .finally(() => setVetLoading(false))
 
     await Promise.all([koiRun, vetRun])
@@ -204,7 +204,7 @@ export default function HuntPage() {
 
           {error && (
             <div className="flex min-h-[20vh] items-center justify-center font-mono text-sm text-red-400">
-              ERROR: {error}
+              오류: {error}
             </div>
           )}
 
