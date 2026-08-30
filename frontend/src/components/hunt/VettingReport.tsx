@@ -41,19 +41,19 @@ const TRUST: Record<
   strong: {
     ring: 'border-emerald-500/50 bg-emerald-500/10',
     badge: 'border-emerald-400/50 bg-emerald-500/10 text-emerald-300',
-    label: 'TRUSTWORTHY CANDIDATE',
+    label: '신뢰할 만한 후보',
     line: '네 검사를 모두 통과했습니다 — 행성 후보로서 신뢰할 만합니다.',
   },
   weak: {
     ring: 'border-amber-500/50 bg-amber-500/10',
     badge: 'border-amber-400/50 bg-amber-500/10 text-amber-300',
-    label: 'NEEDS REVIEW',
+    label: '검토 필요',
     line: '일부 검사에서 애매합니다 — 후보이지만 추가 검토가 필요합니다.',
   },
   unlikely: {
     ring: 'border-cosmos-border bg-cosmos-bg',
     badge: 'border-cosmos-subtle bg-cosmos-bg text-cosmos-muted',
-    label: 'LIKELY NOT A PLANET',
+    label: '행성 아닐 가능성 높음',
     line: '쌍성·위양성 가능성이 높습니다 — 후보로 보고하지 않는 것을 권합니다.',
   },
 }

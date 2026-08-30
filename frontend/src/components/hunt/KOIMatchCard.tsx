@@ -34,7 +34,7 @@ export default function KOIMatchCard({ kicId, period, matches }: Props) {
     return (
       <div className="rounded-lg border border-purple-500/50 bg-purple-500/10 p-5">
         <span className="inline-block rounded border border-purple-400/50 bg-purple-500/10 px-2 py-0.5 font-mono text-xs tracking-widest text-purple-300">
-          NOT IN KOI CATALOG
+KOI 카탈로그에 없음
         </span>
         <p className="mt-3 text-lg font-semibold text-cosmos-text">
           이 신호는 KOI 카탈로그에 없습니다
@@ -55,7 +55,7 @@ export default function KOIMatchCard({ kicId, period, matches }: Props) {
   return (
     <div className="rounded-lg border border-cosmos-border bg-cosmos-elevated p-5">
       <p className="mb-1 font-mono text-xs tracking-widest text-cosmos-muted">
-        KOI CROSS-CHECK — KIC {kicId}
+        KOI 대조 — KIC {kicId}
       </p>
       <p className="mb-4 text-lg font-semibold text-cosmos-text">{headline}</p>
       <ul className="flex flex-col gap-3">

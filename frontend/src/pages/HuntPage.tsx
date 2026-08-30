@@ -140,7 +140,7 @@ export default function HuntPage() {
         <>
           <div className="rounded-lg border border-cosmos-border bg-cosmos-surface p-4">
             <p className="font-mono text-xs tracking-widest text-cosmos-muted">
-              DEMO TARGETS — 알려진 사례
+시연 표적 — 알려진 사례
             </p>
             <p className="mt-1 text-sm text-cosmos-muted">
               아래 별들은 이미 카탈로그에 등록된 <span className="text-cosmos-text">알려진 KOI</span>입니다 —
@@ -161,7 +161,7 @@ export default function HuntPage() {
 
           <div className="flex flex-col gap-2 rounded-lg border border-cosmos-border bg-cosmos-elevated p-5">
             <p className="font-mono text-xs tracking-widest text-cosmos-muted">
-              ADVANCED — 자유 탐색
+고급 — 자유 탐색
             </p>
             <p className="text-sm text-cosmos-muted">KIC 번호를 직접 입력해 임의의 케플러 별을 사냥하세요.</p>
             <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -177,7 +177,7 @@ export default function HuntPage() {
                 disabled={!manualKic.trim()}
                 className="w-full rounded-lg border border-cosmos-nebula bg-cosmos-elevated px-4 py-2 font-mono text-sm text-cosmos-nebula transition-colors hover:bg-cosmos-nebula hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
               >
-                HUNT
+                사냥
               </button>
             </div>
           </div>
