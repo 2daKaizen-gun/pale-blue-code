@@ -1,9 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import {
   computeStats,
   appendEntry,
   parseLog,
   serializeLog,
+  loadHuntLog,
+  recordHunt,
+  clearHuntLog,
   type HuntLogEntry,
 } from './huntLog'
 
@@ -116,5 +119,87 @@ describe('parseLog', () => {
     const parsed = parseLog(raw)
     expect(parsed).toHaveLength(2)
     expect(parsed.map((e) => e.kic_id)).toEqual([1, 3])
+  })
+})
+
+// ── localStorage wrappers (thin persistence over the pure core) ───────────────
+// vitest runs in the `node` environment (no localStorage), so we install an
+// in-memory stub — which also lets us model the two failure modes the wrapper
+// guards against: storage absent (SSR), and access that throws (strict privacy).
+
+function installMemoryStorage(): void {
+  const store = new Map<string, string>()
+  const mock = {
+    get length() { return store.size },
+    clear: () => store.clear(),
+    getItem: (k: string) => (store.has(k) ? store.get(k)! : null),
+    setItem: (k: string, v: string) => { store.set(k, String(v)) },
+    removeItem: (k: string) => { store.delete(k) },
+    key: (i: number) => Array.from(store.keys())[i] ?? null,
+  }
+  Object.defineProperty(globalThis, 'localStorage', { value: mock, configurable: true, writable: true })
+}
+
+function removeStorage(): void {
+  Reflect.deleteProperty(globalThis as object, 'localStorage')
+}
+
+function installThrowingStorage(): void {
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    get() { throw new Error('access denied (privacy mode)') },
+  })
+}
+
+afterEach(() => { removeStorage() })
+
+describe('huntLog localStorage wrappers', () => {
+  it('loadHuntLog returns [] when storage is empty', () => {
+    installMemoryStorage()
+    expect(loadHuntLog()).toEqual([])
+  })
+
+  it('recordHunt persists an outcome that a fresh loadHuntLog reads back', () => {
+    installMemoryStorage()
+    const after = recordHunt(11442793, 'strong')
+    expect(after).toHaveLength(1)
+    expect(after[0]).toMatchObject({ kic_id: 11442793, outcome: 'strong' })
+    expect(typeof after[0].at).toBe('string')
+    // persisted, not merely returned — a fresh read sees it
+    expect(loadHuntLog().map((e) => e.kic_id)).toEqual([11442793])
+  })
+
+  it('recordHunt appends across calls; computeStats aggregates the persisted log', () => {
+    installMemoryStorage()
+    recordHunt(1, 'strong')
+    recordHunt(2, 'unlikely')
+    recordHunt(3, 'recorded')
+    expect(computeStats(loadHuntLog())).toMatchObject({
+      hunts: 2, candidates: 1, emptyHands: 1, recorded: 1,
+    })
+  })
+
+  it('clearHuntLog wipes the persisted log', () => {
+    installMemoryStorage()
+    recordHunt(1, 'weak')
+    expect(loadHuntLog()).toHaveLength(1)
+    expect(clearHuntLog()).toEqual([])
+    expect(loadHuntLog()).toEqual([])
+  })
+
+  it('degrades gracefully when localStorage is absent (the hunt still works, just untracked)', () => {
+    removeStorage()
+    const after = recordHunt(7, 'strong')
+    expect(after).toHaveLength(1) // returned so the caller can still show a tally this session
+    expect(after[0].kic_id).toBe(7)
+    expect(loadHuntLog()).toEqual([]) // a load without storage is empty, never a throw
+  })
+
+  it('never throws when localStorage access itself throws (strict privacy mode)', () => {
+    installThrowingStorage()
+    expect(() => loadHuntLog()).not.toThrow()
+    expect(loadHuntLog()).toEqual([])
+    expect(() => recordHunt(9, 'strong')).not.toThrow()
+    expect(() => clearHuntLog()).not.toThrow()
   })
 })
