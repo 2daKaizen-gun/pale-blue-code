@@ -164,8 +164,8 @@ export function ControlPanel({
           <button
             type="button"
             onClick={() => selectPreset(presetId)}
-            aria-label="Reload preset"
-            title="Reload preset — clean re-seed (R)"
+            aria-label="프리셋 다시 불러오기"
+            title="프리셋 다시 불러오기 — 깨끗이 재시드 (R)"
             className="rounded-lg px-3 py-1.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
           >
             ↻
@@ -187,7 +187,7 @@ export function ControlPanel({
           </button>
           <div
             role="group"
-            aria-label="Visual speed"
+            aria-label="화면 속도"
             className="flex items-center gap-1 rounded-xl bg-white/5 p-0.5"
           >
             {TIME_SPEEDS.map((speed) => {
@@ -263,7 +263,7 @@ export function ControlPanel({
           type="button"
           onClick={cycleFollow}
           aria-pressed={followIndex != null}
-          title="Follow a body — the camera tracks it (click to cycle)"
+          title="천체 추적 — 카메라가 따라갑니다 (클릭해 순환)"
           className={[
             'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
             followIndex != null
@@ -297,7 +297,7 @@ export function ControlPanel({
                 onChange={(e) => setDraft(parseFloat(e.target.value))}
                 onPointerUp={() => setPerturbation(draft)}
                 onKeyUp={() => setPerturbation(draft)}
-                aria-label="Three-body initial perturbation (nudge the starting point)"
+                aria-label="3체 초기 섭동 (시작점 흔들기)"
                 className="w-24 accent-white"
               />
               <span className="w-12 font-mono text-[11px] tabular-nums text-white/70">

@@ -29,8 +29,8 @@ export function ControlPanel() {
         <button
           type="button"
           onClick={handleReset}
-          aria-label="Reset view and controls"
-          title="Reset camera and controls to default"
+          aria-label="화면·컨트롤 초기화"
+          title="카메라·컨트롤을 기본값으로 초기화"
           className="rounded-lg px-3 py-1.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
         >
           ↻
@@ -44,7 +44,7 @@ export function ControlPanel() {
             htmlFor="bh-mass"
             className="text-xs font-medium uppercase tracking-wide text-white/40"
           >
-            Mass
+            질량
           </label>
           <input
             id="bh-mass"
@@ -54,7 +54,7 @@ export function ControlPanel() {
             step={0.05}
             value={mass}
             onChange={(e) => setMass(parseFloat(e.target.value))}
-            aria-label="Black hole mass (scales Schwarzschild radius)"
+            aria-label="블랙홀 질량 (슈바르츠실트 반지름 조절)"
             className="w-28 accent-white"
           />
           <span className="w-8 font-mono text-[11px] tabular-nums text-white/70">
@@ -65,9 +65,9 @@ export function ControlPanel() {
         <div className="hidden md:block h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
 
         {/* Steps toggle — quality vs speed, mirrors Phase 3 integrator toggle */}
-        <div role="group" aria-label="Integration steps" className="flex items-center gap-1">
+        <div role="group" aria-label="적분 단계 수" className="flex items-center gap-1">
           <span className="px-1 text-xs font-medium uppercase tracking-wide text-white/40">
-            Steps
+            단계 수
           </span>
           <div className="flex items-center gap-1 rounded-xl bg-white/5 p-0.5">
             {STEPS_OPTIONS.map((s) => {
@@ -78,7 +78,7 @@ export function ControlPanel() {
                   type="button"
                   onClick={() => setSteps(s)}
                   aria-pressed={active}
-                  title={`${s} RK4 steps per pixel — more = sharper ring, heavier GPU`}
+                  title={`픽셀당 RK4 ${s}단계 — 많을수록 고리는 선명하고 GPU 부담은 커집니다`}
                   className={[
                     'rounded-lg px-3 py-1.5 text-sm font-medium tabular-nums transition-colors',
                     active
@@ -100,7 +100,7 @@ export function ControlPanel() {
           type="button"
           onClick={() => setShowHorizon(!showHorizon)}
           aria-pressed={showHorizon}
-          title="Show event horizon ring overlay"
+          title="사건 지평선 고리 표시"
           className={[
             'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
             showHorizon
@@ -108,7 +108,7 @@ export function ControlPanel() {
               : 'text-white/70 hover:bg-white/10 hover:text-white',
           ].join(' ')}
         >
-          Horizon
+          지평선
         </button>
 
         <div className="hidden md:block h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
@@ -118,7 +118,7 @@ export function ControlPanel() {
           type="button"
           onClick={() => setDiskVisible(!diskVisible)}
           aria-pressed={diskVisible}
-          title="Show accretion disk with Doppler beaming"
+          title="도플러 빔 강착 원반 표시"
           className={[
             'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
             diskVisible
@@ -126,7 +126,7 @@ export function ControlPanel() {
               : 'text-white/70 hover:bg-white/10 hover:text-white',
           ].join(' ')}
         >
-          Disk
+          원반
         </button>
 
       </div>

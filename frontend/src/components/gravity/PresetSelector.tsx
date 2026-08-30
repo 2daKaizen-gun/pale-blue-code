@@ -32,7 +32,7 @@ export function PresetSelector() {
     <div className="absolute top-4 md:top-6 left-1/2 z-10 -translate-x-1/2 max-w-[calc(100%-1rem)]">
       <div
         role="group"
-        aria-label="System preset"
+        aria-label="시스템 프리셋"
         className="flex items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl border border-white/10 bg-black/40 px-3 py-2 shadow-2xl backdrop-blur-md"
       >
         {PRESETS.map((preset) => {
