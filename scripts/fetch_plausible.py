@@ -15,6 +15,7 @@ Run from backend/:
 """
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -27,9 +28,15 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Fetch the plausible dwarfs' light curves.")
     ap.add_argument("--limit", type=int, default=4, help="max curves to fetch this run")
     ap.add_argument("--plan", action="store_true", help="print the plan and fetch nothing")
+    ap.add_argument("--pool", default=None,
+                    help="pool JSON to hunt (default: the tracked frontier). Lets an older "
+                         "sector be hunted from its own file without disturbing the frontier.")
     args = ap.parse_args()
 
-    plan = fp.fetch_plan()
+    # A chosen pool feeds its stars into the (already stars-parameterized) plan; the default
+    # None lets fetch_plan load the tracked frontier itself, so existing runs are unchanged.
+    stars = json.loads(Path(args.pool).read_text(encoding="utf-8"))["stars"] if args.pool else None
+    plan = fp.fetch_plan(stars=stars)
     s = plan["summary"]
     print(f"plausible targets: {s['plausible']}  cached: {s['cached']}  pending: {s['pending']}")
     print(f"best target: {s['best_target']}  (>= {s['best_min_planet_rjup']:.2f} R_jup)")

@@ -17,6 +17,7 @@ Run from anywhere:
     python scripts/completeness_hunt.py
 """
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -56,7 +57,12 @@ def _measured_floor(planet_name: str):
 
 
 def main() -> None:
-    pool = json.loads(POOL.read_text(encoding="utf-8"))
+    ap = argparse.ArgumentParser(description="Achieved completeness of the pool from measured floors.")
+    ap.add_argument("--pool", default=str(POOL),
+                    help="pool JSON to assess (default: the tracked frontier)")
+    args = ap.parse_args()
+
+    pool = json.loads(Path(args.pool).read_text(encoding="utf-8"))
     stars = pool["stars"]
     radius_by_tic = {int(s["tic"]): s.get("radius") for s in stars}
 

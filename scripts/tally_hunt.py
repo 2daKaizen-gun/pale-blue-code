@@ -113,9 +113,11 @@ def compute_tally(stars: list[dict]) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser(description="Recompute the dwarf-pool hunt tally from the caches.")
     ap.add_argument("--rejected", action="store_true", help="list each rejected event's sig + gates")
+    ap.add_argument("--pool", default=str(POOL),
+                    help="pool JSON to tally (default: the tracked frontier)")
     args = ap.parse_args()
 
-    pool = json.loads(POOL.read_text(encoding="utf-8"))
+    pool = json.loads(Path(args.pool).read_text(encoding="utf-8"))
     stars = pool["stars"]
     t = compute_tally(stars)
 

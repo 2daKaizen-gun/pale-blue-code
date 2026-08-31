@@ -70,9 +70,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Search the pool's fetched-but-unsearched dwarfs.")
     ap.add_argument("--limit", type=int, default=8, help="max stars to search this run")
     ap.add_argument("--plan", action="store_true", help="list what would be searched, run nothing")
+    ap.add_argument("--pool", default=str(POOL),
+                    help="pool JSON to hunt (default: the tracked frontier)")
     args = ap.parse_args()
 
-    stars = json.loads(POOL.read_text(encoding="utf-8"))["stars"]
+    stars = json.loads(Path(args.pool).read_text(encoding="utf-8"))["stars"]
     pending = pending_to_search(stars)
     print("fetched, not searched: %d  (searching up to %d)" % (len(pending), args.limit), flush=True)
     for name in pending:
