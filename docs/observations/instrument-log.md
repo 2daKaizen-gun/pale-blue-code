@@ -794,3 +794,23 @@ smallest-first dwarfs were kept — radius 0.160–1.066 R☉ (median 0.809), th
 dwarf. Four of the 100 already carry a cached result (their TIC was searched in an earlier sector —
 the same star, honestly counted), so the sweep opens at 4 of 100. This is a more-picked-over sky than
 the frontier, but the single-transit regime is unspent in it too; the same measured five gates apply.
+
+**First batch — the 8 smallest dwarfs (12 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  3 quiet · 4 insignificant · 1 rejected · 0 candidates
+
+  tic-120459870   rejected   sig 32.23  symmetry
+  3 quiet: 331681541, 352567256, 319867890
+  (4 insignificant: 351808240, 466229760, 401571823, 456618376 — sub-σ, baseline/flare)
+
+cumulative: 12 of 100 searched — 4 quiet · 6 insignificant · 2 rejected · 0 candidates
+```
+
+Sector 103 opens on the same grammar sector 105 spoke. The one loud event, TIC 120459870 (sig 32.23),
+is turned away by symmetry alone — a lopsided dip with clean edges, the shape a real transit is not;
+the sector's picked-over sky offers no free pass. The four insignificant reads are sub-σ wobble that
+never cleared the significance precondition. Because this batch is the pool's *smallest* dwarfs, the
+achieved sensitivity is at its sharpest: over the 12 searched, best 0.7 · median 1.5 R⊕, with 4 of 12
+clean enough for an Earth and 9 of 12 for a super-Earth. Zero candidates across the first twelve
+dwarfs of sector 103; 88 remain.
