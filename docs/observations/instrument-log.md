@@ -814,3 +814,22 @@ never cleared the significance precondition. Because this batch is the pool's *s
 achieved sensitivity is at its sharpest: over the 12 searched, best 0.7 · median 1.5 R⊕, with 4 of 12
 clean enough for an Earth and 9 of 12 for a super-Earth. Zero candidates across the first twelve
 dwarfs of sector 103; 88 remain.
+
+**Second batch — the next 8 dwarfs (20 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  3 quiet · 5 insignificant · 0 rejected · 0 candidates
+
+  3 quiet: 292292038, 201289286, 331754686
+  (5 insignificant: 295316003, 469972882, 325220064, 469882306, 466265409 — sub-σ, baseline)
+
+cumulative: 20 of 100 searched — 7 quiet · 11 insignificant · 2 rejected · 0 candidates
+```
+
+The quietest batch yet — not one event cleared the significance precondition, so no shape gate even
+ran; every read is either a flat curve or sub-σ baseline wobble. Three of the eight took over ten
+minutes each to search (long, densely-sampled curves), and all came back empty-handed. A fifth of the
+older sky is swept now, quiet and noise running 7 to 11, the two rejects both from the first batch.
+Cumulative achieved completeness over the 20 holds at best 0.7 · median 1.5 R⊕: 6 of 20 clean enough
+for an Earth, 15 of 20 for a super-Earth. Zero candidates across the first twenty dwarfs of sector
+103; 80 remain.
