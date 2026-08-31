@@ -780,3 +780,17 @@ settles at best 0.6 · median 4.1 R⊕: 5 of 100 clean enough for an Earth, 14 o
 47 of 100 for a sub-Neptune, 65 of 100 for a Neptune. The null is exactly this strong and no stronger
 — across the hundred smallest dwarfs of a fresh, un-picked-over patch of sky, no single-transit
 planet candidate is present down to the size each curve was clean enough to have shown.
+
+---
+
+## Older sky — sector 103 (sub-11-21)
+
+With 104 and 105 swept in full and sector 106 not yet live, the honest next real sky is an *older*
+sector already on MAST but never hunted for the single transit its repeated-transit pipelines are
+blind to. The hunt scripts gained a `--pool` flag (sub-11-21) so an older sector can be hunted from
+its own file without disturbing the tracked frontier (sector 105, 100/100). Sector 103 was built to
+`data/pool_s0103.json`: **13,000 SPOC targets, 12,663 absent from the TOI catalog**, of which the 100
+smallest-first dwarfs were kept — radius 0.160–1.066 R☉ (median 0.809), the smallest an R★ 0.160 M
+dwarf. Four of the 100 already carry a cached result (their TIC was searched in an earlier sector —
+the same star, honestly counted), so the sweep opens at 4 of 100. This is a more-picked-over sky than
+the frontier, but the single-transit regime is unspent in it too; the same measured five gates apply.

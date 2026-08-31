@@ -1,0 +1,1014 @@
+{
+  "schema": "pale-blue-code/frontier-seeds-tess@2",
+  "built_at": "2026-08-31T01:26:57Z",
+  "criteria": "newest SPOC sector; tid absent from toi_catalog; 2-min light curve exists; selected by 'hunt' (smallest stars first \u2014 planet-size hunt targets)",
+  "latest_sector": 103,
+  "sectors": [
+    103
+  ],
+  "count": 100,
+  "stars": [
+    {
+      "tic": 351808240,
+      "observed_at": "2026-04-21",
+      "constellation": "Scorpius",
+      "tmag": 12.3637,
+      "teff": 2928.0,
+      "radius": 0.159928,
+      "distance_pc": 13.9968
+    },
+    {
+      "tic": 466229760,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 11.478,
+      "teff": 31000.0,
+      "radius": 0.18,
+      "distance_pc": 169.844
+    },
+    {
+      "tic": 331681541,
+      "observed_at": "2026-04-21",
+      "constellation": "Octans",
+      "tmag": 11.0402,
+      "teff": 3183.0,
+      "radius": 0.206347,
+      "distance_pc": 12.8654
+    },
+    {
+      "tic": 352567256,
+      "observed_at": "2026-04-21",
+      "constellation": "Indus",
+      "tmag": 11.8466,
+      "teff": 3361.0,
+      "radius": 0.242149,
+      "distance_pc": 23.8435
+    },
+    {
+      "tic": 319867890,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 12.0859,
+      "teff": 3266.0,
+      "radius": 0.253161,
+      "distance_pc": 25.6616
+    },
+    {
+      "tic": 401571823,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 12.6906,
+      "teff": 3371.0,
+      "radius": 0.266929,
+      "distance_pc": 38.2212
+    },
+    {
+      "tic": 456618376,
+      "observed_at": "2026-04-21",
+      "constellation": "Telescopium",
+      "tmag": 12.3981,
+      "teff": 3258.0,
+      "radius": 0.27489,
+      "distance_pc": 32.6219
+    },
+    {
+      "tic": 120459870,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 10.2255,
+      "teff": 3281.0,
+      "radius": 0.278637,
+      "distance_pc": 12.3067
+    },
+    {
+      "tic": 292292038,
+      "observed_at": "2026-04-22",
+      "constellation": "Pavo",
+      "tmag": 12.2649,
+      "teff": 3307.0,
+      "radius": 0.288744,
+      "distance_pc": 33.5373
+    },
+    {
+      "tic": 295316003,
+      "observed_at": "2026-04-22",
+      "constellation": "Apus",
+      "tmag": 12.9597,
+      "teff": 3456.0,
+      "radius": 0.295498,
+      "distance_pc": 51.1991
+    },
+    {
+      "tic": 201289286,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 11.5771,
+      "teff": 3206.0,
+      "radius": 0.295999,
+      "distance_pc": 23.7987
+    },
+    {
+      "tic": 331754686,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 10.7082,
+      "teff": 3410.0,
+      "radius": 0.302742,
+      "distance_pc": 18.3416
+    },
+    {
+      "tic": 469972882,
+      "observed_at": "2026-04-21",
+      "constellation": "Tucana",
+      "tmag": 12.7634,
+      "teff": 3461.0,
+      "radius": 0.306135,
+      "distance_pc": 50.8087
+    },
+    {
+      "tic": 325220064,
+      "observed_at": "2026-04-21",
+      "constellation": "Tucana",
+      "tmag": 11.726,
+      "teff": 3250.0,
+      "radius": 0.306221,
+      "distance_pc": 40.235157
+    },
+    {
+      "tic": 469882306,
+      "observed_at": "2026-04-21",
+      "constellation": "Indus",
+      "tmag": 12.9308,
+      "teff": 3274.0,
+      "radius": 0.322585,
+      "distance_pc": 49.8725
+    },
+    {
+      "tic": 197963243,
+      "observed_at": "2026-04-21",
+      "constellation": "Grus",
+      "tmag": 11.5884,
+      "teff": 3409.0,
+      "radius": 0.369827,
+      "distance_pc": 34.9127
+    },
+    {
+      "tic": 466265409,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 12.4083,
+      "teff": 3081.0,
+      "radius": 0.447839,
+      "distance_pc": 54.9913
+    },
+    {
+      "tic": 382133224,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 12.7403,
+      "teff": 3491.0,
+      "radius": 0.453514,
+      "distance_pc": 79.7573
+    },
+    {
+      "tic": 381285222,
+      "observed_at": "2026-04-21",
+      "constellation": "Triangulum Australe",
+      "tmag": 11.4602,
+      "teff": 3280.0,
+      "radius": 0.463848,
+      "distance_pc": 41.2314
+    },
+    {
+      "tic": 214184419,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 12.3185,
+      "teff": 3586.0,
+      "radius": 0.507901,
+      "distance_pc": 78.6899
+    },
+    {
+      "tic": 161382691,
+      "observed_at": "2026-04-21",
+      "constellation": "Grus",
+      "tmag": 12.7963,
+      "teff": 3777.0,
+      "radius": 0.55331,
+      "distance_pc": 119.677
+    },
+    {
+      "tic": 316830745,
+      "observed_at": "2026-04-21",
+      "constellation": "Indus",
+      "tmag": 11.6146,
+      "teff": 3864.0,
+      "radius": 0.583813,
+      "distance_pc": 75.6275
+    },
+    {
+      "tic": 80427281,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 11.1395,
+      "teff": 3479.0,
+      "radius": 0.584255,
+      "distance_pc": 52.5986
+    },
+    {
+      "tic": 381715567,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 12.5642,
+      "teff": 3710.0,
+      "radius": 0.5871,
+      "distance_pc": 114.696
+    },
+    {
+      "tic": 158532041,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 12.5649,
+      "teff": 3997.0,
+      "radius": 0.614794,
+      "distance_pc": 125.368
+    },
+    {
+      "tic": 316914814,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 12.3662,
+      "teff": 3946.0,
+      "radius": 0.619665,
+      "distance_pc": 121.742
+    },
+    {
+      "tic": 364200072,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 12.2489,
+      "teff": 3161.0,
+      "radius": 0.65155,
+      "distance_pc": 93.1752
+    },
+    {
+      "tic": 206556824,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 10.5765,
+      "teff": 4214.0,
+      "radius": 0.653918,
+      "distance_pc": 61.8329
+    },
+    {
+      "tic": 351249089,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 11.5905,
+      "teff": 4507.78,
+      "radius": 0.667731,
+      "distance_pc": 110.882
+    },
+    {
+      "tic": 148645247,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 12.5284,
+      "teff": 3377.0,
+      "radius": 0.675163,
+      "distance_pc": null
+    },
+    {
+      "tic": 141961356,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 12.861,
+      "teff": 3287.0,
+      "radius": 0.67575,
+      "distance_pc": null
+    },
+    {
+      "tic": 376672631,
+      "observed_at": "2026-04-22",
+      "constellation": "Pavo",
+      "tmag": 12.9786,
+      "teff": 3976.0,
+      "radius": 0.675814,
+      "distance_pc": 160.55
+    },
+    {
+      "tic": 129559129,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 12.4369,
+      "teff": 3618.0,
+      "radius": 0.688056,
+      "distance_pc": 132.945
+    },
+    {
+      "tic": 293494767,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 12.3633,
+      "teff": 4640.0,
+      "radius": 0.699391,
+      "distance_pc": 185.625
+    },
+    {
+      "tic": 383633205,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 12.4848,
+      "teff": 4780.0,
+      "radius": 0.704464,
+      "distance_pc": 205.17
+    },
+    {
+      "tic": 382197944,
+      "observed_at": "2026-04-22",
+      "constellation": "Pavo",
+      "tmag": 12.5158,
+      "teff": 4189.0,
+      "radius": 0.722817,
+      "distance_pc": 160.033
+    },
+    {
+      "tic": 301618084,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 12.9534,
+      "teff": 4338.0,
+      "radius": 0.726879,
+      "distance_pc": 216.92
+    },
+    {
+      "tic": 320529729,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 12.4196,
+      "teff": 4910.0,
+      "radius": 0.728758,
+      "distance_pc": 223.426
+    },
+    {
+      "tic": 307231874,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 10.741,
+      "teff": 4339.0,
+      "radius": 0.73124,
+      "distance_pc": 80.4353
+    },
+    {
+      "tic": 1989087030,
+      "observed_at": "2026-04-21",
+      "constellation": "Indus",
+      "tmag": 12.0095,
+      "teff": 5621.0,
+      "radius": 0.739457,
+      "distance_pc": 241.974
+    },
+    {
+      "tic": 364102824,
+      "observed_at": "2026-04-21",
+      "constellation": "Triangulum Australe",
+      "tmag": 12.6169,
+      "teff": 4738.0,
+      "radius": 0.756542,
+      "distance_pc": 232.705
+    },
+    {
+      "tic": 344128619,
+      "observed_at": "2026-04-22",
+      "constellation": "Pavo",
+      "tmag": 12.2076,
+      "teff": 4599.0,
+      "radius": 0.756764,
+      "distance_pc": 177.895
+    },
+    {
+      "tic": 206364011,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 12.4252,
+      "teff": 4296.0,
+      "radius": 0.758001,
+      "distance_pc": 174.798
+    },
+    {
+      "tic": 183229433,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 11.042,
+      "teff": 4741.0,
+      "radius": 0.765938,
+      "distance_pc": 117.557
+    },
+    {
+      "tic": 469907366,
+      "observed_at": "2026-04-21",
+      "constellation": "Tucana",
+      "tmag": 11.0323,
+      "teff": 4775.0,
+      "radius": 0.767414,
+      "distance_pc": 118.917
+    },
+    {
+      "tic": 464271372,
+      "observed_at": "2026-04-22",
+      "constellation": "Pavo",
+      "tmag": 9.1067,
+      "teff": 5196.0,
+      "radius": 0.773659,
+      "distance_pc": 59.5741
+    },
+    {
+      "tic": 466307646,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 12.3866,
+      "teff": 5104.0,
+      "radius": 0.774532,
+      "distance_pc": 251.115
+    },
+    {
+      "tic": 387293667,
+      "observed_at": "2026-04-21",
+      "constellation": "Indus",
+      "tmag": 12.1017,
+      "teff": 5429.0,
+      "radius": 0.784773,
+      "distance_pc": 252.786
+    },
+    {
+      "tic": 363275408,
+      "observed_at": "2026-04-21",
+      "constellation": "Triangulum Australe",
+      "tmag": 11.9907,
+      "teff": 5147.0,
+      "radius": 0.804078,
+      "distance_pc": 221.537
+    },
+    {
+      "tic": 1131062268,
+      "observed_at": "2026-04-21",
+      "constellation": "Circinus",
+      "tmag": 11.0091,
+      "teff": 4010.0,
+      "radius": 0.807528,
+      "distance_pc": 81.7812
+    },
+    {
+      "tic": 311792986,
+      "observed_at": "2026-04-22",
+      "constellation": "Apus",
+      "tmag": 12.4811,
+      "teff": 4612.0,
+      "radius": 0.809752,
+      "distance_pc": 221.473
+    },
+    {
+      "tic": 206584764,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 9.8269,
+      "teff": 4313.9,
+      "radius": 0.81027,
+      "distance_pc": null
+    },
+    {
+      "tic": 173987979,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 12.6806,
+      "teff": 5134.0,
+      "radius": 0.813248,
+      "distance_pc": 300.256
+    },
+    {
+      "tic": 1169133762,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 12.6798,
+      "teff": 5358.0,
+      "radius": 0.819986,
+      "distance_pc": 329.717
+    },
+    {
+      "tic": 160706790,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 11.8829,
+      "teff": 4885.0,
+      "radius": 0.825681,
+      "distance_pc": 196.091
+    },
+    {
+      "tic": 349963792,
+      "observed_at": "2026-04-21",
+      "constellation": "Norma",
+      "tmag": 12.403,
+      "teff": 5194.0,
+      "radius": 0.827991,
+      "distance_pc": 276.767
+    },
+    {
+      "tic": 447243289,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 11.7812,
+      "teff": 4468.0,
+      "radius": 0.830793,
+      "distance_pc": 153.517
+    },
+    {
+      "tic": 1511323527,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 11.7443,
+      "teff": 5274.0,
+      "radius": 0.831828,
+      "distance_pc": 217.067
+    },
+    {
+      "tic": 365557152,
+      "observed_at": "2026-04-22",
+      "constellation": "Pavo",
+      "tmag": 12.9002,
+      "teff": 4972.0,
+      "radius": 0.837777,
+      "distance_pc": 325.852
+    },
+    {
+      "tic": 265368974,
+      "observed_at": "2026-04-21",
+      "constellation": "Octans",
+      "tmag": 10.6263,
+      "teff": 5287.0,
+      "radius": 0.84511,
+      "distance_pc": 131.46
+    },
+    {
+      "tic": 465799362,
+      "observed_at": "2026-04-22",
+      "constellation": "Pavo",
+      "tmag": 10.9035,
+      "teff": 5188.0,
+      "radius": 0.846145,
+      "distance_pc": 145.438
+    },
+    {
+      "tic": 197764453,
+      "observed_at": "2026-04-21",
+      "constellation": "Indus",
+      "tmag": 10.5222,
+      "teff": 4975.0,
+      "radius": 0.846519,
+      "distance_pc": 105.723
+    },
+    {
+      "tic": 345173424,
+      "observed_at": "2026-04-22",
+      "constellation": "Pavo",
+      "tmag": 11.1124,
+      "teff": 5435.0,
+      "radius": 0.855137,
+      "distance_pc": 175.423
+    },
+    {
+      "tic": 383819890,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 10.0999,
+      "teff": 4983.0,
+      "radius": 0.856697,
+      "distance_pc": 95.7495
+    },
+    {
+      "tic": 222012610,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 6.4258,
+      "teff": 5732.41,
+      "radius": 0.86482,
+      "distance_pc": 23.1495
+    },
+    {
+      "tic": 74741564,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 10.8263,
+      "teff": 5251.0,
+      "radius": 0.87931,
+      "distance_pc": 148.596
+    },
+    {
+      "tic": 363138328,
+      "observed_at": "2026-04-21",
+      "constellation": "Triangulum Australe",
+      "tmag": 11.9522,
+      "teff": 5686.86,
+      "radius": 0.881445,
+      "distance_pc": 288.066
+    },
+    {
+      "tic": 118058766,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 10.7382,
+      "teff": 5731.0,
+      "radius": 0.88868,
+      "distance_pc": 169.811
+    },
+    {
+      "tic": 343404433,
+      "observed_at": "2026-04-22",
+      "constellation": "Apus",
+      "tmag": 11.8578,
+      "teff": 5237.0,
+      "radius": 0.891466,
+      "distance_pc": 239.307
+    },
+    {
+      "tic": 159369487,
+      "observed_at": "2026-04-21",
+      "constellation": "Centaurus",
+      "tmag": 12.4315,
+      "teff": 3541.0,
+      "radius": 0.892744,
+      "distance_pc": 126.154
+    },
+    {
+      "tic": 211597070,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 10.1066,
+      "teff": 5407.0,
+      "radius": 0.893646,
+      "distance_pc": 114.195
+    },
+    {
+      "tic": 208116500,
+      "observed_at": "2026-04-21",
+      "constellation": "Norma",
+      "tmag": 12.0738,
+      "teff": 5049.0,
+      "radius": 0.898757,
+      "distance_pc": 240.575
+    },
+    {
+      "tic": 206564564,
+      "observed_at": "2026-04-21",
+      "constellation": "Tucana",
+      "tmag": 11.853,
+      "teff": 5872.0,
+      "radius": 0.914285,
+      "distance_pc": 304.842
+    },
+    {
+      "tic": 155896956,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 6.1925,
+      "teff": 5664.51,
+      "radius": 0.914298,
+      "distance_pc": 23.01496
+    },
+    {
+      "tic": 266879343,
+      "observed_at": "2026-04-21",
+      "constellation": "Tucana",
+      "tmag": 11.4638,
+      "teff": 5801.0,
+      "radius": 0.918257,
+      "distance_pc": 251.866
+    },
+    {
+      "tic": 271326317,
+      "observed_at": "2026-04-21",
+      "constellation": "Triangulum Australe",
+      "tmag": 11.6671,
+      "teff": 5100.0,
+      "radius": 0.918831,
+      "distance_pc": 211.281
+    },
+    {
+      "tic": 234548762,
+      "observed_at": "2026-04-21",
+      "constellation": "Tucana",
+      "tmag": 12.292,
+      "teff": 5572.0,
+      "radius": 0.924855,
+      "distance_pc": 346.925
+    },
+    {
+      "tic": 334041309,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 12.0584,
+      "teff": 3961.0,
+      "radius": 0.926276,
+      "distance_pc": 142.561
+    },
+    {
+      "tic": 298639326,
+      "observed_at": "2026-04-21",
+      "constellation": "Triangulum Australe",
+      "tmag": 12.8385,
+      "teff": 5428.0,
+      "radius": 0.930831,
+      "distance_pc": 411.77
+    },
+    {
+      "tic": 96152143,
+      "observed_at": "2026-04-21",
+      "constellation": "Scorpius",
+      "tmag": 11.053,
+      "teff": 4388.0,
+      "radius": 0.933706,
+      "distance_pc": 115.787
+    },
+    {
+      "tic": 362172901,
+      "observed_at": "2026-04-21",
+      "constellation": "Triangulum Australe",
+      "tmag": 11.8302,
+      "teff": 5658.0,
+      "radius": 0.936492,
+      "distance_pc": 285.668
+    },
+    {
+      "tic": 301403623,
+      "observed_at": "2026-04-21",
+      "constellation": "Triangulum Australe",
+      "tmag": 12.5697,
+      "teff": 4465.0,
+      "radius": 0.953493,
+      "distance_pc": 254.05
+    },
+    {
+      "tic": 421937394,
+      "observed_at": "2026-04-21",
+      "constellation": "Octans",
+      "tmag": 9.4597,
+      "teff": 6147.0,
+      "radius": 0.960588,
+      "distance_pc": 112.982
+    },
+    {
+      "tic": 382643945,
+      "observed_at": "2026-04-21",
+      "constellation": "Scorpius",
+      "tmag": 9.4757,
+      "teff": 6638.0,
+      "radius": 0.961034,
+      "distance_pc": 123.966
+    },
+    {
+      "tic": 8418378,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 12.0337,
+      "teff": 3974.0,
+      "radius": 0.966058,
+      "distance_pc": 136.287
+    },
+    {
+      "tic": 291359245,
+      "observed_at": "2026-04-21",
+      "constellation": "Scorpius",
+      "tmag": 10.2031,
+      "teff": 5993.0,
+      "radius": 0.991798,
+      "distance_pc": 145.183
+    },
+    {
+      "tic": 616117470,
+      "observed_at": "2026-04-21",
+      "constellation": "Phoenix",
+      "tmag": 12.118,
+      "teff": 5893.0,
+      "radius": 0.994213,
+      "distance_pc": 381.141
+    },
+    {
+      "tic": 376075280,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 12.7055,
+      "teff": 5456.0,
+      "radius": 0.998311,
+      "distance_pc": 426.508
+    },
+    {
+      "tic": 386943436,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 10.327,
+      "teff": 5959.0,
+      "radius": 1.00001,
+      "distance_pc": 157.142
+    },
+    {
+      "tic": 451463754,
+      "observed_at": "2026-04-21",
+      "constellation": "Triangulum Australe",
+      "tmag": 11.5301,
+      "teff": 5906.0,
+      "radius": 1.00651,
+      "distance_pc": 290.737
+    },
+    {
+      "tic": 233981889,
+      "observed_at": "2026-04-21",
+      "constellation": "Scorpius",
+      "tmag": 11.0538,
+      "teff": 5575.0,
+      "radius": 1.01358,
+      "distance_pc": 193.244
+    },
+    {
+      "tic": 174188955,
+      "observed_at": "2026-04-21",
+      "constellation": "Ara",
+      "tmag": 11.3618,
+      "teff": 5568.0,
+      "radius": 1.01922,
+      "distance_pc": 244.7
+    },
+    {
+      "tic": 327709211,
+      "observed_at": "2026-04-21",
+      "constellation": "Indus",
+      "tmag": 8.7315,
+      "teff": 5842.0,
+      "radius": 1.02085,
+      "distance_pc": 82.1408
+    },
+    {
+      "tic": 120067248,
+      "observed_at": "2026-04-21",
+      "constellation": "Pavo",
+      "tmag": 12.0662,
+      "teff": 4544.0,
+      "radius": 1.03432,
+      "distance_pc": 225.103
+    },
+    {
+      "tic": 234501204,
+      "observed_at": "2026-04-21",
+      "constellation": "Tucana",
+      "tmag": 5.9339,
+      "teff": 5672.42,
+      "radius": 1.04736,
+      "distance_pc": 22.0158
+    },
+    {
+      "tic": 154771592,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 10.1927,
+      "teff": 5560.0,
+      "radius": 1.05,
+      "distance_pc": 152.694
+    },
+    {
+      "tic": 362747897,
+      "observed_at": "2026-04-21",
+      "constellation": "Triangulum Australe",
+      "tmag": 4.3752,
+      "teff": 6077.96,
+      "radius": 1.05214,
+      "distance_pc": 12.1726
+    },
+    {
+      "tic": 149022598,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 10.7958,
+      "teff": 6055.0,
+      "radius": 1.0524,
+      "distance_pc": 220.781
+    },
+    {
+      "tic": 394086820,
+      "observed_at": "2026-04-21",
+      "constellation": "Tucana",
+      "tmag": 11.2623,
+      "teff": 5026.2,
+      "radius": 1.05578,
+      "distance_pc": 193.8
+    },
+    {
+      "tic": 460191832,
+      "observed_at": "2026-04-21",
+      "constellation": "Lupus",
+      "tmag": 12.7357,
+      "teff": 3470.0,
+      "radius": 1.06591,
+      "distance_pc": 160.955
+    }
+  ],
+  "tics": [
+    8418378,
+    74741564,
+    80427281,
+    96152143,
+    118058766,
+    120067248,
+    120459870,
+    129559129,
+    141961356,
+    148645247,
+    149022598,
+    154771592,
+    155896956,
+    158532041,
+    159369487,
+    160706790,
+    161382691,
+    173987979,
+    174188955,
+    183229433,
+    197764453,
+    197963243,
+    201289286,
+    206364011,
+    206556824,
+    206564564,
+    206584764,
+    208116500,
+    211597070,
+    214184419,
+    222012610,
+    233981889,
+    234501204,
+    234548762,
+    265368974,
+    266879343,
+    271326317,
+    291359245,
+    292292038,
+    293494767,
+    295316003,
+    298639326,
+    301403623,
+    301618084,
+    307231874,
+    311792986,
+    316830745,
+    316914814,
+    319867890,
+    320529729,
+    325220064,
+    327709211,
+    331681541,
+    331754686,
+    334041309,
+    343404433,
+    344128619,
+    345173424,
+    349963792,
+    351249089,
+    351808240,
+    352567256,
+    362172901,
+    362747897,
+    363138328,
+    363275408,
+    364102824,
+    364200072,
+    365557152,
+    376075280,
+    376672631,
+    381285222,
+    381715567,
+    382133224,
+    382197944,
+    382643945,
+    383633205,
+    383819890,
+    386943436,
+    387293667,
+    394086820,
+    401571823,
+    421937394,
+    447243289,
+    451463754,
+    456618376,
+    460191832,
+    464271372,
+    465799362,
+    466229760,
+    466265409,
+    466307646,
+    469882306,
+    469907366,
+    469972882,
+    616117470,
+    1131062268,
+    1169133762,
+    1511323527,
+    1989087030
+  ]
+}
