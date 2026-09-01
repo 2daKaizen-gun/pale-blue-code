@@ -856,3 +856,23 @@ event that a repeated-transit pipeline never filed is exactly the kind of loud t
 transit regime turns up — and exactly the kind the five gates exist to un-fool. Cumulative achieved
 completeness over the 28 holds at best 0.7 · median 1.8 R⊕: 6 of 28 clean enough for an Earth, 15 of
 28 for a super-Earth. Zero candidates across the first twenty-eight dwarfs of sector 103; 72 remain.
+
+**Fourth batch — the next 8 dwarfs (36 of 100).** Fetched (0 failed — including TIC 382133224, which
+had timed out last batch and came back clean on the retry) and searched:
+
+```
++8 this batch:  6 quiet · 2 insignificant · 0 rejected · 0 candidates
+
+  6 quiet: 382133224, 351249089, 141961356, 376672631, 129559129, 383633205
+  (2 insignificant: 206556824, 293494767 — sub-σ, baseline)
+
+cumulative: 36 of 100 searched — 15 quiet · 17 insignificant · 4 rejected · 0 candidates
+```
+
+The stillest batch of the sector — six flat curves and two sub-σ wobbles, not one event reaching the
+significance precondition, so no shape gate ran. Quiet now ties noise at 15–17 across the swept third.
+The retry that landed TIC 382133224 is a small honesty note: a MAST timeout is a fetch failure, not a
+verdict, and the star reads quiet once its curve is actually in hand. Median achieved sensitivity
+loosens to 3.8 R⊕ as the pool climbs off its smallest dwarfs onto slightly larger, noisier stars, but
+the sharp floor holds — best 0.7 R⊕, 6 of 36 clean enough for an Earth. Zero candidates across the
+first thirty-six dwarfs of sector 103; 64 remain.
