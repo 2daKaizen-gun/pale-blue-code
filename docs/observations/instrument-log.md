@@ -876,3 +876,27 @@ verdict, and the star reads quiet once its curve is actually in hand. Median ach
 loosens to 3.8 R⊕ as the pool climbs off its smallest dwarfs onto slightly larger, noisier stars, but
 the sharp floor holds — best 0.7 R⊕, 6 of 36 clean enough for an Earth. Zero candidates across the
 first thirty-six dwarfs of sector 103; 64 remain.
+
+**Fifth batch — the next 8 dwarfs (44 of 100).** Fetched (0 failed — TIC 148645247, last batch's
+dropped connection, retried clean) and searched:
+
+```
++8 this batch:  3 quiet · 3 insignificant · 2 rejected · 0 candidates
+
+  tic-344128619   rejected   sig 278.55  edge, coherence, symmetry
+  tic-364102824   rejected   sig 8.57    edge, symmetry
+  3 quiet: 148645247, 382197944, 307231874
+  (3 insignificant: 301618084, 320529729, 1989087030 — sub-σ, baseline)
+
+cumulative: 44 of 100 searched — 18 quiet · 20 insignificant · 6 rejected · 0 candidates
+```
+
+The loudest event of the entire sector-103 sweep, and it fails *three* gates at once. TIC 344128619
+raises a sig-278.55 dip — a colossal read, orders of magnitude past the significance precondition —
+and is turned away by edge, coherence, and symmetry together: a saturated instrumental artefact
+against a data-gap edge, incoherent across the transit window and lopsided in profile. No planet
+crossing a disk looks like that; three independent discriminators say so in one voice. TIC 364102824
+(sig 8.57) is the same story in miniature — edge and symmetry. Quiet-to-noise holds near even (18–20)
+across the swept 44, the six rejects all instrumental. Median sensitivity loosens to 4.2 R⊕ as the
+pool works into its mid-sized dwarfs while the floor stays at best 0.7 R⊕. Zero candidates across the
+first forty-four dwarfs of sector 103; 56 remain.
