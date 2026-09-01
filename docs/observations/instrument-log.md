@@ -833,3 +833,26 @@ older sky is swept now, quiet and noise running 7 to 11, the two rejects both fr
 Cumulative achieved completeness over the 20 holds at best 0.7 · median 1.5 R⊕: 6 of 20 clean enough
 for an Earth, 15 of 20 for a super-Earth. Zero candidates across the first twenty dwarfs of sector
 103; 80 remain.
+
+**Third batch — the next 8 dwarfs (28 of 100).** Fetched (1 failed — TIC 382133224 timed out on
+MAST past 600 s, honestly deferred) and searched:
+
+```
++8 this batch:  2 quiet · 4 insignificant · 2 rejected · 0 candidates
+
+  tic-381715567   rejected   sig 60.6   edge, symmetry
+  tic-158532041   rejected   sig 14.28  edge, symmetry
+  2 quiet: 316830745, 316914814
+  (4 insignificant: 381285222, 214184419, 80427281, 364200072 — sub-σ, symmetry/baseline)
+
+cumulative: 28 of 100 searched — 9 quiet · 15 insignificant · 4 rejected · 0 candidates
+```
+
+The loudest reads yet in sector 103 — and both die at the same door. TIC 381715567 (sig 60.6) and
+TIC 158532041 (sig 14.28) each raise an event large enough to clear the significance precondition by
+a wide margin, then fail *edge and symmetry together*: dips seated against a data-gap edge with a
+lopsided profile, the twin signature of an instrumental step, not a planet crossing a disk. A 60-σ
+event that a repeated-transit pipeline never filed is exactly the kind of loud thing the single-
+transit regime turns up — and exactly the kind the five gates exist to un-fool. Cumulative achieved
+completeness over the 28 holds at best 0.7 · median 1.8 R⊕: 6 of 28 clean enough for an Earth, 15 of
+28 for a super-Earth. Zero candidates across the first twenty-eight dwarfs of sector 103; 72 remain.
