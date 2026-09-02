@@ -947,3 +947,24 @@ survivors — the significance-necessary-never-sufficient discipline doing exact
 Median sensitivity loosens to 5.4 R⊕ as the pool crosses into its larger dwarfs while the floor holds
 at best 0.7 R⊕, 6 of 60 clean enough for an Earth. Zero candidates across the first sixty dwarfs of
 sector 103; 40 remain.
+
+**Eighth batch — the next 8 dwarfs (68 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  1 quiet · 6 insignificant · 1 rejected · 0 candidates
+
+  tic-222012610   rejected   sig 15.81  edge, symmetry
+  1 quiet: 74741564
+  (6 insignificant: 265368974, 465799362, 345173424, 383819890,
+                    363138328, 118058766 — sub-σ, baseline/symmetry)
+
+cumulative: 68 of 100 searched — 25 quiet · 32 insignificant · 11 rejected · 0 candidates
+```
+
+A batch that turns almost entirely to sub-σ noise — six insignificant wobbles, one flat curve, and a
+single loud read. That read, TIC 222012610 (sig 15.81), fails edge and symmetry: once more a step
+seated against a data-gap edge, not a transit. Insignificant now outweighs quiet 32 to 25 as the pool
+works through its larger, noisier dwarfs, where a shallow real transit would drown but an instrumental
+step still rings loud enough to reach the gates — and be turned away. Median sensitivity holds at
+5.4 R⊕, floor at best 0.7 R⊕, 6 of 68 clean enough for an Earth. Zero candidates across the first
+sixty-eight dwarfs of sector 103; 32 remain.
