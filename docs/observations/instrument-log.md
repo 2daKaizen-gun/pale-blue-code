@@ -900,3 +900,24 @@ crossing a disk looks like that; three independent discriminators say so in one 
 across the swept 44, the six rejects all instrumental. Median sensitivity loosens to 4.2 R⊕ as the
 pool works into its mid-sized dwarfs while the floor stays at best 0.7 R⊕. Zero candidates across the
 first forty-four dwarfs of sector 103; 56 remain.
+
+**Sixth batch — the next 8 dwarfs (52 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  4 quiet · 4 insignificant · 0 rejected · 0 candidates
+
+  4 quiet: 206364011, 466307646, 363275408, 1131062268
+  (4 insignificant: 183229433, 469907366, 311792986 — sub-σ, baseline;
+                    387293667 sig 4.77 — the batch's loudest, still classed insignificant)
+
+cumulative: 52 of 100 searched — 22 quiet · 24 insignificant · 6 rejected · 0 candidates
+```
+
+A still batch — four flat curves and four events that never clear the significance precondition, so
+no shape gate returns a verdict. The batch's loudest read, TIC 387293667 at sig 4.77, sits just above
+the bare significance floor yet is classed insignificant: a marginal wobble that carries the edge and
+symmetry marks of a gap-seated step rather than a coherent transit, and does not survive to become a
+candidate. Quiet and noise stay near even (22–24) across the swept 52, the six rejects still all
+instrumental. Median achieved sensitivity holds at 4.7 R⊕ as the pool works through its mid-sized
+dwarfs while the sharp floor stays at best 0.7 R⊕, 6 of 52 clean enough for an Earth. Zero candidates
+across the first fifty-two dwarfs of sector 103; 48 remain.
