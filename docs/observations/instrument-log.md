@@ -921,3 +921,29 @@ candidate. Quiet and noise stay near even (22–24) across the swept 52, the six
 instrumental. Median achieved sensitivity holds at 4.7 R⊕ as the pool works through its mid-sized
 dwarfs while the sharp floor stays at best 0.7 R⊕, 6 of 52 clean enough for an Earth. Zero candidates
 across the first fifty-two dwarfs of sector 103; 48 remain.
+
+**Seventh batch — the next 8 dwarfs (60 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  2 quiet · 2 insignificant · 4 rejected · 0 candidates
+
+  tic-160706790   rejected   sig 35.6   edge, symmetry
+  tic-206584764   rejected   sig 25.86  edge, symmetry
+  tic-349963792   rejected   sig 20.95  edge
+  tic-1511323527  rejected   sig 10.29  edge, symmetry
+  2 quiet: 1169133762, 365557152
+  (2 insignificant: 173987979, 447243289 — sub-σ, baseline)
+
+cumulative: 60 of 100 searched — 24 quiet · 26 insignificant · 10 rejected · 0 candidates
+```
+
+The busiest batch of the sector for the gates: four significant dips, every one an instrumental step.
+The loudest, TIC 160706790 (sig 35.6), and TIC 206584764 (sig 25.86) both fail edge and symmetry — the
+twin signature of a step seated against a data-gap edge and lopsided in profile. TIC 349963792
+(sig 20.95) is turned away on edge *alone*: the dip sits hard against the gap, but its shape is
+otherwise symmetric enough to pass symmetry — a reminder each gate can fire on its own. TIC 1511323527
+(sig 10.29) is the same edge+symmetry story in miniature. Four loud reads, four artefacts, zero
+survivors — the significance-necessary-never-sufficient discipline doing exactly its job on real sky.
+Median sensitivity loosens to 5.4 R⊕ as the pool crosses into its larger dwarfs while the floor holds
+at best 0.7 R⊕, 6 of 60 clean enough for an Earth. Zero candidates across the first sixty dwarfs of
+sector 103; 40 remain.
