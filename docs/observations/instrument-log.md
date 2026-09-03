@@ -986,3 +986,27 @@ eighth's one, the ninth turns up nothing loud at all: the larger dwarfs the pool
 are noisier, but this stretch simply carries no instrumental step big enough to reach the gates. Median
 sensitivity loosens to 5.7 R⊕ as the pool climbs while the floor holds at best 0.7 R⊕, 6 of 76 clean
 enough for an Earth. Zero candidates across the first seventy-six dwarfs of sector 103; 24 remain.
+
+**Tenth batch — the next 8 dwarfs (84 of 100).** Fetched (0 failed) and searched — four of the eight
+first hit MAST connection-pool timeouts while a parallel fetch was competing for connections, so they
+were re-searched alone and completed cleanly (a transient network verdict, not a science one). Final:
+
+```
++8 this batch:  2 quiet · 5 insignificant · 1 rejected · 0 candidates
+
+  tic-298639326   rejected   sig 43.92  edge, symmetry
+  2 quiet: 301403623, 334041309
+  (5 insignificant: 362172901, 421937394, 382643945, 234548762,
+                    96152143 — sub-σ, baseline)
+
+cumulative: 84 of 100 searched — 33 quiet · 39 insignificant · 12 rejected · 0 candidates
+```
+
+One loud read among eight: TIC 298639326 (sig 43.92) — the batch's brightest dip and yet another step
+seated hard against a data-gap edge, lopsided in profile, turned away on edge and symmetry together.
+The other seven are two flat curves and five sub-σ wobbles. The half-batch of MAST timeouts is worth
+naming honestly: running a fetch in parallel with a search saturated the shared connection pool, so
+four searches erred out and had to be repeated without the parallel load — a lesson about MAST's limits,
+not about the sky. Median sensitivity loosens to 6.7 R⊕ as the pool climbs onto its largest dwarfs while
+the floor holds at best 0.7 R⊕, 6 of 84 clean enough for an Earth. Zero candidates across the first
+eighty-four dwarfs of sector 103; 16 remain.
