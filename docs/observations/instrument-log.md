@@ -1010,3 +1010,25 @@ four searches erred out and had to be repeated without the parallel load — a l
 not about the sky. Median sensitivity loosens to 6.7 R⊕ as the pool climbs onto its largest dwarfs while
 the floor holds at best 0.7 R⊕, 6 of 84 clean enough for an Earth. Zero candidates across the first
 eighty-four dwarfs of sector 103; 16 remain.
+
+**Eleventh batch — the next 8 dwarfs (92 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  1 quiet · 5 insignificant · 2 rejected · 0 candidates
+
+  tic-8418378     rejected   sig 9.59   edge, symmetry
+  tic-376075280   rejected   sig 9.32   edge, symmetry
+  1 quiet: 174188955
+  (5 insignificant: 291359245, 616117470, 386943436, 451463754,
+                    233981889 — sub-σ, baseline/symmetry)
+
+cumulative: 92 of 100 searched — 34 quiet · 44 insignificant · 14 rejected · 0 candidates
+```
+
+Two loud reads, two artefacts: TIC 8418378 (sig 9.59) and TIC 376075280 (sig 9.32), each a step seated
+against a data-gap edge and lopsided in profile — edge and symmetry together, the by-now-familiar twin
+signature. The other six are one flat curve and five sub-σ wobbles. Across the sector's largest dwarfs
+the pattern is steady: no shallow real transit rises above the noise, only the occasional instrumental
+step loud enough to reach the gates and be turned away. Median sensitivity loosens to 6.9 R⊕ while the
+floor holds at best 0.7 R⊕, 6 of 92 clean enough for an Earth. Zero candidates across the first
+ninety-two dwarfs of sector 103; 8 remain.
