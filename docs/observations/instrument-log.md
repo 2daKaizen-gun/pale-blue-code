@@ -968,3 +968,21 @@ works through its larger, noisier dwarfs, where a shallow real transit would dro
 step still rings loud enough to reach the gates — and be turned away. Median sensitivity holds at
 5.4 R⊕, floor at best 0.7 R⊕, 6 of 68 clean enough for an Earth. Zero candidates across the first
 sixty-eight dwarfs of sector 103; 32 remain.
+
+**Ninth batch — the next 8 dwarfs (76 of 100).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  6 quiet · 2 insignificant · 0 rejected · 0 candidates
+
+  6 quiet: 343404433, 159369487, 211597070, 155896956, 266879343, 271326317
+  (2 insignificant: 208116500, 206564564 — sub-σ, baseline)
+
+cumulative: 76 of 100 searched — 31 quiet · 34 insignificant · 11 rejected · 0 candidates
+```
+
+The stillest batch of the sector — six flat curves and two sub-σ wobbles, not one event clearing the
+significance precondition to a shape-gate verdict. After the seventh batch's four artefacts and the
+eighth's one, the ninth turns up nothing loud at all: the larger dwarfs the pool is now working through
+are noisier, but this stretch simply carries no instrumental step big enough to reach the gates. Median
+sensitivity loosens to 5.7 R⊕ as the pool climbs while the floor holds at best 0.7 R⊕, 6 of 76 clean
+enough for an Earth. Zero candidates across the first seventy-six dwarfs of sector 103; 24 remain.
