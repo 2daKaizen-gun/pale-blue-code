@@ -1032,3 +1032,25 @@ the pattern is steady: no shallow real transit rises above the noise, only the o
 step loud enough to reach the gates and be turned away. Median sensitivity loosens to 6.9 R⊕ while the
 floor holds at best 0.7 R⊕, 6 of 92 clean enough for an Earth. Zero candidates across the first
 ninety-two dwarfs of sector 103; 8 remain.
+
+**Twelfth batch — the final 8 dwarfs (100 of 100, sector 103 complete).** Fetched (0 failed) and searched:
+
+```
++8 this batch:  4 quiet · 3 insignificant · 1 rejected · 0 candidates
+
+  tic-362747897   rejected   sig 64.96  edge, symmetry
+  4 quiet: 234501204, 154771592, 149022598, 460191832
+  (3 insignificant: 327709211, 120067248, 394086820 — sub-σ, baseline)
+
+FINAL (sector 103): 100 of 100 searched — 38 quiet · 47 insignificant · 15 rejected · 0 candidates
+```
+
+Sector 103 is swept end to end. The last batch's one loud read, TIC 362747897 (sig 64.96), is the
+sector's deepest dip of all — and, like every other loud read across the hundred, an instrumental step
+seated hard against a data-gap edge, turned away on edge and symmetry together. Not one of the sector's
+fifteen significant events survived the five gates to a candidate. The final achieved completeness tells
+the honest shape of that zero: best 0.7 R⊕, **median 6.6 R⊕**, only 6 of 100 curves clean enough to have
+revealed an Earth, 18 clean enough for a super-Earth. The null is real but narrow — this sweep rules out
+the large single transits its curves could see, not the small ones they could not. Three sectors now
+complete (104 · 105 · 103), ~300 dwarfs, zero candidates — and a clear read that sensitivity, not sky,
+is the wall. That is where we turn next (see `docs/vision/finding-our-own-planet.md` §9).
