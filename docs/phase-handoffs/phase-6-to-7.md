@@ -64,7 +64,7 @@
 ## 5. Phase 7 시작점
 
 **Phase 7 시작 시 첫 절차** (WORKFLOW.md 참조):
-1. 새 채팅에 컨텍스트 첨부: `docs/cc/COLLABORATION.md` · `docs/cc/WORKFLOW.md` · `docs/phase-handoffs/phase-6-to-7.md` · `README.md`
+1. 새 채팅에 컨텍스트 첨부: `docs/COLLABORATION.md` · `docs/WORKFLOW.md` · `docs/phase-handoffs/phase-6-to-7.md` · `README.md`
 2. Phase 7 PRD + TechSpec 작성 (`docs/specs/phase-7/`)
 3. GitHub Milestone `Phase 7 — Signal` 생성
 4. sub-phase 7-1 Plan → Issue → Code

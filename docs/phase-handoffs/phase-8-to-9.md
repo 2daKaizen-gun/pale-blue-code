@@ -71,7 +71,7 @@
 ## 5. 다음 트랙의 시작점
 
 Phase 8은 로드맵의 종착점이다. 새 트랙을 연다면 WORKFLOW.md *"Phase 시작 절차"* 그대로:
-1. 컨텍스트 복원: `docs/cc/COLLABORATION.md` · `docs/cc/WORKFLOW.md` · 본 문서 · `README.md`
+1. 컨텍스트 복원: `docs/COLLABORATION.md` · `docs/WORKFLOW.md` · 본 문서 · `README.md`
 2. 새 PRD + TechSpec 작성 (`docs/specs/phase-9/`) — 방향은 §4 후보에서 권이건 확정
 3. Milestone 생성 → sub-phase Plan → Issue → Code
 
