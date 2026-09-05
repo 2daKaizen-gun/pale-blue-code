@@ -111,3 +111,24 @@ def test_degenerate_input_is_returned_unchanged():
     time = np.array([1.0])
     flux = np.array([1.0])
     assert np.array_equal(bls_service._detrend(time, flux), flux)
+
+
+def test_window_days_none_equals_the_production_constant():
+    """The default (None) must reproduce the 30-day window exactly — no behaviour change."""
+    time, flux, _ = _curve(_TESS_CADENCE, span=24.0, slope=2e-3)
+    default = bls_service._detrend(time, flux)
+    explicit = bls_service._detrend(time, flux, window_days=bls_service._DETREND_WINDOW_DAYS)
+    assert np.array_equal(default, explicit)
+
+
+def test_shorter_window_removes_more_transit_depth():
+    """A window near the transit duration follows the dip and divides more of it away.
+
+    This is the knob path A's lever-2 sweep turns: a smaller window is a more aggressive
+    detrend, so a real transit keeps *less* depth. Pinning the direction guards the
+    parameter's meaning — the measurement reads a smaller number here as 'over-detrended'.
+    """
+    time, flux, in_transit = _curve(_TESS_CADENCE, span=24.0)
+    kept_30d = _depth(bls_service._detrend(time, flux, window_days=30.0), in_transit)
+    kept_6d = _depth(bls_service._detrend(time, flux, window_days=6.0), in_transit)
+    assert kept_6d < kept_30d

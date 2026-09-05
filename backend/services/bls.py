@@ -89,8 +89,15 @@ def _cadence_days(sorted_time: np.ndarray) -> float:
     return step if np.isfinite(step) and step > 0 else 0.0
 
 
-def _detrend(time: np.ndarray, flux: np.ndarray) -> np.ndarray:
+def _detrend(time: np.ndarray, flux: np.ndarray, window_days: float | None = None) -> np.ndarray:
     """Per-segment Savitzky-Golay detrend to remove long-term systematics.
+
+    ``window_days`` overrides the SG window for a single call (default: the module
+    constant ``_DETREND_WINDOW_DAYS``). The production pipeline never passes it — the
+    30-day window stands — but path A's lever-2 measurement sweeps it to ask, from
+    evidence, which window minimises the *noise floor* on real monotransit targets
+    (scripts/measure_detrend_floor.py). It complements measure_detrend_window.py, which
+    fixed 30 d by *transit-depth* preservation (sub-10-3); this asks the floor question.
 
     Splits at gaps > 1 day (Kepler quarter boundaries, TESS mid-sector downlinks),
     then divides each segment by a ~30-day SG polynomial. That removes the ~430-day
@@ -126,7 +133,8 @@ def _detrend(time: np.ndarray, flux: np.ndarray) -> np.ndarray:
     cadence = _cadence_days(t)
     if cadence == 0.0:
         return flux.copy()
-    desired = int(_DETREND_WINDOW_DAYS / cadence)
+    window = _DETREND_WINDOW_DAYS if window_days is None else window_days
+    desired = int(window / cadence)
     floor = int(_MIN_WINDOW_DAYS / cadence)
 
     gap_idx = np.where(np.diff(t) > 1.0)[0] + 1
