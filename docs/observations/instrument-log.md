@@ -1087,3 +1087,25 @@ result of the first lever is *no change*: keep PDCSAP. A worry worth having, tes
 and put down by the data — the same discipline that corrected our own prose in sub-11-15/16. The floor
 is the yardstick here; whether PDCSAP's CBVs ever erase a genuine long transit is a signal-recovery
 question left for injection-recovery on a later lever. Next lever: the detrend window itself.
+
+**Lever 2 — detrend window (SG window vs the floor), 2026-09-06.** Lever 1 kept PDCSAP; lever 2 asks
+whether the 30-day Savitzky-Golay window is the one that minimises the *noise* floor. sub-10-3 fixed
+30 days by transit-depth preservation, but the floor is a separate question — too short a window eats
+signal, too long a window leaves red noise. We swept it, 10/20/30/50 days, on the same 11 Earth-size
+targets, the same pipeline downstream:
+
+```
+detrend window (11 Earth-size targets):  best-window tally 10d:5 · 20d:4 · 30d:2
+                                         median gain over 30d = +0.000 R⊕ (largest +0.03)
+```
+
+The window barely moves the floor. A shorter window nominally wins on 5 of 11, but by 0.01–0.03 R⊕ —
+measurement noise — and sub-10-3 already showed it costs real transit depth, so there is nothing to
+trade for. The 20/30/50-day columns are all but identical, each already longer than the ~24-day sector.
+The reason is quietly informative: these stars are the sharpest targets *because* their systematics are
+small, so there is little red noise for any window to add or remove. Lever 2 is null, and its null
+points somewhere — the floor here is set by the per-point scatter over a single sector, and no window
+touches that. The one knob that can is more baseline: the same star across several sectors, stitched.
+Two levers measured, two "keep what we have"; the search for sensitivity now turns from *cleaning* one
+sector's curve to *lengthening* it. That is lever 3, and the first question there is whether these
+targets even have a second sector to stitch.
