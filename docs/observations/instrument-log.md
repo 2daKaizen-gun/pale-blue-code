@@ -1054,3 +1054,36 @@ revealed an Earth, 18 clean enough for a super-Earth. The null is real but narro
 the large single transits its curves could see, not the small ones they could not. Three sectors now
 complete (104 · 105 · 103), ~300 dwarfs, zero candidates — and a clear read that sensitivity, not sky,
 is the wall. That is where we turn next (see `docs/vision/finding-our-own-planet.md` §9).
+
+---
+
+## Path A — raising sensitivity (lever by lever)
+
+The three swept sectors (104·105·103, ~300 dwarfs, zero candidates) showed the wall is sensitivity,
+not sky: median completeness 4–7 R⊕ sees only large single transits, while the real blind spot is a
+*small* planet's lone transit. So the work turns from sweeping wide to deepening the quietest stars
+toward Earth size (vision §9), measuring one lever at a time what actually lowers each star's floor.
+
+**Lever 1 — flux choice (SAP vs PDCSAP), 2026-09-05.** We had always fed on SPOC's PDCSAP, flux the
+pipeline has already detrended with co-trending basis vectors. The worry was real and pointed straight
+at our own premise: PDCSAP's CBV fit is tuned for short *repeating* transits and might over-subtract
+the long, lone dip of a monotransit — so feeding on it could mean feeding on flux the machine has
+already shaped in exactly the place we hunt. The raw SAP aperture flux, cleaned by our own detrend
+instead, might reach deeper. So we measured it, both flux columns of the same FITS through the
+identical pipeline, on path A's 11 Earth-size targets:
+
+```
+flux lever (11 Earth-size targets):  SAP better 0 · PDCSAP better 11 · median Δ -1.09 R⊕
+
+  best case  TIC 42071226   PDCSAP 0.60 R⊕  vs  SAP 1.45 R⊕
+  worst case TIC 314017913  PDCSAP 1.20 R⊕  vs  SAP 4.26 R⊕
+```
+
+The hypothesis reversed under measurement. On every one of the 11, PDCSAP reaches a smaller planet —
+by a full 1.09 R⊕ at the median. Switching to SAP would have cost most of these stars their Earth-size
+reach. The systematics still riding the SAP flux swamp the noise floor faster than our Savitzky-Golay
+detrend can clean them, and that loss outweighs whatever long-signal SAP preserves. So the honest
+result of the first lever is *no change*: keep PDCSAP. A worry worth having, tested on real starlight,
+and put down by the data — the same discipline that corrected our own prose in sub-11-15/16. The floor
+is the yardstick here; whether PDCSAP's CBVs ever erase a genuine long transit is a signal-recovery
+question left for injection-recovery on a later lever. Next lever: the detrend window itself.
