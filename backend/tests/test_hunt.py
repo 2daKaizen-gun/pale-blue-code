@@ -80,6 +80,45 @@ def test_tic_lc_cache_path_naming():
     assert p.name == "lc_tic-12345678_tess.json"
 
 
+class _FakeStitchLC:
+    """A stitched-LC stand-in: every post-download step returns self, no network."""
+    def stitch(self):
+        return self
+
+    def normalize(self):
+        return self
+
+    def remove_nans(self):
+        return self
+
+    def remove_outliers(self, sigma):
+        return self
+
+
+class _FakeDownloadSearch:
+    """Records the kwargs _download_stitched_lc passes to download_all."""
+    def __init__(self):
+        self.kwargs = None
+
+    def download_all(self, **kwargs):
+        self.kwargs = kwargs
+        return _FakeStitchLC()
+
+
+def test_download_stitched_lc_defaults_to_pipeline_pdcsap():
+    # No flux_column -> download_all gets none -> lightkurve's default (PDCSAP) stands.
+    search = _FakeDownloadSearch()
+    hunt._download_stitched_lc(search)
+    assert search.kwargs == {}
+
+
+def test_download_stitched_lc_passes_sap_flux_column():
+    # Path A's lever: "sap_flux" must reach download_all, or the SAP measurement is a no-op.
+    search = _FakeDownloadSearch()
+    hunt._download_stitched_lc(search, flux_column="sap_flux")
+    assert search.kwargs == {"flux_column": "sap_flux"}
+
+
 def test_build_tess_payload_records_baseline_and_sectors():
     # A single 27-day sector: three points spanning day 100 -> 127.
     time = np.array([100.0, 101.0, 127.0])

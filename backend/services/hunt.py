@@ -102,7 +102,7 @@ def _decimate(
     return time[idx], flux[idx], err[idx]
 
 
-def _download_stitched_lc(search):
+def _download_stitched_lc(search, flux_column=None):
     """Download + stitch a lightkurve search result, with the progress bar muted.
 
     astroquery/astropy render a download progress bar to sys.stdout. Inside a
@@ -110,10 +110,17 @@ def _download_stitched_lc(search):
     "I/O operation on closed file" and 500-ing the request (and worse, leaving a
     half-written .fits behind). We don't need the bar on a server, so silence
     stdout/stderr for the duration of the download.
+
+    ``flux_column`` selects which SPOC flux to stitch: the default (None) keeps
+    lightkurve's PDCSAP, while "sap_flux" takes the raw SAP aperture flux. That is the
+    lever path A measures — PDCSAP's CBV detrending can over-subtract the long, lone dip
+    of a monotransit, the very signal we hunt (scripts/measure_flux_choice.py). The two
+    flux columns come from the same FITS, so requesting SAP is not a second download.
     """
+    dl_kwargs = {} if flux_column is None else {"flux_column": flux_column}
     with open(os.devnull, "w") as _null, contextlib.redirect_stdout(_null), \
             contextlib.redirect_stderr(_null):
-        return search.download_all().stitch().normalize().remove_nans().remove_outliers(sigma=5)
+        return search.download_all(**dl_kwargs).stitch().normalize().remove_nans().remove_outliers(sigma=5)
 
 
 def _purge_mast_cache(kic_id: int) -> None:
