@@ -126,7 +126,8 @@ def main() -> None:
 
     result = compare_flux_floors(rows)
     print("-" * 72)
-    print("  %-12s %8s %11s %11s %11s %11s" % ("TIC", "R_star", "pdcsap R⊕", "sap R⊕", "Δ R⊕", "flux"))
+    print("  %-12s %8s %11s %11s %11s %11s"
+          % ("TIC", "R_star", "pdcsap Re", "sap Re", "d Re", "flux"))
     for s in result["stars"]:
         pr = "%.2f" % s["pdcsap_rearth"] if s["pdcsap_rearth"] is not None else "  ?  "
         sr = "%.2f" % s["sap_rearth"] if s["sap_rearth"] is not None else "  ?  "
@@ -137,11 +138,11 @@ def main() -> None:
         print("  %-12s %8s %11s %11s %11s %11s" % (s["tic"], rad, pr, sr, dstr, winner))
     print("-" * 72)
     md = result["median_delta_rearth"]
-    print("compared %d stars: SAP lowered the floor on %d, PDCSAP on %d; median Δ = %s R⊕"
+    print("compared %d stars: SAP lowered the floor on %d, PDCSAP on %d; median d = %s Re"
           % (result["n_compared"], result["n_sap_better"],
              result["n_compared"] - result["n_sap_better"],
              ("%+.3f" % md) if md is not None else "n/a"))
-    print("(positive Δ = SAP reaches a smaller planet; the winner is what path A should fetch)")
+    print("(positive d = SAP reaches a smaller planet; the winner is what path A should fetch)")
 
 
 if __name__ == "__main__":
