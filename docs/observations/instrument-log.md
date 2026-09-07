@@ -1109,3 +1109,43 @@ touches that. The one knob that can is more baseline: the same star across sever
 Two levers measured, two "keep what we have"; the search for sensitivity now turns from *cleaning* one
 sector's curve to *lengthening* it. That is lever 3, and the first question there is whether these
 targets even have a second sector to stitch.
+
+**Lever 3 — multi-sector stitching (recon), 2026-09-06.** The question turned out already answered. A
+cache-only recon (`inspect_target_sectors.py`) read the sector count behind each target's floor:
+
+```
+sector coverage (11 Earth-size targets):  multi-sector 11 · single-sector 0
+                                          median sectors 6 · median baseline 2551 d
+```
+
+Every one of the 11 is already multi-sector (3–9 sectors, baseline years long), and
+`_download_stitched_lc` already does `download_all().stitch()` — so the floors we measured were
+*already* computed on the stitched, multi-sector curve. Lever 3 was pulled, not unspent. There is no
+gain to fetch here; the baseline is already as long as the mission has made it.
+
+**Lever 4 — binning (per-point scatter vs the floor), 2026-09-07.** Three levers pointed inward, to
+the per-point scatter itself. The naive premise is the strongest of the four: bin N adjacent cadences
+and white noise averages down by √N, so a 30-minute bin (~15 of the 2-min cadences) should cut the
+scatter to a quarter. We swept it, 0/5/10/20/30 min, on the same 11 targets, the same pipeline
+downstream:
+
+```
+binning (11 Earth-size targets):  best-bin tally 0m:5 · 5m:1 · 30m:5
+                                  median gain over unbinned = +0.001 R⊕ (largest +0.04, scattered both ways)
+```
+
+The floor does not move. A bin "wins" on 6 of 11, but by +0.01–0.04 R⊕, and — the tell — the other 5
+get *worse* with binning. A real √N gain would fall on every star as the bin widens; this jitters up
+and down, the signature of measurement noise, not sensitivity. The reason is the same one that makes
+`significance_red` honest: the floor is not the raw per-point scatter but the scatter of matched-filter
+*depths*, each already integrated over the 0.4-day transit window. White noise is beaten down by that
+integration before binning ever sees it; what's left is red noise, which binning cannot average away.
+Binning the raw points first is redundant — and not free, since a synthetic 2-hour dip already loses 8%
+of its depth at a 30-min bin.
+
+Four levers measured — flux, detrend window, multi-sector stitching, binning — four nulls. This is not
+four failures; it is a boundary, found honestly: on these already-quiet, already-stitched dwarfs the
+depth floor is what it is, and no knob in the pipeline lowers it. The search for sensitivity is over,
+and it ends where the vision said it might (§9-1) — the value now is not a *lower* floor but the
+*honest present* one, and *more* stars that already reach it. That is decision D (shipped this session
+as the Earth-size dossier) and target widening, not another lever.
