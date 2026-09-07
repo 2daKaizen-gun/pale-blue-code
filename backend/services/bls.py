@@ -89,6 +89,42 @@ def _cadence_days(sorted_time: np.ndarray) -> float:
     return step if np.isfinite(step) and step > 0 else 0.0
 
 
+def _bin_curve(
+    time: np.ndarray, flux: np.ndarray, bin_minutes: float
+) -> tuple[np.ndarray, np.ndarray]:
+    """Average a light curve into fixed-width time bins (path A, lever 4 measurement).
+
+    Levers 1-3 (flux / detrend window / multi-sector stitching) are all measured and
+    null — pipeline tuning cannot lower these targets' depth floor (sub-11-23/24, vision
+    §9-1). The one knob left is the per-point scatter itself: bin adjacent cadences so
+    white noise averages down by ~sqrt(N). ``scripts/measure_binning_floor.py`` sweeps
+    ``bin_minutes`` through the identical floor pipeline to ask, from evidence, whether
+    that actually lowers the floor — the honest catch being that the floor's noise is the
+    scatter of matched-filter depths already integrated over the transit duration, so
+    binning may be redundant. Measured, not assumed.
+
+    Points are grouped by absolute time bin (``floor((t - t0) / width)``), so a gap wider
+    than a bin simply yields empty bins that drop out — the curve is never averaged across
+    a downlink gap. Each non-empty bin returns its mean time and mean flux, in time order.
+    ``bin_minutes <= 0`` is a no-op (returns the curve untouched, sorted).
+    """
+    order = np.argsort(time)
+    t = np.asarray(time, dtype=float)[order]
+    f = np.asarray(flux, dtype=float)[order]
+    if bin_minutes <= 0 or t.size == 0:
+        return t, f
+
+    width = bin_minutes / (60.0 * 24.0)   # minutes -> days
+    idx = np.floor((t - t[0]) / width).astype(np.int64)
+    # sum flux and time per bin, and count, then divide — one pass, no python loop
+    n_bins = int(idx[-1]) + 1
+    counts = np.bincount(idx, minlength=n_bins)
+    t_sum = np.bincount(idx, weights=t, minlength=n_bins)
+    f_sum = np.bincount(idx, weights=f, minlength=n_bins)
+    keep = counts > 0
+    return t_sum[keep] / counts[keep], f_sum[keep] / counts[keep]
+
+
 def _detrend(time: np.ndarray, flux: np.ndarray, window_days: float | None = None) -> np.ndarray:
     """Per-segment Savitzky-Golay detrend to remove long-term systematics.
 

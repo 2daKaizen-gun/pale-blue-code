@@ -132,3 +132,46 @@ def test_shorter_window_removes_more_transit_depth():
     kept_30d = _depth(bls_service._detrend(time, flux, window_days=30.0), in_transit)
     kept_6d = _depth(bls_service._detrend(time, flux, window_days=6.0), in_transit)
     assert kept_6d < kept_30d
+
+
+def test_bin_curve_averages_white_noise_down():
+    """Binning N cadences into one bin cuts the per-point scatter by ~sqrt(N).
+
+    Lever 4's premise: bin adjacent points and white noise averages out. On a flat noisy
+    curve, 15-min bins pack ~7-8 of the 2-min cadences, so the binned scatter must fall
+    well below the raw scatter (toward the sqrt(N) expectation).
+    """
+    time, flux, _ = _curve(_TESS_CADENCE, span=24.0, depth=0.0)   # flat, noise only
+    raw = float(np.std(flux))
+    _, binned = bls_service._bin_curve(time, flux, bin_minutes=15.0)
+    assert np.std(binned) < 0.6 * raw          # ~sqrt(7) would give ~0.38; be generous
+
+
+def test_bin_curve_shortens_the_series_and_keeps_time_order():
+    """A bin is one point; the binned curve is far shorter and still time-ordered."""
+    time, flux, _ = _curve(_TESS_CADENCE, span=24.0)
+    bt, bf = bls_service._bin_curve(time, flux, bin_minutes=15.0)
+    assert bt.size == bf.size < time.size
+    assert np.all(np.diff(bt) > 0)
+
+
+def test_bin_curve_never_averages_across_a_gap():
+    """A downlink gap wider than a bin must not merge the two sides into one point.
+
+    Two 5-day blocks separated by a 3-day gap: the last bin of the first block and the
+    first bin of the second must stay distinct, so no binned time lands inside the gap.
+    """
+    a = np.arange(0.0, 5.0, _TESS_CADENCE)
+    b = np.arange(8.0, 13.0, _TESS_CADENCE)
+    time = np.concatenate([a, b])
+    flux = np.ones_like(time)
+    bt, _ = bls_service._bin_curve(time, flux, bin_minutes=30.0)
+    assert not np.any((bt > 5.0) & (bt < 8.0))   # nothing lands in the gap
+
+
+def test_bin_curve_zero_width_is_a_noop():
+    """bin_minutes <= 0 returns the curve untouched (just sorted) — a safe identity."""
+    time, flux, _ = _curve(_TESS_CADENCE, span=6.0)
+    bt, bf = bls_service._bin_curve(time, flux, bin_minutes=0.0)
+    assert np.array_equal(bt, np.sort(time))
+    assert bf.size == flux.size
