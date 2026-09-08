@@ -19,8 +19,8 @@ const FRAME: Record<
   strong: {
     ring: 'border-emerald-500/50 bg-emerald-500/10',
     badge: 'border-emerald-400/50 bg-emerald-500/10 text-emerald-300',
-    kicker: '★ 우리가 찾은 신뢰 후보',
-    body: '아무도 기록하지 않은 별에서 네 관문을 모두 통과한 신호를 찾았습니다. 확정된 행성이 아니라 신뢰할 만한 후보입니다 — 아래 판별 근거가 그 이유입니다. 개척지에서 이건 드문 순간입니다.',
+    kicker: '신뢰 후보 — 확정 아님',
+    body: '아무도 기록하지 않은 별에서 네 관문을 모두 통과한 신호입니다 — 확정된 행성이 아니라 후보입니다. 다만 이건 여러 번 반복되는 신호이고, 반복은 자동 탐색기가 이미 잘 잡는 영역이라 우리만의 발견이라 보긴 어렵습니다(특히 거성은 가짜 양성일 수 있습니다). 확정은 지상 후속관측(ExoFOP/TFOP)의 몫입니다 — 아래 판별 근거가 후보로 보는 이유입니다.',
   },
   weak: {
     ring: 'border-amber-500/50 bg-amber-500/10',
@@ -58,11 +58,11 @@ export default function FrontierVerdict({ report }: Props) {
         <span
           className={`inline-block rounded border px-2 py-0.5 font-mono text-xs tracking-widest ${frame.badge}`}
         >
-          {provisional ? '★ 잠정 신뢰 후보 — 얕게 본 하늘' : frame.kicker}
+          {provisional ? '잠정 후보 — 얕게 본 하늘' : frame.kicker}
         </span>
         <p className="mt-3 text-sm text-cosmos-text">
           {provisional
-            ? '아무도 기록하지 않은 별에서 네 관문을 모두 통과한 신호를 찾았습니다 — 다만 관측선이 짧아 통과를 몇 번밖에 보지 못했습니다. 신뢰할 만하되 잠정적인 후보입니다. 아래 판별 근거와 "얼마나 보았나"가 그 이유입니다.'
+            ? '아무도 기록하지 않은 별에서 네 관문을 모두 통과한 신호입니다 — 다만 관측선이 짧아 통과를 몇 번밖에 보지 못했습니다. 신뢰할 만하되 잠정적인 후보이고, 반복 신호라 자동 탐색기의 영역이며 확정은 지상 후속관측(ExoFOP/TFOP)의 몫입니다. 아래 판별 근거와 "얼마나 보았나"가 그 이유입니다.'
             : frame.body}
         </p>
       </div>
