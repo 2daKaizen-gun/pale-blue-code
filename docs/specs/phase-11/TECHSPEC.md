@@ -210,11 +210,34 @@ DiscoveryActions는 strong일 때만 뜨므로 insignificant는 자동으로 발
 | Sub-phase | 범위 | 산출 |
 |---|---|---|
 | **sub-11-1** | 검출 유의성 전제조건 — 지표·임계 실측(Light 1), `detection_significance`+전제조건 배선(4관문 앞), 모델/API 필드, 프론트 `insignificant` 렌더, 앵커 재검증 | backend + frontend + pytest + vitest + Check |
-| **sub-11-2+** | 단일 트랜짓 탐지 (북극성 §5) — *아직 설계 안 함, 함께 정한다.* 방법론 조사 → PRD 보강/신규 → 단일 이벤트 유의성·U자 단일 딥·다중 섹터 stitch·시각 검증 UI | (미정) |
+| **sub-11-2+** | 단일 트랜짓 탐지 (북극성 §5) — 이 표를 쓸 땐 *미정*이었고, 실제로는 아래처럼 지어졌다 | 각 `docs/checks/phase-11/` |
 
 > sub-11-1의 상세 Light 분해는 sub-phase Plan에 위임한다(WORKFLOW: TechSpec §8은
 > sub-phase만 나열, 상세는 PCTC Plan). 대략의 결: L1 측정 → L2 엔진(전제조건+모델) →
 > L3 API 노출 → L4 프론트 → L5 Check.
+
+### §8-1. 실제로 지어진 것 (2026-09-08 최신화)
+
+이 TechSpec은 **sub-11-1 시점의 설계 문서**다. 그 뒤 이 Phase는 27개 sub-phase로 자랐고,
+*어떻게*의 정본은 각 Check 문서로 옮겨갔다. 여기엔 나중 sub-phase가 실제로 만든 **영속적인
+기술 결정**만 남긴다 — 미래의 우리가 "이건 어디서 정해졌더라"를 찾을 수 있게:
+
+| 결정 | 값 / 위치 | 어디서 |
+|---|---|---|
+| 반복 트랜짓 유의성 전제조건 | `_SIG_MIN = 4.0` (`services/vetting.py`) | sub-11-1 (실측) |
+| 단일 이벤트 유의성 임계 | `_SIG_MIN_MONO = 5.0` (`services/monotransit.py`) | sub-11-2 (실측) |
+| 단일 이벤트 판별자 | edge · coherence · flare · symmetry · **baseline** (다섯) | sub-11-2 ~ **11-18** |
+| baseline 판별자 임계 | `_BASELINE_STEP_MAX = 1.0` (깨끗한 주입 0.32 vs 램프 4.67) | sub-11-18 (실측) |
+| 사냥 결과 캐시 | `_MONO_CACHE_VERSION = "mono-v2"` — 관문이 바뀌면 bump해 **전체 재검색** | sub-11-12 / 11-18 |
+| 풀 선택 | 밝기순이 아니라 **작은 별 우선**(`select_for_hunt`), 기본 `--n 100` | sub-11-14 / 11-17 |
+| 여러 풀 | `--pool <path>` — 추적되는 프론티어 파일을 건드리지 않고 아무 섹터나 사냥 | sub-11-21 |
+| 곡선 엔드포인트 | `GET /api/monotransit/{name}/curve` (미fetch면 424) | sub-11-13 |
+| 감도 파이프라인 | flux=PDCSAP · detrend 30일 · multi-sector stitch · **binning 안 함** | sub-11-23 ~ 11-25 (전부 null → 현 설정 유지) |
+
+**감도 레버 넷이 전부 null이라는 것**이 이 Phase 후반의 가장 큰 기술적 결론이다 — 파이프라인
+튜닝으로는 이 표적들의 depth floor를 못 낮춘다(경계의 발견). 그래서 무게중심이 "감도 짜내기"에서
+"이미 예리한 표적 넓히기 + 정직한 제시(D)"로 옮겨갔다. 근거: `docs/vision/finding-our-own-planet.md`
+§9-1 ~ §9-3.
 
 ---
 
