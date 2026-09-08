@@ -235,9 +235,46 @@ Kepler/TESS는 하나의 **개척지 허브**에서 고르며, 판별 엔진(9-A
 > 아니라 곡선이 닿은 딱 그만큼을 배제한, 완전하게 진술된 null입니다.
 > 기록: `docs/checks/phase-11/sub-11-20.md`, `docs/observations/instrument-log.md`.
 
-> **여기까지 — 두 섹터(104 + 105)를 온전히 훑었습니다: 200개의 작은 왜성, 후보 0.** 기계가 눈먼
-> 단일 트랜짓의 틈을, 측정된 관문 다섯 개로 걸러 얻은 정직한 빈손. 다음 진짜 하늘은 또 다른 새 섹터이거나,
-> 사람 눈으로 보는 길(Planet Hunters)입니다. 그 사이, 프론트엔드는 만든 이조차 헷갈리던 정보구조를
+> **그리고 옛 하늘도 훑었습니다 — 섹터 103 (11-21).** 새 섹터가 아직 안 뜬 사이, 단일 트랜짓의
+> 사각지대는 *모든* 섹터에 있다는 사실을 따랐습니다. 먼저 도구에 `--pool` 인자를 붙여 **추적되는
+> 최신 섹터 파일을 건드리지 않고** 아무 섹터나 별도 파일로 사냥할 수 있게 하고(2주 자동 갱신
+> Action과의 충돌 회피), 섹터 103 왜성 풀 100개를 지어 **100 of 100 완주 — 38 조용 · 47 잡음 ·
+> 15 기각 · 후보 0.** 세 섹터(104·105·103) 합쳐 **작은 왜성 약 300개, 살아남은 후보 0.** 그리고
+> 완주가 가리킨 건 하늘이 아니라 **감도**였습니다: 실측 median 6.6 R⊕, 지구 크기에 닿은 곡선은
+> 100개 중 6개뿐. 기록: `docs/checks/phase-11/sub-11-21.md`.
+
+> **그래서 방향을 틀었습니다 — 넓게가 아니라 깊게 (11-22 ~ 11-25, 결정 A).** "더 많은 섹터"는
+> 같은 크기의 행성만 더 많이 못 보는 일입니다. 그래서 *가장 조용한 별의 감도*를 지구 크기까지
+> 끌어내리기로 하고, 무엇이 실제로 검출 바닥(depth floor)을 낮추는지 **레버 하나씩 실측**했습니다:
+> ① flux 선택(SAP vs PDCSAP) → PDCSAP가 11/11 승(median Δ −1.09 R⊕), 가설이 실측에 반증 ②
+> detrend 창 → floor 무영향(+0.000 R⊕), 30일 유지 ③ 다중섹터 스티칭 → **이미 켜져 있었다**
+> (표적 11개 전부 다중섹터, baseline 중앙값 2551일) ④ binning → 무변(+0.001 R⊕, 방향 뒤죽박죽).
+> **넷 다 null입니다.** 이건 실패 넷이 아니라 **경계의 발견** — 이미 조용하고 이미 이어붙인 이
+> 왜성들에서 파이프라인의 어떤 손잡이도 floor를 못 내립니다. 우리 눈은 여기서 할 수 있는 만큼
+> 이미 예리합니다. 기록: `sub-11-22.md` ~ `sub-11-25.md`, 방향: `docs/vision/finding-our-own-planet.md` §9-1·§9-2.
+
+> **그리고 목표를 정직하게 다시 못박았습니다 (11-26, 결정 D).** 망원경이 없으니 "발견 확정"은
+> 우리 천장 밖입니다. 그래서 도달 가능한 지점을 겨눕니다 — **기계가 눈먼 곳에서 지구크기 단일
+> 트랜짓 후보를, 실측 감도와 함께, 후속확인 경로에 올릴 수 있는 상태로 정직하게 제시하기.**
+> 사냥 front door에 **지구크기 dossier**가 인라인으로 뜹니다: 우리 검색이 실제로 지구 크기까지
+> 닿은 조용한 별들과 각자의 실측 floor·판정, 그리고 "후보 0"을 실패가 아니라 **완전성 진술**로
+> 말하는 문장, ExoFOP/TFOP 후속확인 경로. 반복신호 쪽에 남아 있던 마지막 "발견" 과장도 지웠습니다.
+> 기록: `sub-11-26.md`.
+
+> **그리고 감도 대신 표적을 넓히기 시작했습니다 (11-27).** floor를 못 낮춘다면 지렛대는 *더 깊이*가
+> 아니라 **더 많은 깊은 별**입니다. fetch가 느린 단계라, 먼저 우리가 이미 검색한 별들에서
+> `log(floor) = -9.58 + 0.366·Tmag`를 적합해 **아직 안 본 별 중 어디가 지구 크기에 닿을지** 예측하고,
+> 그 실력을 held-out 절반에 **스스로 보고**하게 했습니다 — precision 1.00 / recall 0.25. 밝기는
+> 약한 *한쪽* 예측기입니다(찍으면 맞지만 넷 중 셋을 놓침). 그리고 첫 새 하늘, **섹터 102** 왜성 풀
+> 100개를 지어 첫 배치 8개를 검색 — 후보 0, 그러나 **새 지구크기 표적 하나**(TIC 107548305, 실측
+> 0.87 R⊕). 백미는 그 별이 예측기의 **예측을 이겼다는 것**입니다(예측 1.60 R⊕ = 지구크기 아님).
+> 야생에서 재현된 recall<1 — **양성 예측은 믿되, 비양성을 기각으로 읽지 마라.** 기록: `sub-11-27.md`.
+
+> **여기까지 — 세 섹터(104 · 105 · 103)를 온전히 훑고 네 번째(102)를 열었습니다: 중복 제외 206개의
+> 작은 왜성을 실제로 검색, 후보 0.** 기계가 눈먼 단일 트랜짓의 틈을, 측정된 관문 다섯 개로 걸러 얻은
+> 정직한 빈손입니다. 그중 **12개 별에서는 지구 크기까지 볼 수 있었고**, 거기서도 아무것도 없었습니다 —
+> 그게 우리가 말할 수 있는 전부이고, 딱 그만큼만 말합니다. 다음은 섹터 102의 남은 90개, 그리고 사람
+> 눈으로 보는 길(Planet Hunters)입니다. 그 사이, 프론트엔드는 만든 이조차 헷갈리던 정보구조를
 > **두 갈래(배우기 · 사냥하기)로 재설계**하고 학습 화면을 우리말로 다듬어, 처음 온 사람도 3초에 길을
 > 찾도록 했습니다.
 
@@ -300,7 +337,14 @@ pale-blue-code/
 │   ├── fetch_plausible.py           유력 왜성 광도곡선 로컬 fetch (Phase 11, MAST)
 │   ├── search_pending.py            fetch됐지만 미검색인 왜성 검색 (fetch/search/count 삼종의 가운데)
 │   ├── tally_hunt.py                캐시에서 누적 사냥 집계 재계산 (Phase 11)
-│   └── completeness_hunt.py         실측 바닥에서 달성 감도 보고 — null의 정직한 한계 (sub-11-19)
+│   ├── completeness_hunt.py         실측 바닥에서 달성 감도 보고 — null의 정직한 한계 (sub-11-19)
+│   ├── rank_by_sensitivity.py       실측 floor로 별을 줄 세움 — 지구크기에 닿은 표적 (path A)
+│   ├── measure_flux_choice.py       감도 레버 1 — SAP vs PDCSAP (sub-11-23, null)
+│   ├── measure_detrend_floor.py     감도 레버 2 — detrend 창 ↔ floor (sub-11-24, null)
+│   ├── inspect_target_sectors.py    감도 레버 3 정찰 — 표적의 섹터·baseline (sub-11-24)
+│   ├── measure_binning_floor.py     감도 레버 4 — binning ↔ floor (sub-11-25, null)
+│   ├── earth_size_dossier.py        지구크기 감도 표적 + 실측 floor + 후속확인 경로 (결정 D)
+│   └── predict_earth_reach.py       안 본 별의 지구크기 도달 예측 + held-out 실력 보고 (넓히기)
 │
 ├── docs/
 │   ├── COLLABORATION.md             📜 협업 헌장 (약속)
@@ -313,14 +357,15 @@ pale-blue-code/
 │   │   └── making-the-tool-legible.md  도구를 읽히게 (하나의 어휘·하나의 이야기)
 │   │
 │   ├── observations/                실측 장부 — 진짜 별에 검출기를 댄 정직한 기록
-│   │   └── instrument-log.md           유력 왜성 실측 결과 (대부분 조용, Phase 11)
+│   │   └── instrument-log.md           별별 실측 결과 + 감도 레버 실측 (Phase 11)
 │   │
 │   ├── phase-handoffs/              Phase 종료 시 작성
 │   │   └── phase-{N}-to-{M}.md
 │   │
-│   └── checks/                      sub-phase별 회고 누적
-│       └── phase-{N}/
-│           └── sub-{N}-{M}.md
+│   └── checks/                      sub-phase별 회고 누적 (회고의 정본)
+│       ├── phase-{N}/
+│       │   └── sub-{N}-{M}.md
+│       └── infra/                   Phase 밖 인프라 회고 (배포 부활 등)
 │
 ├── frontend/                        React + TypeScript
 │   └── src/
@@ -364,13 +409,16 @@ pale-blue-code/
     │   ├── test_vetting.py          4관문 · de-alias · 관측 트랜짓 계수
     │   ├── test_monotransit.py      정합필터·유의성·판별자·최소주기·최대온도·사냥 원장 (Phase 11)
     │   ├── test_monotransit_api.py  단일 트랜짓 HTTP 계약 (Phase 11)
-    │   ├── test_pool_assessment.py  풀 트리아지 기하 (Phase 11)
-    │   └── test_fetch_plan.py       fetch 계획 (Phase 11)
+    │   ├── test_pool_assessment.py  풀 트리아지 기하 · 달성 완전성 (Phase 11)
+    │   ├── test_fetch_plan.py       fetch 계획 (Phase 11)
+    │   └── test_*.py                오프라인 도구도 순수부를 테스트 (tally · rank · 레버 3종 · dossier · 예측기)
     ├── data/
     │   ├── koi_catalog.csv          KOI 스냅샷 (kepid/kepoi/disposition/period)
     │   ├── toi_catalog.csv          TOI 스냅샷 (tid/toi/disposition/period, Phase 10)
     │   ├── frontier_seeds.json      미기록 KIC 씨드 풀 (Phase 9-B)
-    │   └── frontier_seeds_tess.json 미기록 TIC 씨드 풀 (Phase 10)
+    │   ├── frontier_seeds_tess.json 미기록 TIC 씨드 풀 — 최신 섹터, 2주 자동 갱신 (Phase 10)
+    │   ├── pool_s0103.json          섹터 103 왜성 풀 (--pool, sub-11-21 · 100/100 완주)
+    │   └── pool_s0102.json          섹터 102 왜성 풀 (--pool, sub-11-27 · 진행 중)
     └── cache/                       lc_*.json · bls_*.json · mono_*.json (gitignore)
                                      mono_*.json = 사냥 결과 디스크 메모 (sub-11-12, 즉시 로딩)
 ```
