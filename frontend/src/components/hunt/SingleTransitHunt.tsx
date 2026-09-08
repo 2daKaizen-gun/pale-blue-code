@@ -10,6 +10,7 @@ import {
   type PoolClassification,
 } from '../../lib/api/monotransit'
 import MonotransitCurveChart from './MonotransitCurveChart'
+import EarthSizeDossier from './EarthSizeDossier'
 import {
   DISCRIMINATOR_LABEL,
   DISPOSITION_ORDER,
@@ -372,6 +373,9 @@ export default function SingleTransitHunt() {
               ))}
             </section>
           )}
+
+          {/* Decision D — how far our eye reached Earth size, from the ledger in hand. */}
+          <EarthSizeDossier ledger={ledger} />
 
           {ledger.length > 0 && (
             <section>
