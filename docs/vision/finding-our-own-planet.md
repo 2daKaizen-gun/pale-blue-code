@@ -299,7 +299,7 @@ held-out 지구크기 판별력: precision 1.00 · recall 0.25 · median |err| 2
       - [x] 첫 산출물 — `scripts/earth_size_dossier.py` (2026-09-07): 지구크기 감도 표적 11개 + 실측
         floor·섹터·판정 + ExoFOP/TFOP 경로. 오늘 후보 0 → 정직한 완전성 진술.
       - [x] 제품 노출 (2026-09-08, sub-11-26): 사냥 front door에 지구크기 dossier 인라인
-        (`earthSizeDossier.ts`+`EarthSizeDossier.tsx`, ledger에서 순수 조립, 14 vitest).
+        (`earthSizeCopy.ts`+`EarthSizeDossier.tsx`, ledger에서 순수 조립, 14 vitest).
       - [x] "발견" 프레이밍 잔재 제거 — 반복신호 frontier verdict의 "드문 순간/우리가 찾은" 과장을
         "후보·기계 영역·확정은 후속관측" 으로 정직화.
 - [~] **표적 넓히기** — 더 조용한 다중섹터 왜성을 풀에 추가해 지구크기 감도 표적 수를 늘린다(§9-2).

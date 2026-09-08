@@ -160,7 +160,7 @@
       버튼·프리셋과 aria 라벨까지. 과학 용어와 NASA 원본 값은 영어로 유지 — 번역이 데이터를
       바꾸지 않게.
 - [x] **지구크기 dossier를 front door에** (2026-09-08, sub-11-26). 터미널 스크립트로만 있던
-      결정 D의 산출물이 사냥 front door에 인라인으로 뜬다(`earthSizeDossier.ts` 순수 조립 +
+      결정 D의 산출물이 사냥 front door에 인라인으로 뜬다(`earthSizeCopy.ts` 순수 조립 +
       `EarthSizeDossier.tsx`). "후보 0"을 실패가 아니라 **완전성 진술**로 말하고 후속확인 경로
       (ExoFOP/TFOP)를 이름으로 밝힌다 — §5 가드레일의 화면판.
 
