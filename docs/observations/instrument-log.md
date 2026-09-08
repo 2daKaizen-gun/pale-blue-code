@@ -1149,3 +1149,35 @@ depth floor is what it is, and no knob in the pipeline lowers it. The search for
 and it ends where the vision said it might (§9-1) — the value now is not a *lower* floor but the
 *honest present* one, and *more* stars that already reach it. That is decision D (shipped this session
 as the Earth-size dossier) and target widening, not another lever.
+
+## Widening — more quiet dwarfs, and can we predict which? (2026-09-08)
+
+With the eye as sharp as it gets, path A turns to widening: more stars that already reach Earth size.
+A fetch is the slow step and only ~6% of dwarfs are quiet enough, so first the question — can catalog
+values predict which unsearched star will reach Earth size? `predict_earth_reach.py` fits the floor
+against brightness from our own searched stars, and reports its own skill on a held-out half:
+
+```
+fit: log(floor) = -9.58 + 0.366·Tmag   (n=179, in-sample R^2 = 0.172)
+held-out Earth-size skill: precision 1.00 · recall 0.25 · median |err| 2.02 R⊕
+```
+
+Brightness is a weak, one-sided predictor. When it flags Earth-size it is right (precision 1.00), but
+it misses three quarters (recall 0.25), because a low floor comes from a quietness — red noise,
+variability — that no catalog value shows. A pre-filter for *where to look first*, never a verdict.
+
+Then the first new sky: a 100-dwarf TESS **sector-102** pool, and a first batch of 8 fetched + searched.
+
+```
+sector 102 (10 searched of 100):  3 quiet · 5 insignificant · 2 rejected · 0 candidates
+reaches Earth size:               1 of 10 — TIC 107548305, measured 0.87 R⊕ (floor 0.0020)
+rejected:                          TIC 238831201 sig 9.12 (symmetry) · TIC 1508739556 sig 16.24 (edge+symmetry)
+```
+
+No candidate — the two significant dips were instrument artifacts the shape gates caught, the same
+signature as before. But widening did its job: one new Earth-size-sensitive target joins the dossier.
+And that star is the lesson. TIC 107548305 was the predictor's sharpest pick but predicted at 1.60 R⊕
+— *not* Earth-size; its measured floor puts it at 0.87 R⊕ — Earth-size. The quiet dwarf beat its
+predicted floor, exactly the recall<1 failure, live in the wild: trust a positive prediction, but
+never read a non-positive as a rejection. So widening searches the sharpest predicted targets rather
+than trusting the label — and here that turned a "predicted miss" into a real Earth-size star.
