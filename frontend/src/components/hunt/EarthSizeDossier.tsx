@@ -6,13 +6,13 @@ import {
   dossierHeadline,
   earthTargetLine,
   selectEarthSizeTargets,
-} from './earthSizeDossier'
+} from './earthSizeCopy'
 
 /**
  * Decision D, in the product: the stars where our search actually reaches Earth size, with the
  * measured sensitivity and the honest disposition — a completeness statement, not a discovery
  * (vision §9-2). Pure presentation over the hunt ledger already in hand (no fetch); the honest
- * wording lives in earthSizeDossier.ts and is unit-tested there. Renders nothing when no target
+ * wording lives in earthSizeCopy.ts and is unit-tested there. Renders nothing when no target
  * reaches Earth size, so it never claims a reach the search has not measured.
  */
 export default function EarthSizeDossier({ ledger }: { ledger: MonotransitLedgerEntry[] }) {

@@ -10,7 +10,7 @@ import {
   floorLabel,
   reachLabel,
   selectEarthSizeTargets,
-} from './earthSizeDossier'
+} from './earthSizeCopy'
 
 const entry = (
   planet_name: string,
