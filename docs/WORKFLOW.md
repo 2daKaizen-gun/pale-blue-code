@@ -140,6 +140,20 @@ gh issue create `
 
 **왜 PowerShell 인가**: here-string (`@'...'@`) 으로 긴 본문을 *이스케이프 없이* 변수에 통째로 담을 수 있고, UTF-8 no BOM 인코딩을 *명시적으로 강제* 가능. cmd 는 멀티라인 처리가 까다롭고 인코딩 (기본 cp949) 사고가 잦음. *이 프로젝트의 표준은 PowerShell*.
 
+### 2-1. 여러 세션에 걸친 관측 sweep의 Issue
+
+풀 하나를 배치로 여러 날 훑는 관측 작업(예: 섹터 하나 100/100)도 **sub-phase = Issue** 규칙
+그대로다. 다만 매 배치마다 이슈를 새로 만들지 않는다:
+
+- **sweep 하나 = Issue 하나.** 첫 배치를 시작하기 *전에* 만든다.
+- **배치마다 Issue에 코멘트 한 줄** — 누적 tally(`tally_hunt.py --pool`)와 그 배치의 유의 이벤트·
+  기각 관문. Check 문서 갱신과 같은 커밋 리듬.
+- sweep이 끝나거나 멈추기로 하면 close. 여러 세션이 걸려도 열어둔 채 이어간다.
+
+> **왜 생긴 규칙인가.** sub-11-13 ~ 11-27(15개)이 Issue 없이 진행됐다. 특히 11-20·11-21처럼
+> 한 sweep이 10일 넘게 12~13배치로 늘어나자 "이슈를 언제 여나"의 기준이 없어 아예 안 열었다.
+> 2026-09-09~11에 #61~#75로 소급해 메웠다(각 본문에 소급임을 명시).
+
 ### 3. Code 단계 진입
 Light 사이클 시작. 각 커밋 메시지에 Issue 번호 참조 가능:
 
@@ -220,6 +234,8 @@ sub-phase 모든 코드 작업이 끝난 후, 통합 검증.
 
 자동 테스트:
 - (Vitest / Jest / Pytest 등으로 작성한 테스트 결과)
+- **프론트를 건드렸으면 `npm run build` 필수** (tsc -b + vite build). vitest 초록 ≠ 빌드 초록.
+- Check 문서에 "clean"을 쓰려면 그 명령을 *이번에* 실제로 돌린 결과여야 한다.
 
 수동 검증:
 - (실제 브라우저 / API 호출로 동작 확인)
@@ -237,6 +253,12 @@ sub-phase 모든 코드 작업이 끝난 후, 통합 검증.
 ```
 
 Claude는 이 단계에서 빠진 케이스나 추가 검증 포인트를 제안한다.
+
+> **왜 build가 필수가 됐나 (2026-09-08).** sub-11-26이 `earthSizeDossier.ts`와
+> `EarthSizeDossier.tsx`를 같은 폴더에 두면서, 대소문자 구분 없는 파일시스템(Windows/macOS)에서
+> tsc가 `.ts`로 잘못 해석해 `npm run build`가 main에서 깨졌다. vitest는 초록이었고, Check는
+> "tsc clean"이라고 적었다. 문서 감사가 잡기 전까지 아무도 몰랐다. push 시 CI
+> (`.github/workflows/ci.yml`)가 같은 명령을 자동으로 다시 돌린다 — 그래도 로컬 확인이 먼저다.
 
 ---
 
@@ -402,6 +424,9 @@ C: Suspense로 리팩토링 가능 — Phase 1 종료 시 검토
 - ❌ **Phase 시작했는데 Milestone 미생성** → sub-phase Issue 생성 시 첨부할 Milestone 없음
 - ❌ **sub-phase 시작했는데 Issue 미생성** → 진행 가시화 깨짐. Plan 확정 직후 생성
 - ❌ **sub-phase Check 끝났는데 Issue close 안 됨** → Milestone 진행률 부정확. `Closes #N` 또는 수동 close
+- ❌ **여러 날 걸리는 관측 sweep을 Issue 없이 시작** → 트래커가 조용히 빈다(11-13~27의 실제 경로). 첫 배치 전에 생성
+- ❌ **vitest만 돌리고 "clean"이라고 씀** → 빌드는 깨져 있을 수 있다(11-26의 실제 경로). `npm run build`까지
+- ❌ **CI가 빨간데 다음 작업으로 넘어감** → 그 빨강이 곧 다음 sub-phase의 부채. 먼저 고친다
 
 Claude는 위 신호 중 하나라도 감지하면 *"잠깐, 사이클 어긋났어"* 라고 말한다.
 
