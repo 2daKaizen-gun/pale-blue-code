@@ -1,0 +1,73 @@
+name: CI
+
+# Re-run on every push what WORKFLOW's Test step requires by hand: the backend
+# suite, the frontend suite, and the production build. Added 2026-09-11 after
+# sub-11-26 shipped a build break that vitest could not see.
+#
+# The two jobs run on different OSes on purpose:
+#  - frontend on Windows: the break was a file-name casing collision
+#    (earthSizeDossier.ts vs EarthSizeDossier.tsx). Linux is case-sensitive and
+#    resolves the import correctly, so an ubuntu build would have passed — the
+#    bug only exists on a case-insensitive filesystem, which is where we develop.
+#  - backend on Ubuntu at Python 3.12, installing the *pinned* requirements —
+#    the stack Railway actually deploys, not whatever is installed locally.
+#
+# eslint is deliberately not a gate yet: `npm run lint` reports 32 existing
+# errors (2026-09-11). A gate that is red on day one teaches nobody anything;
+# lint debt is tracked separately.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      - name: Install pinned requirements
+        run: pip install -r requirements-dev.txt
+
+      - name: pytest
+        # No backend/cache in CI (it is gitignored): the suite must stand on
+        # tracked files alone. Verified locally on a clean worktree, 237 passed.
+        run: python -m pytest -q
+
+  frontend:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: build (tsc -b + vite build)
+        run: npm run build
+
+      - name: vitest
+        run: npx vitest run
