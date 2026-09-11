@@ -1181,3 +1181,28 @@ And that star is the lesson. TIC 107548305 was the predictor's sharpest pick but
 predicted floor, exactly the recall<1 failure, live in the wild: trust a positive prediction, but
 never read a non-positive as a rejection. So widening searches the sharpest predicted targets rather
 than trusting the label — and here that turned a "predicted miss" into a real Earth-size star.
+
+**Second batch — and a predictor with nothing left to say (2026-09-11, sub-11-28, #76).** Re-fit on 188
+searched stars, the predictor (`log(floor) = -9.56 + 0.363·Tmag`, R² 0.170) predicts **zero** Earth-size
+stars among sector 102's 90 unsearched, and its held-out recall has slipped to 0.20. With no positive to
+act on, its ranking of the rest is not guidance — its top picks were bright Tmag ~6.4 stars at R★ ~1.1,
+predicted ~3.3 R⊕. So the batch followed the fetch plan's own smallest-first order. 8 fetched (0 failed)
+and searched:
+
+```
++8 this batch:  6 quiet · 2 insignificant · 0 rejected · 0 candidates
+
+  quiet:          124768372 (2.35 R⊕) · 352477838 (4.15) · 306982952 (4.40)
+                  1313913563 (8.03) · 159996002 (14.20) · 243181433 (14.83)
+  insignificant:  124528023 sig -0.01 (4.21 R⊕) · 30374981 sig 0.07 (15.84 R⊕) — both baseline, sub-σ
+
+cumulative (tally_hunt.py --pool): 18 of 100 — 9 quiet · 7 insignificant · 2 rejected · 0 candidates
+```
+
+No event came near the floor. The lesson is in the right-hand column. The plan has walked past the pool's
+smallest dwarfs — this batch is all R★ 0.59–0.65 — and none reached Earth size; the sharpest bottoms out
+at 2.35 R⊕. Worse, four of the six "quiet" curves had measured floors of 1.4–5.4%, too noisy to have shown
+anything under 8–16 R⊕. For those four, *quiet* rules out Neptunes and Saturns and says nothing smaller.
+Achieved completeness over the 18: best 0.9 · median 4.3 R⊕, 1 of 18 Earth-clean. The three-pool
+Earth-size-sensitive set holds at **12 of 214** — this batch added none. Widening pays on the small end
+of a pool, and sector 102's small end is mostly spent.
