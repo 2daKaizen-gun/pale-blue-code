@@ -66,8 +66,11 @@
 ### 규칙 이탈 (정직하게 남긴다)
 - **sub-11-13 ~ sub-11-27(15개)은 GitHub Issue 없이 진행됐다.** Check 문서는 전부 있으나
   트래커가 비었다 — 헌장 §4 "sub-phase = Issue" 위반. 2026-09-08에 확인했고, 소급 이슈를
-  **하루 6개씩** 만들어 메우기로 했다(각 본문에 사후 생성임을 명시). 마일스톤 #12의
-  `closed=12`는 그래서 실제 sub-phase 수(27)보다 적다.
+  **하루 6개씩** 만들어 메우기로 했다(각 본문에 사후 생성임을 명시).
+  - ✅ **메움 완료 (2026-09-11).** 09-09 #61~#66(11-13~18) · 09-10 #67~#72(11-19~24) ·
+    09-11 #73~#75(11-25~27). 본문은 `scripts/issue-11-{13..27}-body.md`, 모두 첫머리에
+    "Filed retroactively" 경고를 달고 close. 이제 마일스톤 #12 `closed=27` = 실제 sub-phase 27개,
+    11-1부터 11-27까지 트래커와 Check 문서가 일대일로 맞는다.
 
 ---
 
@@ -117,4 +120,4 @@
 - 북극성: `docs/vision/finding-our-own-planet.md` · `docs/vision/making-the-tool-legible.md`
 - 관측 원장: `docs/observations/instrument-log.md`
 - Milestone: `.../milestone/11` (Phase 10, closed) · `.../milestone/12` (Phase 11, open)
-- Issues: #45, #46, #47, #48 (Phase 10) → #49~#60 (Phase 11 sub-11-1~12)
+- Issues: #45, #46, #47, #48 (Phase 10) → #49~#60 (Phase 11 sub-11-1~12) · #61~#75 (sub-11-13~27, 소급)
