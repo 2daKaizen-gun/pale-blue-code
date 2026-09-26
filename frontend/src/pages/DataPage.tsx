@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { fetchPlanets, type Planet } from '../lib/api/exoplanet'
 import { fetchLightCurve, fetchFolded, type LightCurveData, type PhaseFoldData } from '../lib/api/lightcurve'
@@ -18,7 +18,6 @@ export default function DataPage() {
 
   const [planets, setPlanets] = useState<Planet[]>([])
   const [planetName, setPlanetName] = useState(initialPlanet)
-  const [currentPlanet, setCurrentPlanet] = useState<Planet | null>(null)
 
   const [lcData, setLcData] = useState<LightCurveData | null>(null)
   const [foldData, setFoldData] = useState<PhaseFoldData | null>(null)
@@ -35,12 +34,11 @@ export default function DataPage() {
     fetchPlanets().then(setPlanets).catch(() => {})
   }, [])
 
-  // resolve planet metadata from catalog
-  useEffect(() => {
-    if (planets.length === 0) return
-    const match = planets.find((p) => p.pl_name.toLowerCase() === planetName.toLowerCase())
-    setCurrentPlanet(match ?? null)
-  }, [planets, planetName])
+  // resolve planet metadata from catalog (derived, not synced state)
+  const currentPlanet = useMemo(
+    () => planets.find((p) => p.pl_name.toLowerCase() === planetName.toLowerCase()) ?? null,
+    [planets, planetName],
+  )
 
   // Manual search from search bar (event handler — setState calls fine here, not in effect body)
   const search = useCallback(async (name: string) => {

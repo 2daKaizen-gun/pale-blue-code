@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { totalEnergy, angularMomentum } from '../../lib/physics/energy'
 import type { SystemState } from '../../lib/physics/types'
-import type { PresetId } from '../../data/presets'
 
 /**
  * Pale Blue Code — Phase 3: Gravity
@@ -29,8 +28,6 @@ interface EnergyReadoutProps {
    * (energy.ts warns about this directly).
    */
   softening: number
-  /** Active preset — changing it re-captures the E₀/L₀ baselines. */
-  presetId: PresetId
 }
 
 /**
@@ -81,32 +78,22 @@ function Gauge({ label, pct, fill }: { label: string; pct: string; fill: number 
   )
 }
 
-export function EnergyReadout({ bodiesRef, G, softening, presetId }: EnergyReadoutProps) {
-  // Baselines captured at preset load, *before* any integration. Render-sync,
-  // gated on presetId — same pattern as GravityPage's bodiesRef re-init. Runs
-  // after GravityPage has re-initialized bodiesRef this render (parent renders
-  // before child), so `.current` is the fresh initial state.
-  const e0Ref = useRef(0)
-  const l0Ref = useRef(0)
-  const loadedRef = useRef<PresetId | null>(null)
-
-  if (loadedRef.current !== presetId) {
-    loadedRef.current = presetId
-    const s = bodiesRef.current
-    e0Ref.current = totalEnergy(s, G, softening)
-    l0Ref.current = angularMomentum(s).length()
-  }
-
+export function EnergyReadout({ bodiesRef, G, softening }: EnergyReadoutProps) {
   const [eDrift, setEDrift] = useState(0)
   const [lDrift, setLDrift] = useState(0)
 
-  useEffect(() => {
+  // Baselines captured when a simulation generation starts, *before* any
+  // integration: GravityPage hands down a fresh bodiesRef on every re-seed
+  // (preset, perturbation, reload), and a layout effect runs after commit but
+  // before the next animation frame can step the Integrator.
+  useLayoutEffect(() => {
+    const s0 = bodiesRef.current
+    const e0 = totalEnergy(s0, G, softening)
+    const l0 = angularMomentum(s0).length()
     const id = setInterval(() => {
       const s = bodiesRef.current
       const e = totalEnergy(s, G, softening)
       const l = angularMomentum(s).length()
-      const e0 = e0Ref.current
-      const l0 = l0Ref.current
       // Relative drift. Guard tiny baselines: a bound system has E₀ < 0, but
       // figure-8 has total L ≈ 0 (symmetry) → relative L drift is undefined.
       setEDrift(Math.abs(e0) > 1e-12 ? Math.abs(e - e0) / Math.abs(e0) : 0)

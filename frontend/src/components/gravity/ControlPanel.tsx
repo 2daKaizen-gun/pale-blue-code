@@ -98,9 +98,11 @@ export function ControlPanel({
   // which re-seeds the simulation — only on release. Keep draft in sync when
   // perturbation changes elsewhere (e.g. reset to 0 on a preset switch).
   const [draft, setDraft] = useState(perturbation)
-  useEffect(() => {
+  const [syncedPerturbation, setSyncedPerturbation] = useState(perturbation)
+  if (syncedPerturbation !== perturbation) {
+    setSyncedPerturbation(perturbation)
     setDraft(perturbation)
-  }, [perturbation])
+  }
 
   // Keyboard controls. Space toggles pause; 1–4 pick a speed; R reloads the
   // current preset (clean re-seed via the nonce). Skip when an interactive
@@ -251,7 +253,6 @@ export function ControlPanel({
           bodiesRef={bodiesRef}
           G={G}
           softening={softening}
-          presetId={presetId}
         />
 
         <div className="hidden md:block h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />

@@ -33,7 +33,18 @@ jobs:
         # --n 100: the hunt pool is the 100 smallest planet-size dwarfs (sub-11-17
         # widened it from 50). Without this the default n=50 would silently shrink
         # the pool back on the next refresh, dropping half the searched stars.
-        run: python scripts/build_frontier_seeds_tess.py --n 100
+        #
+        # MAST drops connections now and then (2026-09-01: RemoteDisconnected
+        # failed the whole run, so the pool sat on the old sector for two
+        # weeks). The builder is idempotent, so a transient failure is retried
+        # with a pause; three strikes still fail the run loudly.
+        run: |
+          for attempt in 1 2 3; do
+            python scripts/build_frontier_seeds_tess.py --n 100 && exit 0
+            echo "::warning::builder attempt $attempt failed; retrying in 60s"
+            sleep 60
+          done
+          exit 1
 
       - name: Commit only if the pool content changed
         run: |

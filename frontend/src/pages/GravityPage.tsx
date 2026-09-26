@@ -1,20 +1,18 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { Scene } from '../components/gravity/Scene'
 import { PresetSelector } from '../components/gravity/PresetSelector'
 import { ControlPanel } from '../components/gravity/ControlPanel'
 import { getPreset, DEFAULT_PRESET_ID } from '../data/presets'
 import { useGravityStore } from '../store/gravityStore'
 import { RingBuffer } from '../lib/util/ringBuffer'
+import { TRAIL_CAPACITY } from '../constants/gravity'
 import type { SystemState } from '../lib/physics/types'
 
-/**
- * Trail length, in *integration steps* (not frames). Since the Integrator now
- * pushes one point per substep (sub-3-7), a ring holds the last
- * TRAIL_CAPACITY steps = a fixed sim-time window (TRAIL_CAPACITY x dt),
- * independent of visual speed. ~5 orbits for the two-body demo dt (T/120),
- * ~1 orbit for the finer accuracy dt (T/600).
- */
-const TRAIL_CAPACITY = 600
+interface Sim {
+  key: string
+  bodiesRef: { current: SystemState }
+  trailsRef: { current: RingBuffer[] }
+}
 
 /**
  * Pale Blue Code — Phase 3: Gravity
@@ -22,9 +20,10 @@ const TRAIL_CAPACITY = 600
  * GravityPage — `/gravity` 진입점. 활성 프리셋 = gravityStore.presetId,
  * 카오스 시드 = gravityStore.perturbation, 리로드 nonce = presetLoadedAt.
  *
- * ─── ref 재초기화 (sub-3-4 [fix], 3-5 확장, 3-7 trail + nonce) ──────
- *   bodiesRef.current *와* trailsRef.current 를 프리셋·섭동·*리로드(nonce)*
- *   변경 시 *렌더 중 동기* 로 갈아끼움. useEffect(commit 이후) 로 하면
+ * ─── 시뮬레이션 세대 교체 (sub-3-4 [fix], 3-5 확장, 3-7 trail + nonce) ──
+ *   bodiesRef *와* trailsRef 를 담은 세대(sim)를 프리셋·섭동·*리로드(nonce)*
+ *   변경 시 *렌더 중 동기* 로 새것으로 교체 (2026-09-26: ref 를 렌더 중
+ *   변이하던 것을 React 의 "키가 바뀌면 렌더 중 state 교체" 패턴으로). useEffect(commit 이후) 로 하면
  *   key-remount 된 Trails/Bodies 는 새 개수인데 ref 는 잠깐 옛 상태라 길이가
  *   어긋나 터졌음 (3-4). 렌더 중 동기 재설정하면 자식 렌더 전에 맞춰져 타이밍
  *   갭이 사라짐. (GravityPage 는 presetId/perturbation/presetLoadedAt 변할
@@ -55,7 +54,11 @@ export default function GravityPage() {
   const presetLoadedAt = useGravityStore((s) => s.presetLoadedAt)
   const preset = getPreset(presetId)
 
-  const makeBodies = (): SystemState => {
+  // One simulation generation per (preset, perturbation, reload nonce). The
+  // refs live inside it, so a re-seed swaps in fresh ones instead of mutating
+  // shared refs during render.
+  const simKey = `${presetId}|${perturbation}|${presetLoadedAt}`
+  const makeSim = (): Sim => {
     const bodies = preset.bodies.map((b) => ({
       mass: b.mass,
       position: b.position.clone(),
@@ -66,32 +69,20 @@ export default function GravityPage() {
     if (preset.id === 'three-body' && perturbation !== 0) {
       bodies[0].position.x += perturbation
     }
-    return bodies
+    return {
+      key: simKey,
+      bodiesRef: { current: bodies },
+      // One trail ring per body. Owned here (sibling of bodiesRef) so the
+      // Integrator can write per-substep and Trails can read — see sub-3-7.
+      trailsRef: { current: preset.bodies.map(() => new RingBuffer(TRAIL_CAPACITY)) },
+    }
   }
 
-  // One trail ring per body. Owned here (sibling of bodiesRef) so the
-  // Integrator can write per-substep and Trails can read — see sub-3-7.
-  const makeTrails = (): RingBuffer[] =>
-    preset.bodies.map(() => new RingBuffer(TRAIL_CAPACITY))
-
-  const bodiesRef = useRef<SystemState>(makeBodies())
-  const trailsRef = useRef<RingBuffer[]>(makeTrails())
-  const loadedIdRef = useRef(presetId)
-  const loadedPerturbRef = useRef(perturbation)
-  const loadedNonceRef = useRef(presetLoadedAt)
-
-  // 프리셋·섭동·리로드(nonce) 변경 → 렌더 중 동기 재초기화 (자식 렌더 전).
-  if (
-    loadedIdRef.current !== presetId ||
-    loadedPerturbRef.current !== perturbation ||
-    loadedNonceRef.current !== presetLoadedAt
-  ) {
-    loadedIdRef.current = presetId
-    loadedPerturbRef.current = perturbation
-    loadedNonceRef.current = presetLoadedAt
-    bodiesRef.current = makeBodies()
-    trailsRef.current = makeTrails() // fresh rings -> old path cleared
-  }
+  const [sim, setSim] = useState(makeSim)
+  // 프리셋·섭동·리로드(nonce) 변경 → 렌더 중 새 세대로 교체 (자식 렌더 전).
+  // React 가 이 렌더를 버리고 새 state 로 즉시 다시 렌더하므로 자식은 옛 세대를 못 본다.
+  if (sim.key !== simKey) setSim(makeSim())
+  const { bodiesRef, trailsRef } = sim
 
   // 페이지 진입 = 기본 프리셋 (F5 / HMR 클린 시작) — Phase 2 mount reset 정신.
   // selectPreset 이 perturbation 도 0 으로 리셋 + nonce bump.

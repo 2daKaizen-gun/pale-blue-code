@@ -12,9 +12,13 @@ export default function PlanetSearchBar({ planets, value, onSearch }: Props) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  // Follow the controlled value when the parent changes it (adjusted during
+  // render, React's pattern for resetting state on a prop change).
+  const [syncedValue, setSyncedValue] = useState(value)
+  if (syncedValue !== value) {
+    setSyncedValue(value)
     setInput(value)
-  }, [value])
+  }
 
   const suggestions = input.length >= 2
     ? planets

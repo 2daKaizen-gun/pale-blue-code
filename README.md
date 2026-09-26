@@ -12,9 +12,10 @@
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
 ![Three.js](https://img.shields.io/badge/Three.js-r170-000000?logo=three.js&logoColor=white)
 ![D3.js](https://img.shields.io/badge/D3.js-7-F9A03C?logo=d3.js&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white)
 ![License](https://img.shields.io/badge/License-AGPL_3.0-blue)
+[![CI](https://github.com/2daKaizen-gun/pale-blue-code/actions/workflows/ci.yml/badge.svg)](https://github.com/2daKaizen-gun/pale-blue-code/actions/workflows/ci.yml)
 
 <br/>
 
@@ -47,6 +48,19 @@
 | 🛰️ **외계행성 사냥** | MAST 아카이브의 raw 데이터에서 미발견 후보 탐색 |
 | 🔎 **후보 판별** | 4관문(홀짝·2차식·모양·크기)으로 신호를 심문 — NASA 표준 재구현 |
 | 🌌 **개척 사냥** | KOI에 *없는* 별을 직접 걸러 신뢰 후보 or 정직한 빈손 |
+
+<br/>
+
+## 📍 지금 어디까지 왔나 (2026-09-26)
+
+| | |
+|---|---|
+| **배우기** (Phase 2~8) | 완성 — 태양계 3D · N-body 중력(RK4, 보존량 게이지) · 블랙홀 렌즈 셰이더 · 외계행성 DB · 광도곡선 · BLS · 반복 트랜짓 사냥 |
+| **사냥하기** (9-A ~ 11) | 완성된 도구 위에서 진행 중인 탐색 — 판별 5관문 + 검출 유의성 전제조건, 단일 트랜짓 사냥, 지구크기 dossier |
+| **실제 하늘** | 섹터 104 · 105 · 103 완주, 102 진행 중 (#76) — 중복 제외 214개 왜성 검색, **후보 0**, 그중 12개는 지구 크기까지 감도 도달 |
+| **최신 하늘** | 프론티어 풀이 2주 자동 갱신으로 **섹터 106**(2026-09-15)에 올라와 있음 — 아직 미검색 |
+| **품질** | pytest 237 · vitest 250 · eslint 0 · npm audit 0 — CI(push·PR마다)가 셋 다 + 프로덕션 빌드를 게이트 |
+| **운영** | 평소 로컬 실행. 공개 사이트는 백엔드 없이 뜨며(배너로 정직하게 알림), 데모 때만 Railway를 켬 — [`docs/deploy.md`](./docs/deploy.md) |
 
 <br/>
 
@@ -279,8 +293,8 @@ Kepler/TESS는 하나의 **개척지 허브**에서 고르며, 판별 엔진(9-A
 > **여기까지 — 세 섹터(104 · 105 · 103)를 온전히 훑고 네 번째(102)를 열었습니다: 중복 제외 214개의
 > 작은 왜성을 실제로 검색, 후보 0.** 기계가 눈먼 단일 트랜짓의 틈을, 측정된 관문 다섯 개로 걸러 얻은
 > 정직한 빈손입니다. 그중 **12개 별에서는 지구 크기까지 볼 수 있었고**, 거기서도 아무것도 없었습니다 —
-> 그게 우리가 말할 수 있는 전부이고, 딱 그만큼만 말합니다. 다음은 섹터 102의 남은 82개(또는 106이 뜨면 새 섹터의 작은 별부터), 그리고 사람
-> 눈으로 보는 길(Planet Hunters)입니다. 그 사이, 프론트엔드는 만든 이조차 헷갈리던 정보구조를
+> 그게 우리가 말할 수 있는 전부이고, 딱 그만큼만 말합니다. 다음은 섹터 102의 남은 82개와, 9월 15일 자동 갱신으로
+> 프론티어에 올라온 **새 섹터 106**의 작은 별들, 그리고 사람 눈으로 보는 길(Planet Hunters)입니다. 그 사이, 프론트엔드는 만든 이조차 헷갈리던 정보구조를
 > **두 갈래(배우기 · 사냥하기)로 재설계**하고 학습 화면을 우리말로 다듬어, 처음 온 사람도 3초에 길을
 > 찾도록 했습니다.
 
@@ -313,7 +327,8 @@ Kepler/TESS는 하나의 **개척지 허브**에서 고르며, 판별 엔진(9-A
 | 카테고리 | 기술 |
 |---|---|
 | Frontend 배포 | Vercel |
-| Backend 배포 | Railway |
+| Backend 배포 | Railway (데모 때만 — 평소엔 로컬) |
+| CI | GitHub Actions — pytest · eslint · vitest · build, 프론티어 풀 2주 자동 갱신 |
 | 버전 관리 | GitHub |
 
 <br/>
@@ -326,6 +341,7 @@ pale-blue-code/
 ├── LICENSE                          AGPL-3.0
 │
 ├── .github/workflows/
+│   ├── ci.yml                       push·PR마다 pytest · eslint · build · vitest
 │   └── frontier-refresh.yml         개척지 씨드 풀 2주마다 자동 갱신 (Phase 10)
 │
 ├── scripts/                         오프라인 도구 — 런타임은 커밋된 결과만 읽음
@@ -365,6 +381,8 @@ pale-blue-code/
 │   ├── observations/                실측 장부 — 진짜 별에 검출기를 댄 정직한 기록
 │   │   └── instrument-log.md           별별 실측 결과 + 감도 레버 실측 (Phase 11)
 │   │
+│   ├── issues/                      GitHub 이슈 본문 원고 (issue-{N}-{M}-body.md)
+│   │
 │   ├── phase-handoffs/              Phase 종료 시 작성
 │   │   └── phase-{N}-to-{M}.md
 │   │
@@ -378,7 +396,6 @@ pale-blue-code/
 │       ├── pages/                   Phase별 페이지
 │       ├── components/              공통 컴포넌트
 │       ├── lib/
-│       │   ├── three/               Three.js 유틸
 │       │   ├── physics/             N-body 적분기
 │       │   └── api/                 백엔드 클라이언트
 │       └── styles/                  디자인 토큰
@@ -434,8 +451,8 @@ pale-blue-code/
 ## 🚀 시작하기
 
 ### 사전 요구사항
-- Node.js 20+
-- Python 3.11+ (Phase 5부터 필요)
+- Node.js 20.19+ (CI는 24)
+- Python 3.12+ (CI·배포 기준 3.12)
 
 ### 설치 및 실행
 
@@ -446,7 +463,7 @@ cd pale-blue-code
 
 # Frontend
 cd frontend
-npm install
+npm ci
 npm run dev          # http://localhost:5173
 
 # Backend (Phase 5 이후)
@@ -454,11 +471,11 @@ cd backend
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-uvicorn main:app --reload        # http://localhost:8000
+python -m uvicorn main:app --reload --port 8000   # http://localhost:8000
 
 # 테스트
 cd backend && pip install -r requirements-dev.txt && python -m pytest
-cd frontend && npm run build && npx vitest run
+cd frontend && npm run lint && npm run build && npx vitest run
 ```
 
 ### 환경 변수

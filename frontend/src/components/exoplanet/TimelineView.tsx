@@ -64,10 +64,8 @@ export default function TimelineView({ planets }: Props) {
   const [currentYear, setCurrentYear] = useState(maxYear)
   const [playing, setPlaying] = useState(false)
 
-  // stop when animation reaches end
-  useEffect(() => {
-    if (playing && currentYear >= maxYear) setPlaying(false)
-  }, [playing, currentYear, maxYear])
+  // stop when animation reaches end (adjusted during render, no extra effect pass)
+  if (playing && currentYear >= maxYear) setPlaying(false)
 
   // tick forward
   useEffect(() => {

@@ -54,25 +54,30 @@ function StarCard({ star, onPick, busy }: { star: FrontierStar; onPick: Props['o
 }
 
 export default function FrontierFeed({ mission, onPick, busy }: Props) {
-  const [pool, setPool] = useState<FrontierPool | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  // One settled result per load; "loading" is derived (no result yet), so the
+  // effect only sets state from the request's callbacks.
+  const [result, setResult] = useState<{ pool: FrontierPool | null; error: string | null } | null>(null)
 
   useEffect(() => {
     if (mission !== 'tess') return
     let live = true
-    setLoading(true)
-    setError(null)
     frontierPool('tess', 24)
-      .then((p) => live && setPool(p))
-      .catch((e) => live && setError(e instanceof Error ? e.message : '피드를 불러오지 못했습니다'))
-      .finally(() => live && setLoading(false))
+      .then((p) => live && setResult({ pool: p, error: null }))
+      .catch(
+        (e) =>
+          live &&
+          setResult({ pool: null, error: e instanceof Error ? e.message : '피드를 불러오지 못했습니다' }),
+      )
     return () => {
       live = false
     }
   }, [mission])
 
   if (mission !== 'tess') return null
+
+  const loading = result === null
+  const pool = result?.pool ?? null
+  const error = result?.error ?? null
 
   if (loading) {
     return (

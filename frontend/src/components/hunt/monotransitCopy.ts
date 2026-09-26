@@ -1,5 +1,4 @@
 import type {
-  FetchPlanSummary,
   HuntDisposition,
   MonotransitLedgerEntry,
   SizeVerdict,
@@ -175,37 +174,6 @@ export function survivorSizeNote(s: SizeVerdict): string {
   }
   if (s.size_class === 'too_big') return '검출돼도 별 (너무 큼)'
   return SIZE_CLASS_CHIP.unknown
-}
-
-// sub-11-7: the fetch plan — which plausible dwarfs are worth fetching. The hunt searches only
-// cached curves, so the honest surface names the targets and states plainly which still need
-// their light fetched (a local, network step), never implying it has looked where it has not.
-
-/**
- * The headline for the fetch plan: how many plausible-size targets there are, how many are
- * already searchable, and how many still wait on a fetch. An empty pool says so honestly.
- */
-export function fetchPlanHeadline(s: FetchPlanSummary): string {
-  if (s.plausible === 0) return '이 풀에는 행성 크기 표적이 없습니다'
-  return `행성 크기 표적 ${s.plausible}개 — ${s.cached}개는 이미 뒤질 수 있고, ${s.pending}개는 아직 빛을 기다립니다`
-}
-
-/**
- * The best target line: the smallest-planet dwarf and how small a world a detection there could
- * be. `null` when the pool has no plausible target (the caller omits the line).
- */
-export function fetchPlanBestTarget(s: FetchPlanSummary): string | null {
-  if (!s.best_target || s.best_min_planet_rjup == null) return null
-  return `최우선 표적 ${s.best_target} — 검출되면 ${jupiterRadiusLabel(s.best_min_planet_rjup, true)} 크기의 행성`
-}
-
-/**
- * The honest note for the pending targets: they are not searched yet — their light must be
- * fetched by a local step first. `null` when nothing is pending, so the caller omits the line.
- */
-export function fetchPlanPendingNote(s: FetchPlanSummary): string | null {
-  if (s.pending <= 0) return null
-  return `아직 빛을 안 받아온 ${s.pending}개는 로컬에서 fetch해야 사냥이 뒤질 수 있습니다 — 도구는 보지 않은 곳을 봤다고 하지 않습니다.`
 }
 
 // sub-11-8: the minimum orbital period a single transit implies. Beyond a TESS sector's ~27-day

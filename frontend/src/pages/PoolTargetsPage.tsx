@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { monotransitPool, type PoolAssessment, type PoolTarget } from '../lib/api/monotransit'
 import { CLASSIFICATION_LABEL, minPlanetLabel, poolHeadline } from '../components/hunt/poolCopy'
@@ -52,18 +52,24 @@ function TargetRow({ t, rank }: { t: PoolTarget; rank: number }) {
 export default function PoolTargetsPage() {
   const [data, setData] = useState<PoolAssessment | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) // the first request starts on mount
 
-  const run = () => {
-    setLoading(true)
-    setError(null)
+  // State is only set in the request's callbacks, so the mount effect never
+  // cascades a synchronous re-render; retry adds the visible reset.
+  const load = useCallback(() => {
     monotransitPool()
       .then(setData)
       .catch((e) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false))
-  }
+  }, [])
 
-  useEffect(run, [])
+  useEffect(load, [load])
+
+  const run = () => {
+    setLoading(true)
+    setError(null)
+    load()
+  }
 
   const targets = data?.targets ?? []
 
