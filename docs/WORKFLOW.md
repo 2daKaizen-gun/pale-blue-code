@@ -114,9 +114,9 @@ $body = @'
 - Previous retrospective: `docs/checks/phase-{N}/sub-{N}-{M-1}.md`
 '@
 
-$bodyFile = "scripts\issue-{N}-{M}-body.md"
+$bodyFile = "docs\issues\issue-{N}-{M}-body.md"
 [System.IO.File]::WriteAllText(
-  (Resolve-Path scripts).Path + "\issue-{N}-{M}-body.md",
+  (Resolve-Path docs\issues).Path + "\issue-{N}-{M}-body.md",
   $body,
   [System.Text.UTF8Encoding]::new($false)
 )
@@ -124,7 +124,7 @@ $bodyFile = "scripts\issue-{N}-{M}-body.md"
 # 3) Issue 생성
 gh issue create `
   --title "{N-M}: {제목}" `
-  --body-file scripts\issue-{N}-{M}-body.md `
+  --body-file docs\issues\issue-{N}-{M}-body.md `
   --milestone "Phase {N} — {이름}" `
   --label "phase-{N},sub-phase,{성격라벨}"
 ```
@@ -432,11 +432,11 @@ Claude는 위 신호 중 하나라도 감지하면 *"잠깐, 사이클 어긋났
 
 ---
 
-# 🗂️ `scripts/` 폴더의 역할
+# 🗂️ `scripts/` 와 `docs/issues/` 의 역할
 
-`scripts/` 는 *Issue 본문 / 일회성 자동화 / 디버그 스니펫* 등을 담는다.
+`scripts/` 는 *실행되는 오프라인 도구* 만 담는다 (풀 빌더 · fetch · 검색 · 집계 · 실측 스크립트). 런타임은 이들이 커밋한 결과만 읽는다.
 
-- **추적 O** (권장 기본값) — Issue 본문 파일 (`issue-{N}-{M}-body.md`) 은 git 추적. *결정의 흔적* 으로 남음. 미래의 Claude / 권이건이 컨텍스트 복원 시 참조 가능.
+- **Issue 본문** (`issue-{N}-{M}-body.md`) 은 `docs/issues/` 에 두고 git 추적. *결정의 흔적* 으로 남음. 미래의 Claude / 권이건이 컨텍스트 복원 시 참조 가능. (2026-09-26 이전엔 `scripts/` 에 섞여 있었음 — 옛 check 문서의 커밋 해시는 그 시절 경로를 가리킨다.)
 - *민감 정보 / 진짜 일회성 스크립트* 만 `.gitignore` 에 선택적 추가:
 ```gitignore
   scripts/*.local.*

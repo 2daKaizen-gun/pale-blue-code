@@ -365,6 +365,8 @@ pale-blue-code/
 │   ├── observations/                실측 장부 — 진짜 별에 검출기를 댄 정직한 기록
 │   │   └── instrument-log.md           별별 실측 결과 + 감도 레버 실측 (Phase 11)
 │   │
+│   ├── issues/                      GitHub 이슈 본문 원고 (issue-{N}-{M}-body.md)
+│   │
 │   ├── phase-handoffs/              Phase 종료 시 작성
 │   │   └── phase-{N}-to-{M}.md
 │   │
