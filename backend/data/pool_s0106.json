@@ -1,0 +1,1014 @@
+{
+  "schema": "pale-blue-code/frontier-seeds-tess@2",
+  "built_at": "2026-09-15T11:28:12Z",
+  "criteria": "newest SPOC sector; tid absent from toi_catalog; 2-min light curve exists; selected by 'hunt' (smallest stars first \u2014 planet-size hunt targets)",
+  "latest_sector": 106,
+  "sectors": [
+    106
+  ],
+  "count": 100,
+  "stars": [
+    {
+      "tic": 13145616,
+      "observed_at": "2026-07-11",
+      "constellation": "Columba",
+      "tmag": 11.287,
+      "teff": 29840.0,
+      "radius": 0.18,
+      "distance_pc": 498.267
+    },
+    {
+      "tic": 461715780,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.259,
+      "teff": 3197.0,
+      "radius": 0.192157,
+      "distance_pc": 20.0177
+    },
+    {
+      "tic": 314017913,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 12.5798,
+      "teff": 3303.0,
+      "radius": 0.255846,
+      "distance_pc": 33.4265
+    },
+    {
+      "tic": 65516102,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 12.3928,
+      "teff": 3307.0,
+      "radius": 0.261675,
+      "distance_pc": 31.2653
+    },
+    {
+      "tic": 67649637,
+      "observed_at": "2026-07-11",
+      "constellation": "Sculptor",
+      "tmag": 12.7408,
+      "teff": 3112.0,
+      "radius": 0.281363,
+      "distance_pc": 36.2247
+    },
+    {
+      "tic": 158637035,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 12.8948,
+      "teff": 3186.0,
+      "radius": 0.281879,
+      "distance_pc": 39.6972
+    },
+    {
+      "tic": 129766762,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 12.2222,
+      "teff": 3323.0,
+      "radius": 0.29542,
+      "distance_pc": 33.5524
+    },
+    {
+      "tic": 382383684,
+      "observed_at": "2026-07-11",
+      "constellation": "Grus",
+      "tmag": 11.9237,
+      "teff": 3180.0,
+      "radius": 0.303861,
+      "distance_pc": 46.21864
+    },
+    {
+      "tic": 229092385,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 12.722,
+      "teff": 3438.0,
+      "radius": 0.304952,
+      "distance_pc": 46.6108
+    },
+    {
+      "tic": 70503780,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 12.8602,
+      "teff": 3249.0,
+      "radius": 0.314114,
+      "distance_pc": 47.2086
+    },
+    {
+      "tic": 44678751,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.4077,
+      "teff": 3201.0,
+      "radius": 0.335977,
+      "distance_pc": 40.1988
+    },
+    {
+      "tic": 61710094,
+      "observed_at": "2026-07-11",
+      "constellation": "Pisces Austrinus",
+      "tmag": 11.0477,
+      "teff": 3327.0,
+      "radius": 0.348192,
+      "distance_pc": 24.1035
+    },
+    {
+      "tic": 278802433,
+      "observed_at": "2026-07-11",
+      "constellation": "Grus",
+      "tmag": 12.7838,
+      "teff": 3432.0,
+      "radius": 0.353771,
+      "distance_pc": 59.9801
+    },
+    {
+      "tic": 144458200,
+      "observed_at": "2026-07-11",
+      "constellation": "Grus",
+      "tmag": 9.93897,
+      "teff": 3304.0,
+      "radius": 0.366845,
+      "distance_pc": 14.9857
+    },
+    {
+      "tic": 270314548,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 12.1782,
+      "teff": 3464.0,
+      "radius": 0.403072,
+      "distance_pc": 52.4307
+    },
+    {
+      "tic": 13134233,
+      "observed_at": "2026-07-11",
+      "constellation": "Lepus",
+      "tmag": 12.9808,
+      "teff": 3542.0,
+      "radius": 0.418429,
+      "distance_pc": 83.0826
+    },
+    {
+      "tic": 7151484,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 9.87974,
+      "teff": 3403.0,
+      "radius": 0.438721,
+      "distance_pc": 19.1403
+    },
+    {
+      "tic": 88345402,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 11.9674,
+      "teff": 3429.0,
+      "radius": 0.441618,
+      "distance_pc": 51.8354
+    },
+    {
+      "tic": 178952972,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 10.2624,
+      "teff": 3439.0,
+      "radius": 0.446047,
+      "distance_pc": 23.9398
+    },
+    {
+      "tic": 204523734,
+      "observed_at": "2026-07-11",
+      "constellation": "Pisces Austrinus",
+      "tmag": 12.9319,
+      "teff": 3708.0,
+      "radius": 0.460155,
+      "distance_pc": 99.1382
+    },
+    {
+      "tic": 246897668,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 9.23844,
+      "teff": 3414.0,
+      "radius": 0.460399,
+      "distance_pc": 15.8255
+    },
+    {
+      "tic": 398792575,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.1586,
+      "teff": 4262.69,
+      "radius": 0.461432,
+      "distance_pc": 100.266
+    },
+    {
+      "tic": 200668936,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 12.3161,
+      "teff": 3196.0,
+      "radius": 0.462369,
+      "distance_pc": 59.308
+    },
+    {
+      "tic": 251847101,
+      "observed_at": "2026-07-11",
+      "constellation": "Sculptor",
+      "tmag": 10.6287,
+      "teff": 3810.0,
+      "radius": 0.478107,
+      "distance_pc": 36.5157
+    },
+    {
+      "tic": 183532608,
+      "observed_at": "2026-07-11",
+      "constellation": "Sculptor",
+      "tmag": 12.7248,
+      "teff": 3740.0,
+      "radius": 0.478415,
+      "distance_pc": 90.4681
+    },
+    {
+      "tic": 214515993,
+      "observed_at": "2026-07-11",
+      "constellation": "Grus",
+      "tmag": 11.8585,
+      "teff": 3675.0,
+      "radius": 0.485345,
+      "distance_pc": null
+    },
+    {
+      "tic": 166789074,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.2704,
+      "teff": 3664.0,
+      "radius": 0.496868,
+      "distance_pc": 77.512
+    },
+    {
+      "tic": 65347864,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 11.4081,
+      "teff": 3162.0,
+      "radius": 0.516175,
+      "distance_pc": null
+    },
+    {
+      "tic": 220018894,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.6444,
+      "teff": 3231.0,
+      "radius": 0.517868,
+      "distance_pc": null
+    },
+    {
+      "tic": 140122311,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 10.7275,
+      "teff": 3829.0,
+      "radius": 0.540982,
+      "distance_pc": null
+    },
+    {
+      "tic": 142219037,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.5423,
+      "teff": 3601.0,
+      "radius": 0.544051,
+      "distance_pc": 95.3789
+    },
+    {
+      "tic": 253925373,
+      "observed_at": "2026-07-11",
+      "constellation": "Pisces Austrinus",
+      "tmag": 12.6762,
+      "teff": 3603.0,
+      "radius": 0.562504,
+      "distance_pc": 107.197
+    },
+    {
+      "tic": 215197039,
+      "observed_at": "2026-07-11",
+      "constellation": "Grus",
+      "tmag": 10.9913,
+      "teff": 3542.0,
+      "radius": 0.564832,
+      "distance_pc": 47.7135
+    },
+    {
+      "tic": 322009100,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 11.8152,
+      "teff": 3271.0,
+      "radius": 0.566122,
+      "distance_pc": 62.4184
+    },
+    {
+      "tic": 178364643,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.1812,
+      "teff": 3451.0,
+      "radius": 0.569816,
+      "distance_pc": 81.9811
+    },
+    {
+      "tic": 215256952,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 12.5638,
+      "teff": 4243.0,
+      "radius": 0.579433,
+      "distance_pc": 137.792
+    },
+    {
+      "tic": 47509857,
+      "observed_at": "2026-07-11",
+      "constellation": "Pisces Austrinus",
+      "tmag": 11.2861,
+      "teff": 3782.0,
+      "radius": 0.580096,
+      "distance_pc": null
+    },
+    {
+      "tic": 79589711,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.542,
+      "teff": 3812.0,
+      "radius": 0.583414,
+      "distance_pc": 115.514
+    },
+    {
+      "tic": 178244400,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.7726,
+      "teff": 3456.0,
+      "radius": 0.588316,
+      "distance_pc": 111.559
+    },
+    {
+      "tic": 146343560,
+      "observed_at": "2026-07-11",
+      "constellation": "Lepus",
+      "tmag": 12.6611,
+      "teff": 3571.0,
+      "radius": 0.591738,
+      "distance_pc": 113.267
+    },
+    {
+      "tic": 120566981,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 12.7273,
+      "teff": 3982.0,
+      "radius": 0.592798,
+      "distance_pc": 129.526
+    },
+    {
+      "tic": 178349213,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.848,
+      "teff": 3481.0,
+      "radius": 0.594614,
+      "distance_pc": 117.731
+    },
+    {
+      "tic": 1441057,
+      "observed_at": "2026-07-11",
+      "constellation": "Caelum",
+      "tmag": 12.5029,
+      "teff": 3602.0,
+      "radius": 0.59979,
+      "distance_pc": 108.892
+    },
+    {
+      "tic": 77837886,
+      "observed_at": "2026-07-11",
+      "constellation": "Columba",
+      "tmag": 12.8807,
+      "teff": 3995.0,
+      "radius": 0.607901,
+      "distance_pc": 151.245
+    },
+    {
+      "tic": 123268840,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 10.8307,
+      "teff": 4392.0,
+      "radius": 0.614072,
+      "distance_pc": 72.4955
+    },
+    {
+      "tic": 67644239,
+      "observed_at": "2026-07-11",
+      "constellation": "Sculptor",
+      "tmag": 11.5072,
+      "teff": 3894.0,
+      "radius": 0.619824,
+      "distance_pc": 79.6546
+    },
+    {
+      "tic": 89264325,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.8099,
+      "teff": 3466.0,
+      "radius": 0.630127,
+      "distance_pc": 124.412
+    },
+    {
+      "tic": 7696623,
+      "observed_at": "2026-07-11",
+      "constellation": "Caelum",
+      "tmag": 12.6051,
+      "teff": 4185.0,
+      "radius": 0.635864,
+      "distance_pc": 148.053
+    },
+    {
+      "tic": 219985761,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 11.8073,
+      "teff": 3640.0,
+      "radius": 0.663729,
+      "distance_pc": 91.1111
+    },
+    {
+      "tic": 30948608,
+      "observed_at": "2026-07-11",
+      "constellation": "Lepus",
+      "tmag": 10.1607,
+      "teff": 3948.0,
+      "radius": 0.673438,
+      "distance_pc": 48.6153
+    },
+    {
+      "tic": 102028906,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 11.2148,
+      "teff": 4275.0,
+      "radius": 0.675711,
+      "distance_pc": 89.0186
+    },
+    {
+      "tic": 206686962,
+      "observed_at": "2026-07-11",
+      "constellation": "Pisces Austrinus",
+      "tmag": 5.4128,
+      "teff": 4617.31,
+      "radius": 0.69245,
+      "distance_pc": 7.60648
+    },
+    {
+      "tic": 7785682,
+      "observed_at": "2026-07-11",
+      "constellation": "Caelum",
+      "tmag": 12.2779,
+      "teff": 4200.0,
+      "radius": 0.698181,
+      "distance_pc": 141.609
+    },
+    {
+      "tic": 170699295,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 11.8951,
+      "teff": 4179.0,
+      "radius": 0.698189,
+      "distance_pc": 117.851
+    },
+    {
+      "tic": 32156866,
+      "observed_at": "2026-07-11",
+      "constellation": "Aquarius",
+      "tmag": 10.2043,
+      "teff": 4543.0,
+      "radius": 0.70194,
+      "distance_pc": 67.1572
+    },
+    {
+      "tic": 209318495,
+      "observed_at": "2026-07-11",
+      "constellation": "Aquarius",
+      "tmag": 11.8758,
+      "teff": 4273.0,
+      "radius": 0.702719,
+      "distance_pc": 124.215
+    },
+    {
+      "tic": 78012819,
+      "observed_at": "2026-07-11",
+      "constellation": "Columba",
+      "tmag": 8.2901,
+      "teff": 4911.5,
+      "radius": 0.713807,
+      "distance_pc": 33.8425
+    },
+    {
+      "tic": 651129712,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 11.9277,
+      "teff": 5323.0,
+      "radius": 0.717426,
+      "distance_pc": 211.415
+    },
+    {
+      "tic": 382374330,
+      "observed_at": "2026-07-11",
+      "constellation": "Grus",
+      "tmag": 11.9004,
+      "teff": 4327.0,
+      "radius": 0.717694,
+      "distance_pc": 132.664
+    },
+    {
+      "tic": 671265857,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.2097,
+      "teff": 4679.0,
+      "radius": 0.718139,
+      "distance_pc": 180.858
+    },
+    {
+      "tic": 651293619,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 12.9415,
+      "teff": 4206.0,
+      "radius": 0.724186,
+      "distance_pc": 199.405
+    },
+    {
+      "tic": 89183110,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 11.2681,
+      "teff": 5074.0,
+      "radius": 0.727447,
+      "distance_pc": 143.129
+    },
+    {
+      "tic": 197712303,
+      "observed_at": "2026-07-11",
+      "constellation": "Grus",
+      "tmag": 12.6992,
+      "teff": 4402.0,
+      "radius": 0.730195,
+      "distance_pc": 202.819
+    },
+    {
+      "tic": 206353405,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 10.1451,
+      "teff": 5697.0,
+      "radius": 0.73027,
+      "distance_pc": 107.189
+    },
+    {
+      "tic": 159857871,
+      "observed_at": "2026-07-11",
+      "constellation": "Microscopium",
+      "tmag": 10.954,
+      "teff": 5327.0,
+      "radius": 0.734733,
+      "distance_pc": 136.496
+    },
+    {
+      "tic": 65481160,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 12.2955,
+      "teff": 4463.0,
+      "radius": 0.746102,
+      "distance_pc": 177.757
+    },
+    {
+      "tic": 144576162,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 11.5132,
+      "teff": 5599.0,
+      "radius": 0.761985,
+      "distance_pc": 202.814
+    },
+    {
+      "tic": 70775546,
+      "observed_at": "2026-07-11",
+      "constellation": "Sculptor",
+      "tmag": 12.5646,
+      "teff": 4780.0,
+      "radius": 0.766997,
+      "distance_pc": 241.037
+    },
+    {
+      "tic": 206464750,
+      "observed_at": "2026-07-11",
+      "constellation": "Aquarius",
+      "tmag": 12.1815,
+      "teff": 4681.0,
+      "radius": 0.768025,
+      "distance_pc": 192.398
+    },
+    {
+      "tic": 129812349,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 10.1741,
+      "teff": 5041.0,
+      "radius": 0.776791,
+      "distance_pc": 91.9994
+    },
+    {
+      "tic": 89116464,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 11.3986,
+      "teff": 4911.0,
+      "radius": 0.778198,
+      "distance_pc": 151.754
+    },
+    {
+      "tic": 142207012,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 11.4106,
+      "teff": 5500.0,
+      "radius": 0.791234,
+      "distance_pc": 193.658
+    },
+    {
+      "tic": 32256081,
+      "observed_at": "2026-07-11",
+      "constellation": "Sculptor",
+      "tmag": 9.7868,
+      "teff": 5086.0,
+      "radius": 0.794619,
+      "distance_pc": 80.1898
+    },
+    {
+      "tic": 200665593,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 8.4732,
+      "teff": 5438.0,
+      "radius": 0.803715,
+      "distance_pc": 50.3366
+    },
+    {
+      "tic": 2028260889,
+      "observed_at": "2026-07-11",
+      "constellation": "Pisces Austrinus",
+      "tmag": 10.321,
+      "teff": 5394.0,
+      "radius": 0.804971,
+      "distance_pc": 115.613
+    },
+    {
+      "tic": 469942608,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 11.363,
+      "teff": 4878.0,
+      "radius": 0.808484,
+      "distance_pc": 153.307
+    },
+    {
+      "tic": 380825753,
+      "observed_at": "2026-07-11",
+      "constellation": "Sculptor",
+      "tmag": 11.7596,
+      "teff": 5552.0,
+      "radius": 0.813146,
+      "distance_pc": 238.722
+    },
+    {
+      "tic": 170766490,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 10.0074,
+      "teff": 4983.0,
+      "radius": 0.81735,
+      "distance_pc": 87.5462
+    },
+    {
+      "tic": 178198192,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 10.7009,
+      "teff": 5165.0,
+      "radius": 0.818244,
+      "distance_pc": 128.658
+    },
+    {
+      "tic": 143031108,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 11.771,
+      "teff": 5504.0,
+      "radius": 0.842787,
+      "distance_pc": 244.508
+    },
+    {
+      "tic": 122575501,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 11.3336,
+      "teff": 4098.0,
+      "radius": 0.843555,
+      "distance_pc": 101.386
+    },
+    {
+      "tic": 88466884,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 11.7204,
+      "teff": 5831.0,
+      "radius": 0.844003,
+      "distance_pc": 262.464
+    },
+    {
+      "tic": 142168918,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 12.8478,
+      "teff": 5601.0,
+      "radius": 0.844447,
+      "distance_pc": 412.152
+    },
+    {
+      "tic": 115379421,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 10.9827,
+      "teff": 4086.0,
+      "radius": 0.845299,
+      "distance_pc": 88.7063
+    },
+    {
+      "tic": 79570081,
+      "observed_at": "2026-07-11",
+      "constellation": "Horologium",
+      "tmag": 11.4586,
+      "teff": 5047.0,
+      "radius": 0.845505,
+      "distance_pc": 180.363
+    },
+    {
+      "tic": 66441745,
+      "observed_at": "2026-07-11",
+      "constellation": "Sculptor",
+      "tmag": 12.9286,
+      "teff": 5262.0,
+      "radius": 0.85012,
+      "distance_pc": 379.863
+    },
+    {
+      "tic": 117645980,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 11.7652,
+      "teff": 5419.0,
+      "radius": 0.850351,
+      "distance_pc": 232.315
+    },
+    {
+      "tic": 139285666,
+      "observed_at": "2026-07-11",
+      "constellation": "Grus",
+      "tmag": 8.1197,
+      "teff": 5561.91,
+      "radius": 0.854082,
+      "distance_pc": 47.9478
+    },
+    {
+      "tic": 160080513,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 11.7689,
+      "teff": 5438.0,
+      "radius": 0.855439,
+      "distance_pc": 241.406
+    },
+    {
+      "tic": 144503100,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 10.442,
+      "teff": 5218.0,
+      "radius": 0.86552,
+      "distance_pc": 123.673
+    },
+    {
+      "tic": 70785790,
+      "observed_at": "2026-07-11",
+      "constellation": "Sculptor",
+      "tmag": 11.5163,
+      "teff": 5593.0,
+      "radius": 0.883662,
+      "distance_pc": 234.829
+    },
+    {
+      "tic": 178154213,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 10.6087,
+      "teff": 6072.0,
+      "radius": 0.890882,
+      "distance_pc": 176.12
+    },
+    {
+      "tic": 401912310,
+      "observed_at": "2026-07-11",
+      "constellation": "Eridanus",
+      "tmag": 9.7626,
+      "teff": 5805.0,
+      "radius": 0.891209,
+      "distance_pc": 113.395
+    },
+    {
+      "tic": 88454379,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 10.3935,
+      "teff": 5368.0,
+      "radius": 0.902373,
+      "distance_pc": 132.754
+    },
+    {
+      "tic": 115284172,
+      "observed_at": "2026-07-11",
+      "constellation": "Phoenix",
+      "tmag": 9.9193,
+      "teff": 5686.0,
+      "radius": 0.904,
+      "distance_pc": 118.918
+    },
+    {
+      "tic": 89114183,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 11.7018,
+      "teff": 5624.0,
+      "radius": 0.90577,
+      "distance_pc": 263.879
+    },
+    {
+      "tic": 175490987,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 12.3134,
+      "teff": 5688.0,
+      "radius": 0.910453,
+      "distance_pc": 359.086
+    },
+    {
+      "tic": 97469225,
+      "observed_at": "2026-07-11",
+      "constellation": "Sculptor",
+      "tmag": 8.107,
+      "teff": 5352.05,
+      "radius": 0.916404,
+      "distance_pc": 47.291
+    },
+    {
+      "tic": 178170331,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 11.6953,
+      "teff": 5791.0,
+      "radius": 0.919115,
+      "distance_pc": 280.622
+    },
+    {
+      "tic": 144516268,
+      "observed_at": "2026-07-11",
+      "constellation": "Fornax",
+      "tmag": 9.4284,
+      "teff": 5241.0,
+      "radius": 0.931137,
+      "distance_pc": 79.5132
+    }
+  ],
+  "tics": [
+    1441057,
+    7151484,
+    7696623,
+    7785682,
+    13134233,
+    13145616,
+    30948608,
+    32156866,
+    32256081,
+    44678751,
+    47509857,
+    61710094,
+    65347864,
+    65481160,
+    65516102,
+    66441745,
+    67644239,
+    67649637,
+    70503780,
+    70775546,
+    70785790,
+    77837886,
+    78012819,
+    79570081,
+    79589711,
+    88345402,
+    88454379,
+    88466884,
+    89114183,
+    89116464,
+    89183110,
+    89264325,
+    97469225,
+    102028906,
+    115284172,
+    115379421,
+    117645980,
+    120566981,
+    122575501,
+    123268840,
+    129766762,
+    129812349,
+    139285666,
+    140122311,
+    142168918,
+    142207012,
+    142219037,
+    143031108,
+    144458200,
+    144503100,
+    144516268,
+    144576162,
+    146343560,
+    158637035,
+    159857871,
+    160080513,
+    166789074,
+    170699295,
+    170766490,
+    175490987,
+    178154213,
+    178170331,
+    178198192,
+    178244400,
+    178349213,
+    178364643,
+    178952972,
+    183532608,
+    197712303,
+    200665593,
+    200668936,
+    204523734,
+    206353405,
+    206464750,
+    206686962,
+    209318495,
+    214515993,
+    215197039,
+    215256952,
+    219985761,
+    220018894,
+    229092385,
+    246897668,
+    251847101,
+    253925373,
+    270314548,
+    278802433,
+    314017913,
+    322009100,
+    380825753,
+    382374330,
+    382383684,
+    398792575,
+    401912310,
+    461715780,
+    469942608,
+    651129712,
+    651293619,
+    671265857,
+    2028260889
+  ]
+}

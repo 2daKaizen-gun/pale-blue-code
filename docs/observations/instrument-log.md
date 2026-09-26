@@ -1206,3 +1206,21 @@ anything under 8–16 R⊕. For those four, *quiet* rules out Neptunes and Satur
 Achieved completeness over the 18: best 0.9 · median 4.3 R⊕, 1 of 18 Earth-clean. The three-pool
 Earth-size-sensitive set holds at **12 of 214** — this batch added none. Widening pays on the small end
 of a pool, and sector 102's small end is mostly spent.
+
+**The last batches before v1.0 (2026-09-27, sub-12-1 #78 · sub-12-2 #79).** One more batch in sector 102
+and the first in sector 106 — frozen to `pool_s0106.json` before the refresh Action could roll it away,
+the way 104 and 105 had been lost (both restored from history today). Each 8 fetched, 1 MAST failure left
+unfetched.
+
+```
+sector 102, +8:  3 quiet · 4 insignificant · 1 rejected · 0 candidates    cumulative 26 of 100
+                 rejected: TIC 1310863561 sig 23.26 (edge+symmetry)
+sector 106, +8:  4 quiet · 3 insignificant · 1 rejected · 0 candidates    cumulative 12 of 100
+                 rejected: TIC 65516102  sig 85.31 (edge+symmetry) — second-largest event of the hunt
+```
+
+Final state of the hunt, every sector pool, deduplicated by TIC and computed from the caches:
+**328 stars searched · 55 significant single events, all rejected · 0 candidates · 22 stars reached
+Earth size · median sensitivity 4.7 R⊕.** Expected yield from occurrence × geometry × observed time ×
+these floors: **0.42 detections, P(zero) = 66%** (`scripts/expected_yield.py`). The two sweeps stop here
+for v1.0 and continue in maintenance mode. Record: `docs/report/final-report.md`.
