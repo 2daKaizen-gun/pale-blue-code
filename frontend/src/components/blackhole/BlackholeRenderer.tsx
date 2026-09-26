@@ -1,14 +1,14 @@
-import { useRef } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { RawShaderMaterial, Vector2, Vector3, Matrix4, GLSL3 } from 'three'
 import vertGlsl from '../../shaders/blackhole.vert.glsl?raw'
 import fragGlsl from '../../shaders/blackhole.frag.glsl?raw'
 import { bhMaterialRef } from './refs'
 
 export function BlackholeRenderer() {
-  const matRef = useRef<RawShaderMaterial | null>(null)
-
-  if (!matRef.current) {
-    matRef.current = new RawShaderMaterial({
+  // Created once for the component's life (lazy initial state).
+  const [material] = useState(
+    () =>
+      new RawShaderMaterial({
       vertexShader: vertGlsl,
       fragmentShader: fragGlsl,
       glslVersion: GLSL3,
@@ -27,16 +27,23 @@ export function BlackholeRenderer() {
       },
       depthWrite: false,
       depthTest: false,
-    })
-  }
+    }),
+  )
 
-  // Idempotent — same ref every render; UniformUpdater reads this each frame.
-  bhMaterialRef.current = matRef.current
+  // Publish to the shared handle UniformUpdater reads each frame — after
+  // commit, before the first frame. Cleared on unmount so no stale material
+  // outlives the scene.
+  useLayoutEffect(() => {
+    bhMaterialRef.current = material
+    return () => {
+      if (bhMaterialRef.current === material) bhMaterialRef.current = null
+    }
+  }, [material])
 
   return (
     <mesh>
       <planeGeometry args={[2, 2]} />
-      <primitive object={matRef.current} attach="material" />
+      <primitive object={material} attach="material" />
     </mesh>
   )
 }

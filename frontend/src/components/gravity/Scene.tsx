@@ -49,9 +49,13 @@ const DPR: [number, number] = [1, 2]
  * one controls for the Canvas's whole life; only Trails/Bodies remount.
  */
 function CameraRig({ camera }: { camera: CameraConfig }) {
-  const cam = useThree((s) => s.camera) as PerspectiveCamera
-  const controls = useThree((s) => s.controls) as unknown as OrbitControlsImpl | null
+  // Subscribed only so the reframe re-runs once OrbitControls registers; the
+  // objects are mutated through get(), R3F's imperative handle.
+  const controlsReady = useThree((s) => s.controls) != null
+  const get = useThree((s) => s.get)
   useEffect(() => {
+    const cam = get().camera as PerspectiveCamera
+    const controls = get().controls as unknown as OrbitControlsImpl | null
     cam.position.set(camera.position[0], camera.position[1], camera.position[2])
     cam.far = camera.far
     cam.updateProjectionMatrix()
@@ -61,7 +65,7 @@ function CameraRig({ camera }: { camera: CameraConfig }) {
       controls.maxDistance = camera.maxDistance
       controls.update()
     }
-  }, [camera, cam, controls])
+  }, [camera, controlsReady, get])
   return null
 }
 
@@ -85,12 +89,12 @@ function CameraRig({ camera }: { camera: CameraConfig }) {
  * always free-orbit at the moment CameraRig runs.
  */
 function CameraController({ bodiesRef }: { bodiesRef: React.RefObject<SystemState> }) {
-  const cam = useThree((s) => s.camera) as PerspectiveCamera
-  const controls = useThree((s) => s.controls) as unknown as OrbitControlsImpl | null
   const prevTarget = useRef(new Vector3())
   const prevFollow = useRef<number | null>(null)
 
-  useFrame(() => {
+  useFrame((state) => {
+    const cam = state.camera as PerspectiveCamera
+    const controls = state.controls as unknown as OrbitControlsImpl | null
     const followIndex = useGravityStore.getState().followIndex
     if (followIndex == null) {
       prevFollow.current = null

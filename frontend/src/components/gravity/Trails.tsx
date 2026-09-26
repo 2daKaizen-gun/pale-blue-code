@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { BufferGeometry, BufferAttribute, Color, Line, LineBasicMaterial } from 'three'
 import type { RingBuffer } from '../../lib/util/ringBuffer'
 import type { PresetBody } from '../../data/presets'
+import { TRAIL_CAPACITY } from '../../constants/gravity'
 
 /**
  * Pale Blue Code — Phase 3: Gravity
@@ -44,7 +45,7 @@ export function Trails({ trailsRef, presetBodies }: TrailsProps) {
   const n = presetBodies.length
   const resources = useMemo<TrailResource[]>(() => {
     return presetBodies.map((body, i) => {
-      const cap = trailsRef.current[i]?.capacity ?? 0
+      const cap = TRAIL_CAPACITY
       const geometry = new BufferGeometry()
       geometry.setAttribute('position', new BufferAttribute(new Float32Array(cap * 3), 3))
       geometry.setAttribute('color', new BufferAttribute(new Float32Array(cap * 3), 3))

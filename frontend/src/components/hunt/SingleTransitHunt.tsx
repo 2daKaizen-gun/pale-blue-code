@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   monotransitCurve,
   monotransitHunt,
@@ -290,19 +290,25 @@ function matchesFilter(e: MonotransitLedgerEntry, f: PoolFilter): boolean {
 export default function SingleTransitHunt() {
   const [data, setData] = useState<MonotransitHunt | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) // the first request starts on mount
   const [filter, setFilter] = useState<PoolFilter>('searched')
 
-  const run = () => {
-    setLoading(true)
-    setError(null)
+  // State is only set in the request's callbacks, so the mount effect never
+  // cascades a synchronous re-render; retry adds the visible reset.
+  const load = useCallback(() => {
     monotransitHunt()
       .then(setData)
       .catch((e) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false))
-  }
+  }, [])
 
-  useEffect(run, [])
+  useEffect(load, [load])
+
+  const run = () => {
+    setLoading(true)
+    setError(null)
+    load()
+  }
 
   const survivors = data?.survivors ?? []
   const ledger = data?.ledger ?? []

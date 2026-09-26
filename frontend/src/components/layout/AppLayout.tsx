@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import Spinner from '../ui/Spinner'
 import BackendStatusBanner from '../system/BackendStatusBanner'
@@ -26,10 +26,12 @@ export default function AppLayout() {
   const { pathname } = useLocation()
   // 현재 경로가 속한 섹션을 자동으로 연다. 사용자가 헤더로 토글도 가능.
   const [openSection, setOpenSection] = useState<NavSection>(() => sectionForPath(pathname))
-  useEffect(() => {
+  const [syncedPath, setSyncedPath] = useState(pathname)
+  if (syncedPath !== pathname) {
+    setSyncedPath(pathname)
     const s = sectionForPath(pathname)
     if (s) setOpenSection(s)
-  }, [pathname])
+  }
 
   const toggleSection = (s: Exclude<NavSection, null>) =>
     setOpenSection((cur) => (cur === s ? null : s))
