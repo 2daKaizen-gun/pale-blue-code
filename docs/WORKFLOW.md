@@ -235,6 +235,7 @@ sub-phase 모든 코드 작업이 끝난 후, 통합 검증.
 자동 테스트:
 - (Vitest / Jest / Pytest 등으로 작성한 테스트 결과)
 - **프론트를 건드렸으면 `npm run build` 필수** (tsc -b + vite build). vitest 초록 ≠ 빌드 초록.
+- **`npm run lint` 도 0 이어야 한다** — 2026-09-26부터 CI 게이트 (eslint 부채 32 → 0 청산 후).
 - Check 문서에 "clean"을 쓰려면 그 명령을 *이번에* 실제로 돌린 결과여야 한다.
 
 수동 검증:

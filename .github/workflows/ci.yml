@@ -12,9 +12,9 @@ name: CI
 #  - backend on Ubuntu at Python 3.12, installing the *pinned* requirements —
 #    the stack Railway actually deploys, not whatever is installed locally.
 #
-# eslint is deliberately not a gate yet: `npm run lint` reports 32 existing
-# errors (2026-09-11). A gate that is red on day one teaches nobody anything;
-# lint debt is tracked separately.
+# eslint became a gate on 2026-09-26, once the 32 errors it reported at CI's
+# birth were paid down to 0 (a gate that is red on day one teaches nobody
+# anything — so the debt went first).
 on:
   push:
     branches: [main]
@@ -47,7 +47,8 @@ jobs:
 
       - name: pytest
         # No backend/cache in CI (it is gitignored): the suite must stand on
-        # tracked files alone. Verified locally on a clean worktree, 237 passed.
+        # tracked files alone. Verified locally on a clean worktree, 237 passed
+        # (again on 2026-09-26 against the sector-106 pool).
         run: python -m pytest -q
 
   frontend:
@@ -65,6 +66,9 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - run: npm ci
+
+      - name: eslint
+        run: npm run lint
 
       - name: build (tsc -b + vite build)
         run: npm run build
