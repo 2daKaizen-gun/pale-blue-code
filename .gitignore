@@ -158,3 +158,5 @@ temp/
 
 # Claude Code local (personal permissions/overrides)
 .claude/settings.local.json
+# isolated worktrees Claude Code creates for background jobs
+.claude/worktrees/
