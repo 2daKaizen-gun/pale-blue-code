@@ -20,9 +20,3 @@ export async function fetchPlanets(): Promise<Planet[]> {
   if (!res.ok) throw new Error(`fetchPlanets failed: ${res.status}`)
   return res.json()
 }
-
-export async function fetchPlanet(name: string): Promise<Planet> {
-  const res = await fetch(`${API_BASE_URL}/api/planets/${encodeURIComponent(name)}`)
-  if (!res.ok) throw new Error(`fetchPlanet failed: ${res.status}`)
-  return res.json()
-}
