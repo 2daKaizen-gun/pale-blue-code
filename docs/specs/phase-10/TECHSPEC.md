@@ -4,6 +4,12 @@
 > *상태: Draft → sub-10-1 진입 시 Confirmed*
 > *PRD: `docs/specs/phase-10/PRD.md`*
 
+> ⚠️ **2026-10-17 감사 주석 — 구현이 이 문서를 뒤집은 곳.** 아래의 "TESS long cadence(`exptime="long"`)
+> 강제"는 실제로 채택되지 않았다. sub-10-1이 MAST의 SPOC **2분(`author="SPOC"`, `exptime="short"`)**
+> 곡선을 쓰기로 했고, 그 때문에 Kepler cadence를 가정한 detrend 창은 sub-10-3에서 cadence 유도 +
+> 30일 창으로 다시 보정됐다(`docs/checks/phase-10/sub-10-1.md`, `sub-10-3.md`). Phase 11의 사냥도 전부
+> SPOC 2분 곡선이다. 이 문서의 나머지는 작성 시점 설계 그대로 둔다.
+
 ---
 
 ## §1. 핵심 기술 결정 요약

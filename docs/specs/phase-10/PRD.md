@@ -94,6 +94,7 @@
 - **사용자 계정 / 발견 저장소 / 커뮤니티** — 트랙의 다른 악장 9-C "모두의 발견".
 - **다중 sector 정밀 stitch 최적화** — 기본 lightkurve stitch로 충분. detrending 고급화는 YAGNI.
 - **TESS 2분 cadence 전용 파이프라인** — long cadence(FFI/QLP) 우선. 단주기 정밀은 향후.
+  *(2026-10-17 감사 주석: 실제 구현은 반대로 SPOC 2분 곡선을 택했다 — TechSpec 머리 주석 참조.)*
 - **Kepler × TESS 교차검증** — 같은 별을 두 미션으로 대조하는 건 별도 과제.
 - **픽셀 수준 진단 (centroid)** — 4관문 이후 고급 단계, 미션 무관하게 미룸.
 
