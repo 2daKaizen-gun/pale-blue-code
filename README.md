@@ -22,6 +22,11 @@
 
 🔗 **Live**: [pale-blue-code.vercel.app](https://pale-blue-code.vercel.app)
 
+> 공개 사이트는 **프론트엔드만 상시** 떠 있습니다. 태양계·중력·블랙홀은 바로 동작하지만, NASA 데이터를
+> 쓰는 화면(외계행성 DB·광도곡선·BLS·사냥)은 백엔드가 필요해서 평소엔 "연결할 수 없어요" 배너가 뜹니다 —
+> 백엔드는 비용 때문에 데모 때만 켭니다. 전부 보려면 아래 [시작하기](#-시작하기)대로 로컬에서 띄우면
+> 됩니다(백엔드는 자동으로 `localhost:8000`).
+
 <br/>
 
 ## 📖 프로젝트의 영혼
@@ -99,22 +104,26 @@ Phase별 서사와 사냥 일지는 **[`docs/journey.md`](./docs/journey.md)**, 
 git clone https://github.com/2daKaizen-gun/pale-blue-code.git
 cd pale-blue-code
 
-# Frontend
-cd frontend
-npm ci
-npm run dev          # http://localhost:5173
-
-# Backend (Phase 5 이후)
+# 터미널 1 — Backend (NASA 데이터·광도곡선·BLS·사냥)
 cd backend
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python -m uvicorn main:app --reload --port 8000   # http://localhost:8000
 
-# 테스트
-cd backend && pip install -r requirements-dev.txt && python -m pytest
+# 터미널 2 — Frontend (저장소 루트에서)
+cd frontend
+npm ci
+npm run dev          # http://localhost:5173 — 백엔드를 자동으로 찾음
+
+# 테스트 (각각 저장소 루트에서)
+cd backend  && pip install -r requirements-dev.txt && python -m pytest
 cd frontend && npm run lint && npm run build && npx vitest run
 ```
+
+사냥 결과(최종 보고서의 숫자)를 다시 계산하려면 광도곡선 캐시가 필요합니다 — 저장소에는 없고(~1 GB)
+MAST에서 다시 받습니다. 절차는 [`docs/maintenance.md`](./docs/maintenance.md) §2, 재현 명령은
+[최종 보고서 끝](./docs/report/final-report.md#재현).
 
 ### 환경 변수
 
