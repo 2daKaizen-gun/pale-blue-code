@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "raczzalan.webgl-glsl-editor",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-toolsai.jupyter",
+    "eamodio.gitlens",
+    "editorconfig.editorconfig",
+    "yzhang.markdown-all-in-one",
+    "tamasfe.even-better-toml",
+    "mikestead.dotenv"
+  ]
+}
