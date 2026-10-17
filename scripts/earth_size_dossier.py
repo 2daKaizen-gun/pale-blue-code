@@ -129,8 +129,10 @@ def main() -> None:
         print("  %-13s %7s %9s %8s %9s  %s" % (t["tic"], rad, mre, sec, base, t["disposition"] or "unsearched"))
     print("-" * 78)
     if dossier["n_candidates"] == 0:
+        n_rejected = sum(1 for t in dossier["targets"] if t["disposition"] == "rejected")
         print("No surviving candidate today. This is a completeness statement, not a discovery:")
-        print("our search reached Earth size on these quiet dwarfs and found no single-transit event.")
+        print("our search reached Earth size on these quiet dwarfs and no single-transit event survived")
+        print("(%d of them had a significant event, each rejected by a named gate)." % n_rejected)
     print("follow-up path: %s" % dossier["follow_up"])
 
     if args.json:

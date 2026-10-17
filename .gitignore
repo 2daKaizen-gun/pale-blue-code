@@ -98,7 +98,9 @@ mast_cache/
 backend/cache/*.json
 
 # ---- IDE / Editor ----
-.vscode/
+# `.vscode/*`, not `.vscode/`: git cannot re-include a file whose parent directory
+# is excluded, so with `.vscode/` the two `!` lines below never took effect.
+.vscode/*
 !.vscode/settings.json.example
 !.vscode/extensions.json
 .idea/

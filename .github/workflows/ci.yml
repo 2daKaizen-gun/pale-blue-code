@@ -32,9 +32,9 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
@@ -47,8 +47,8 @@ jobs:
 
       - name: pytest
         # No backend/cache in CI (it is gitignored): the suite must stand on
-        # tracked files alone. Verified locally on a clean worktree, 237 passed
-        # (again on 2026-09-26 against the sector-106 pool).
+        # tracked files alone. Verified on a clean worktree without a cache:
+        # 244 passed on 2026-10-17 against the sector-107 pool.
         run: python -m pytest -q
 
   frontend:
@@ -57,9 +57,9 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
           cache: npm

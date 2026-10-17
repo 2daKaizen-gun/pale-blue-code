@@ -16,6 +16,9 @@
 - **Hunt 백엔드**: `GET /api/hunt/targets` (큐레이션 5타깃) + `/hunt/lc/{kic}` + `/hunt/bls/{kic}` + `/hunt/koi-check` (로컬 KOI 스냅샷 CSV 대조, harmonic-aware).
 - **HuntPage**: 타깃 선택 → 순차 LC→BLS→KOI 흐름 → 주기도그램 + BLSResultCard + KOIMatchCard(amber/green/purple 3상태) + **발견 기록 JSON 내보내기 + 보고 링크**.
 - **배포 완료**: Vercel(프론트) + 백엔드. 라이브 E2E(Playwright+Edge) 통과.
+  > ⚠️ **2026-10-17 감사 주석**: 사실이 아니었다. 그때 배포된 건 프론트(Vercel)뿐이고, E2E는
+  > 로컬 uvicorn :8000 + vite :5173에서 돌았다(`docs/checks/phase-8/sub-8-2.md`). 백엔드가 처음
+  > 실제로 배포된 건 2026-07-23이다(`docs/checks/infra/live-revival.md`).
 
 ---
 

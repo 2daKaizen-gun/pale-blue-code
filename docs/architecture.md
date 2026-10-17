@@ -18,7 +18,7 @@
 ### Backend (Phase 5부터)
 | 카테고리 | 기술 |
 |---|---|
-| Framework | FastAPI (Python 3.14) |
+| Framework | FastAPI 0.115 (Python 3.12 고정 — CI·배포 기준. 개발 PC는 3.14) |
 | 과학 계산 | NumPy, SciPy, Astropy |
 | 천문학 라이브러리 | Lightkurve, AstroQuery |
 | 데이터 처리 | Pandas |
@@ -151,7 +151,8 @@ pale-blue-code/
     │   ├── pool_s0105.json          섹터 105 왜성 풀 (이력에서 복원, 100/100 완주)
     │   ├── pool_s0103.json          섹터 103 왜성 풀 (--pool, sub-11-21 · 100/100 완주)
     │   ├── pool_s0102.json          섹터 102 왜성 풀 (--pool, sub-11-27 · 12-1)
-    │   └── pool_s0106.json          섹터 106 왜성 풀 (고정, 12-2)
+    │   ├── pool_s0106.json          섹터 106 왜성 풀 (고정, 12-2)
+    │   └── pool_s0107.json          섹터 107 왜성 풀 (2026-10-15 갱신분을 고정, 미사냥)
     └── cache/                       lc_*.json · bls_*.json · mono_*.json (gitignore)
                                      mono_*.json = 사냥 결과 디스크 메모 (sub-11-12, 즉시 로딩)
 ```

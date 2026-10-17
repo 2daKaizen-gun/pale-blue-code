@@ -84,14 +84,14 @@ gh label create "phase-{N}" --color "{hex}" --description "Phase {N} — {이름
 
 Plan 확정 직후, Claude 가 Issue 본문 초안 (영어) 을 제공. 권이건이 PowerShell 에서 명령 실행.
 
-**본문 파일은 `scripts/` 폴더에 저장**. 이유:
+**본문 파일은 `docs/issues/` 폴더에 저장** (2026-09-26 이전엔 `scripts/`였다 — 아래 "역할" 절). 이유:
 - 임시 폴더 (`$env:TEMP`) 가 아닌 *레포 안 영구 보관* — *결정의 흔적* 으로 남음
 - 미래의 Claude / 권이건이 *"이전 sub-phase Issue 본문 어떻게 썼더라"* 참조 가능
 - git 추적 권장 (인계 자료의 일부)
 
 ```powershell
-# 1) scripts/ 폴더 보장 (없으면 생성)
-New-Item -ItemType Directory -Path scripts -Force | Out-Null
+# 1) docs/issues/ 폴더 보장 (없으면 생성)
+New-Item -ItemType Directory -Path docs\issues -Force | Out-Null
 
 # 2) 본문 작성 (UTF-8 no BOM — em-dash 안 깨짐)
 $body = @'
@@ -114,7 +114,6 @@ $body = @'
 - Previous retrospective: `docs/checks/phase-{N}/sub-{N}-{M-1}.md`
 '@
 
-$bodyFile = "docs\issues\issue-{N}-{M}-body.md"
 [System.IO.File]::WriteAllText(
   (Resolve-Path docs\issues).Path + "\issue-{N}-{M}-body.md",
   $body,
@@ -200,7 +199,7 @@ Closes #14
 1. ...  → 예상 커밋: feat(scope): ...
 2. ...
 3. ...
-(하루 6~10 커밋 페이스에 맞춰 분할)
+(한 커밋 = 동작하는 가장 작은 단위. 커밋 *개수*는 목표가 아니다 — 2026-08-05에 폐기, 헌장 §4)
 
 위험 / 막힐 가능성:
 - ...
@@ -327,19 +326,23 @@ Closes #14
 gh issue close {N} --comment "Completed. See ``docs/checks/phase-{N}/sub-{N-M}.md`` for full retrospective."
 ```
 
-#### 3. `git push origin main`
+#### 3. 브랜치 push → PR → 머지
 
-sub-phase 동안 쌓인 모든 로컬 커밋을 원격에 동기화한다.
+sub-phase 동안 쌓인 커밋을 **브랜치**로 올리고 PR로 `main`에 합친다.
 
 ```bash
-git push origin main
+git push -u origin <branch>
+gh pr create --base main --fill      # CI(pytest · eslint · build · vitest)가 PR에서 돈다
+# CI 초록 + 권이건 확인 후 머지
 ```
 
 원칙:
-- **sub-phase 단위로만 push** — 한 sub-phase 안의 Light 사이클마다 push 하지 않는다 (소음 방지)
-- push 전에 `git log --oneline` 으로 이번 sub-phase 커밋 묶음을 한 번 확인하면 좋다
-- push가 자동 배포 (Vercel) 를 트리거하므로, sub-phase가 완전히 끝난 시점에만 푸시
-- push 가 `Closes #N` 트리거 — Issue 자동 close + Milestone 진행률 자동 갱신
+- **`main`에 직접 push하지 않는다** — Phase 12(#77·#82·#83)부터의 규칙(`phase-11-to-12.md` §6).
+  그 전까지는 sub-phase 끝에 `git push origin main`을 했다.
+- **sub-phase 단위로 PR** — Light 사이클마다 PR을 만들지 않는다 (소음 방지)
+- PR 전에 `git log --oneline main..` 으로 이번 묶음을 한 번 확인
+- `main` 머지가 자동 배포(Vercel)를 트리거하므로, sub-phase가 끝난 시점에만 머지
+- 커밋의 `Closes #N`은 PR이 `main`에 머지될 때 트리거 — Issue 자동 close + Milestone 진행률 갱신
 
 ---
 
@@ -401,13 +404,13 @@ C: Suspense로 리팩토링 가능 — Phase 1 종료 시 검토
 
 17:00~17:30 [Full Test]  통합 검증
 17:30~17:50 [Full Check] 회고 → `docs/checks/phase-1/sub-1-3.md`
-17:50~18:00 마일스톤 표시 + git push origin main
-            → push 시 GitHub 가 `Closes #7` 감지 → Issue #7 자동 close
+17:50~18:00 마일스톤 표시 + 브랜치 push → PR → (CI 초록) 머지
+            → 머지 시 GitHub 가 `Closes #7` 감지 → Issue #7 자동 close
             → Milestone "Phase 1 — Foundation" 진행률 자동 갱신
 ```
 
-이 패턴 = 하루 7 커밋 + 1 Full Plan + 1 Full Check + 1 push + Issue 한 생명주기.  
-완벽한 *"하루 6~10 커밋"* 페이스.
+이 패턴 = 1 Full Plan + Light 몇 개 + 1 Full Check + 1 PR + Issue 한 생명주기.
+(Phase 1 시절의 예시라 커밋 수가 많다. 커밋 *개수* 목표는 2026-08-05에 폐기됐다 — 헌장 §4.)
 
 ---
 

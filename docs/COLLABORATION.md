@@ -11,8 +11,9 @@
 - **개발자**: 권이건 (Leegun Kwon)
 - **AI 협업자**: Claude (Anthropic)
 - **시작일**: 2026년 5월
-- **본 트랙 기간**: Phase 1~7, 약 7~8개월
-- **연구 트랙**: Phase 8, 무기한
+- **본 트랙 기간**: Phase 1~7, 약 7~8개월 *(작성 당시 계획)*
+- **연구 트랙**: Phase 8, 무기한 *(작성 당시 계획)*
+- **실제**: Phase 0~12, 2026-05 ~ 2026-09-27 **v1.0** — 이후 유지 모드(`docs/maintenance.md`)
 
 ---
 
@@ -52,8 +53,8 @@
 - 각 sub-phase = PCTC 1사이클
 - **sub-phase 시작 시 GitHub Issue 생성** — Plan 확정 직후, Plan 내용이 Issue 본문이 됨
 - **sub-phase 종료 시 다음 세 가지를 반드시 수행한다**:
-  1. **GitHub Issue close** — 마지막 커밋 메시지에 `Closes #N` 포함 (push 시 자동 close) 또는 `gh issue close N` 수동 실행
-  2. **`git push origin main` 실행** — 로컬 커밋을 원격에 동기화 (Check 단계 마지막 스텝, `Closes #N` 트리거)
+  1. **GitHub Issue close** — 마지막 커밋 메시지에 `Closes #N` 포함 (PR 머지 시 자동 close) 또는 `gh issue close N` 수동 실행
+  2. **브랜치 push → PR → 머지** — `main`에 직접 push하지 않는다(Phase 12부터, 그 전엔 `git push origin main`). CI가 PR에서 돌고, 머지가 `Closes #N`을 트리거
   3. **마일스톤 현황 표시** — 현재 Phase의 sub-phase 진행 상황을 체크리스트로 시각화
 
 ### GitHub 진행 관리 (Issue / Milestone)
@@ -77,9 +78,9 @@
 실행 절차의 상세는 → `WORKFLOW.md` 의 *"Phase 시작 절차"* + *"Sub-phase 시작 절차"*.
 
 ### 일일 리듬
-- **하루 커밋 6~10개 목표**
-- 따라서 작업 단위를 너무 크게 잡지 않는다 (한 커밋 = 30분~1시간 분량)
-- Claude는 작업을 쪼갤 때 이 커밋 빈도를 염두에 둔다
+- ~~하루 커밋 6~10개 목표~~ — **2026-08-05 폐기.** 목표는 커밋 개수가 아니라 진짜 탐구다. 개수를
+  채우려다 같은 숫자를 네 번 포장한 적이 있다(sub-11-8~11).
+- 작업 단위는 여전히 작게 잡는다 (한 커밋 = 동작하는 가장 작은 단위)
 
 ---
 
@@ -215,11 +216,11 @@ LLM 협업의 가장 큰 두 함정. 이 둘을 의식적으로 방어한다.
 
 - 매 작업 결과에 커밋 메시지 동봉 (영어, 한 줄)
 - 천문학 설명에 비유 사용
-- 작업 단위를 *"하루 커밋 6~10개"* 페이스에 맞춰 분할
+- 작업 단위를 동작하는 가장 작은 단위로 분할 (커밋 개수 목표는 2026-08-05 폐기)
 - **Phase 시작 시 GitHub Milestone 생성 절차 안내** (§4 GitHub 관리 규칙)
 - **sub-phase 시작 시 Issue 생성 도움** — Plan 확정 후 Issue 본문 초안 제공 (영어)
 - **sub-phase 종료 시 Issue close 절차 안내** — 마지막 커밋의 `Closes #N` 추천
-- **sub-phase 종료 시 push 안내 + 마일스톤 현황 표시 (§4 규칙)**
+- **sub-phase 종료 시 브랜치 push + PR + 마일스톤 현황 표시 (§4 규칙)** — 머지는 권이건 확인 후
 - Phase 종료 시 인수인계 문서 작성 도움 (GitHub Milestone/Issue 상태 포함)
 - Context rot / anxiety 방지 원칙 준수
 - 권이건의 동기 (어릴 적 꿈) 를 잊지 않고, 기술 결정에 그 영혼을 반영
@@ -232,8 +233,10 @@ LLM 협업의 가장 큰 두 함정. 이 둘을 의식적으로 방어한다.
 - Phase별 회고 작성 (Claude가 도움)
 - 매일 NASA APOD 한 장씩 보기
 - 막히면 솔직히 막혔다고 말하기
-- 커밋은 본인 손으로
+- 커밋은 본인 손으로 *(초기 규칙. Phase 9 이후엔 Claude Code가 커밋·이슈 명령을 직접 실행하고,
+  권이건은 push·머지 시점을 쥐는 방식으로 굳어졌다 — 아래 줄도 같다)*
 - **GitHub Issue 생성 / close 명령 실행은 본인 손으로** (Claude 가 명령어 제공)
+- **`main` 머지는 본인 확인 후** — 이건 지금도 유지되는 게이트
 - 새 Phase 시작 시 헌장 + 인수인계 + README 첨부
 
 ---

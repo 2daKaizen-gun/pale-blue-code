@@ -37,6 +37,8 @@
 - [x] `@fontsource` 자체 호스팅 — Google Fonts CDN 의존 제거
 - [x] `docs/phase-handoffs/phase-5-to-6.md` 작성
 - [x] GitHub Release v0.5.0 태깅
+  > ⚠️ **2026-10-17 감사 주석**: `v0.5.0` 태그·릴리스는 존재하지 않는다(있는 것은 `v0.6.0`, `v1.0`).
+  > 체크는 사실이 아니었다.
 - [x] Phase 5 Milestone close
 
 ---

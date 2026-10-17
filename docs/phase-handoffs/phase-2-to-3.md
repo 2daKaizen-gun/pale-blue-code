@@ -47,6 +47,8 @@
 
 ### Milestone 현황
 - **Phase 2 — Solar System**: **closed ✅** (2026-05-25, Release `v0.2.0`)
+  > ⚠️ **2026-10-17 감사 주석**: `v0.2.0` 태그·릴리스는 존재하지 않는다. 저장소의 태그는 `v0.6.0`과
+  > `v1.0` 둘뿐이다. 마일스톤 close는 사실(2026-05-24).
   - sub-phase Issue: **#10 ~ #16** (2-1 ~ 2-7)
   - #10~#15 closed, **#16(2-7) 은 마지막 커밋 `Closes #16` 으로 close**
   - Milestone URL: `https://github.com/2daKaizen-gun/pale-blue-code/milestones` (Phase 2 = 아마 `/milestone/2` — 번호 확인)

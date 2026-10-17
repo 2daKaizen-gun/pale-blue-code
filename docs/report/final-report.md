@@ -1,4 +1,4 @@
-# 기계가 눈먼 곳에서: TESS 작은 왜성 312개의 단일 트랜짓 탐색과 그 정직한 빈손
+# 기계가 눈먼 곳에서: TESS 작은 왜성 328개의 단일 트랜짓 탐색과 그 정직한 빈손
 
 **Pale Blue Code — 최종 보고서 (Phase 12, v1.0)**
 권이건 · Claude (Anthropic) · 2026-09-27
@@ -57,6 +57,9 @@ candidate. The instrument keeps running.
 
 - 표적: 각 섹터의 SPOC 2분 광도곡선이 있는 별 중 **TOI 카탈로그에 없는** 별을, 행성 크기
   검출이 가능한 **작은 별부터** 100개씩 (`select_for_hunt`). 반지름 약 0.15–1.07 R☉.
+  "TOI에 없다"의 기준은 저장소의 `backend/data/toi_catalog.csv` — **2026-07-18 스냅샷**이다.
+  2026-10-17에 NASA Exoplanet Archive의 현재 TOI 목록(스냅샷 이후 새 TOI 73개 포함)과 다시
+  대조했고, 다섯 풀의 별 500개 중 그 사이 TOI가 된 별은 **0개**였다.
 - 광도곡선: MAST(lightkurve), PDCSAP, 별의 모든 SPOC 섹터를 이어붙임 (지구크기 표적들 기준 중앙값
   6섹터, 기저선 ~2,500일 — sub-11-24).
 - 섹터 풀은 전부 저장소에 고정돼 있다: `backend/data/pool_s0102.json` ~ `pool_s0106.json`.
@@ -78,8 +81,8 @@ candidate. The instrument keeps running.
 
 - **유의한 단일 이벤트 55개, 전부 기각.** 관문별(한 이벤트가 여럿에 걸릴 수 있음):
   edge 44 · symmetry 48 · coherence 6 · flare 3 · baseline 2. 가장 흔한 조합은 **edge+symmetry**(34건) — 구간 경계의 계기 인공물이 남기는 전형적인 서명.
-- 가장 큰 이벤트는 sig 278.5(TIC 344128619, coherence·edge·symmetry), 그다음 85.3(TIC 65516102, 오늘
-  섹터 106에서) · 65.0 · 62.0 · 60.6 — 크기와 진짜는 달랐다.
+- 가장 큰 이벤트는 sig 278.5(TIC 344128619, coherence·edge·symmetry), 그다음 85.3(TIC 65516102,
+  섹터 106 첫 배치) · 65.0 · 62.0 · 60.6 — 크기와 진짜는 달랐다.
 - 사냥 사상 첫 `candidate`(TIC 326691903, sig 10.86)는 raw 곡선을 읽고 구간 시작부 회복 램프의
   꼬리임을 확인해 스스로 기각했고, 그 실패가 다섯 번째 판별자 baseline을 낳았다 (sub-11-18).
 - **살아남은 후보: 0.**
@@ -156,6 +159,11 @@ python scripts/expected_yield.py     --pool backend/data/pool_s01*.json    # 기
 
 광도곡선 캐시(`backend/cache`, ~1 GB)는 저장소에 없다. `scripts/fetch_plausible.py --pool …`가
 MAST에서 다시 받는다.
+
+캐시(따라서 이 보고서의 숫자)는 개발 PC의 로컬 환경 — Python 3.14, numpy 2.4, pandas 3.0, astropy 8.0,
+lightkurve 2.4.2 — 에서 만들어졌다. `backend/requirements.txt`가 고정한 스택(Python 3.12, pandas 2.2)과는
+다르며, CI는 그 고정 스택에서 코드의 테스트를 통과시키지만 사냥 자체를 고정 스택에서 다시 돌려 보지는
+않았다. 다시 받은 곡선과 다른 라이브러리 버전에서는 유의성 값이 소수점 아래에서 달라질 수 있다.
 
 ### 기록
 

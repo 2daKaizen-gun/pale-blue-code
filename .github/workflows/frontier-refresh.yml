@@ -20,14 +20,21 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
 
-      - name: Install builder deps
-        run: pip install astroquery
+      # The pinned backend stack (it includes astroquery, via lightkurve) rather than
+      # a bare `pip install astroquery`: the test step below needs it, and the builder
+      # then runs on the same stack CI tests.
+      - name: Install builder + test deps
+        run: pip install -r backend/requirements-dev.txt
 
       - name: Rebuild pool from the newest SPOC sector
         # --n 100: the hunt pool is the 100 smallest planet-size dwarfs (sub-11-17
@@ -45,6 +52,14 @@ jobs:
             sleep 60
           done
           exit 1
+
+      - name: Test the rebuilt pool before committing it
+        # A push made with GITHUB_TOKEN does not trigger the CI workflow, so the
+        # bot's commit (e.g. 6b7a53a, sector 107) used to land on main untested.
+        # Run the backend suite against the freshly built pool here; a red suite
+        # fails the run before the commit step, leaving main untouched.
+        working-directory: backend
+        run: python -m pytest -q
 
       - name: Commit only if the pool content changed
         run: |

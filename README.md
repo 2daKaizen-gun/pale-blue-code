@@ -13,7 +13,7 @@
 ![Three.js](https://img.shields.io/badge/Three.js-r170-000000?logo=three.js&logoColor=white)
 ![D3.js](https://img.shields.io/badge/D3.js-7-F9A03C?logo=d3.js&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![License](https://img.shields.io/badge/License-AGPL_3.0-blue)
 [![Release](https://img.shields.io/github/v/release/2daKaizen-gun/pale-blue-code)](https://github.com/2daKaizen-gun/pale-blue-code/releases)
 [![CI](https://github.com/2daKaizen-gun/pale-blue-code/actions/workflows/ci.yml/badge.svg)](https://github.com/2daKaizen-gun/pale-blue-code/actions/workflows/ci.yml)
@@ -63,7 +63,7 @@
 | 🪐 태양계 3D | Three.js로 8개 행성의 공전 |
 | ⚛️ N-body 중력 | Runge-Kutta 4차 적분, 보존량(에너지·각운동량) 게이지로 적분기의 정직성을 보여줌 |
 | 🕳️ 블랙홀 | GLSL 셰이더로 중력 렌즈 |
-| 🔭 외계행성 DB | NASA Exoplanet Archive 5,000여 개 |
+| 🔭 외계행성 DB | NASA Exoplanet Archive의 확인된 외계행성 6,000여 개 |
 | 📉 광도곡선 · 🎯 BLS | 케플러/TESS 데이터에서 transit 검출, Box Least Squares 직접 구현 |
 
 **🛰 사냥하기** — 진짜 하늘을 뒤지는 라이브 도구
@@ -90,7 +90,7 @@ Phase별 서사와 사냥 일지는 **[`docs/journey.md`](./docs/journey.md)**, 
 
 ### 사전 요구사항
 - Node.js 20.19+ (CI는 24)
-- Python 3.12+ (CI·배포 기준 3.12)
+- Python 3.12+ (CI·배포·`requirements.txt` 고정 기준 3.12, 개발 PC는 3.14)
 
 ### 설치 및 실행
 
@@ -107,7 +107,7 @@ npm run dev          # http://localhost:5173
 # Backend (Phase 5 이후)
 cd backend
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python -m uvicorn main:app --reload --port 8000   # http://localhost:8000
 
@@ -208,4 +208,4 @@ Plan-Code-Test-Check) · [`HANDOFF.md`](./docs/HANDOFF.md)(Phase 인계) 세 문
 
 <br/>
 
-🪐 *하늘은 닫히지 않습니다. 판별기를 벼렸고(9-A), 아무도 안 간 별을 사냥했으며(9-B), 사냥터를 온 하늘로 넓혔습니다(10, Skyward). 기계가 눈먼 곳 — 단일 트랜짓 — 을 겨누는 도구를 지었고(11), 마침내 처음으로 진짜 별에 대봤습니다. 대부분 조용했고, 그 조용함을 정직하게 기록했습니다 — 그것이 진짜 발견이 서 있을 바닥입니다.*
+🪐 *하늘은 닫히지 않습니다. 판별기를 벼렸고(9-A), 아무도 안 간 별을 사냥했으며(9-B), 사냥터를 온 하늘로 넓혔습니다(10, Skyward). 기계가 눈먼 곳 — 단일 트랜짓 — 을 겨누는 도구를 지었고(11), 진짜 별 328개에 대봤습니다. 대부분 조용했고, 그 조용함을 감도와 함께 정직하게 기록한 뒤 v1.0으로 맺었습니다(12) — 그것이 진짜 발견이 서 있을 바닥입니다.*
