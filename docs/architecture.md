@@ -18,7 +18,7 @@
 ### Backend (Phase 5부터)
 | 카테고리 | 기술 |
 |---|---|
-| Framework | FastAPI (Python 3.14) |
+| Framework | FastAPI 0.115 (Python 3.12 고정 — CI·배포 기준. 개발 PC는 3.14) |
 | 과학 계산 | NumPy, SciPy, Astropy |
 | 천문학 라이브러리 | Lightkurve, AstroQuery |
 | 데이터 처리 | Pandas |
