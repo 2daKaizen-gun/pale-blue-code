@@ -1,5 +1,9 @@
 # 🌌 Pale Blue Code
 
+**🇰🇷 [한국어](#ko)** · **🇯🇵 [日本語](#ja)** · **🇬🇧 [English](#en)**
+
+<a id="ko"></a>
+
 > *어릴 적 꿈은 우주과학자였습니다.*  
 > *가장 큰 학문을 동경했지만, 결국 가장 작은 학문인 컴퓨터 공학을 선택했습니다.*  
 > *시간이 지나 컴퓨터에도 우주가 있다는 것을 깨달았습니다.*  
@@ -160,6 +164,93 @@ VITE_NASA_API_KEY=your_api_key_here    # https://api.nasa.gov 무료 발급
 [`COLLABORATION.md`](./docs/COLLABORATION.md)(약속) · [`WORKFLOW.md`](./docs/WORKFLOW.md)(PCTC 사이클:
 Plan-Code-Test-Check) · [`HANDOFF.md`](./docs/HANDOFF.md)(Phase 인계) 세 문서로, 긴 협업에서 맥락이 썩거나
 불안해지는 것(Context Rot / Anxiety)을 막았습니다.
+
+<br/>
+
+---
+
+<a id="ja"></a>
+
+## 🇯🇵 日本語で
+
+> *子どもの頃の夢は宇宙科学者でした。いちばん大きな学問に憧れながら、いちばん小さな学問 ——
+> コンピュータ工学を選びました。やがて、コンピュータの中にも宇宙があると気づきました。
+> Pale Blue Code は、私の二つの宇宙が出会う場所です。*
+
+NASA の公開データだけを使い、**自動パイプラインが見落とす領域 —— 単一トランジット(シングルトランジット)
+—— で、まだどのカタログにも載っていない系外惑星を探す**フルスタックアプリです。名前はカール・セーガンの
+*Pale Blue Dot* から。
+
+**🔭 結果** — TESS セクター 102–106 で、TOI カタログに**未登録**の最も小さな矮星 **328 個**を単一トランジット
+探索しました。有意なイベント **55 件はすべて計器由来の偽検出として棄却**され、残った候補は **0 件**です。
+
+- この「空振り」は**実測感度つき**で述べています。22 個の星では地球サイズ(≤1.25 R⊕)まで、中央値の星では
+  4.7 R⊕ まで見えていました。それより小さな惑星については何も主張しません。
+- 惑星の存在頻度 × 軌道の幾何 × 観測時間 × 実測感度から求めた**期待検出数は 0.42 件、何も見つからない確率は
+  66%** —— 0 件は、探し始める前から最もありそうな答えでした。
+- 望遠鏡を持たない以上、このパイプラインが到達できるのは「候補」まで。確定は ExoFOP-TESS / TFOP の追観測の役割です。
+
+**🛠 しくみ** — 整合フィルタ → **有意性 5σ** → 計器アーチファクトを落とす **5 つの判別ゲート**
+(edge・coherence・flare・symmetry・baseline)。**すべての閾値は好みではなく、実際の TESS 光度曲線での
+実測(注入・回収実験と誤警報実験)で決めました。** 初めて現れた「候補」は生データを読んで自ら棄却し、その失敗から 5 つ目の
+ゲート(baseline)が生まれました。
+
+**📖 学習トラック** — 人類が宇宙を理解してきた順に:太陽系 3D(Three.js)、N 体重力(手書きの RK4、
+保存量ゲージつき)、ブラックホールの重力レンズ(GLSL)、確認済み系外惑星 6,000 件超のデータベース、
+光度曲線と自作の BLS。
+
+**技術** — React 19 · TypeScript · Three.js / React Three Fiber · GLSL · D3 · FastAPI · Python · NumPy ·
+lightkurve · astroquery。pytest 244 / vitest 250、CI(pytest · eslint · build · vitest)を push ごとに実行。
+
+**進め方** — Claude(Anthropic)とのペアプログラミングで、Plan → Code → Test → Check のサイクルを回しました。
+
+📄 最終報告書(韓国語):[`docs/report/final-report.md`](./docs/report/final-report.md) ·
+🔗 Live:[pale-blue-code.vercel.app](https://pale-blue-code.vercel.app)
+(公開サイトはフロントエンドのみ常時稼働。NASA データの画面はローカルでバックエンドを起動すると動きます)
+
+<br/>
+
+---
+
+<a id="en"></a>
+
+## 🇬🇧 In English
+
+> *As a child I wanted to be a space scientist. I longed for the largest of subjects and chose the smallest —
+> computer engineering. In time I found that computers hold a universe too.
+> Pale Blue Code is where my two universes meet.*
+
+A full-stack app that uses only NASA's public data to **hunt for uncatalogued exoplanets in the regime
+automated pipelines are blind to — single transits.** The name comes from Carl Sagan's *Pale Blue Dot*.
+
+**🔭 The result** — In TESS sectors 102–106 we ran a single-transit search on the **328 smallest dwarfs absent
+from the TOI catalog**. **All 55 significant events were rejected as instrumental artefacts; 0 candidates
+survived.**
+
+- The null is stated **with measured sensitivity**: 22 stars could reveal an Earth-size planet (≤1.25 R⊕),
+  the median star 4.7 R⊕. Nothing is claimed below what each curve could see.
+- Occurrence rate × transit geometry × observed time × those measured floors gives an **expected 0.42
+  detections — a 66% chance of finding nothing.** Zero was the most likely answer before we began.
+- Without a telescope, the furthest this pipeline can reach is a *candidate*; confirmation belongs to
+  ExoFOP-TESS / TFOP follow-up.
+
+**🛠 How it works** — matched filter → **5σ significance** → **five discriminators** that reject instrument
+artefacts (edge · coherence · flare · symmetry · baseline). **Every threshold was set by measurement on real
+TESS light curves — injection–recovery and false-alarm runs — not by taste.** The first "candidate" the hunt ever produced was read in the raw
+data, rejected by us, and its failure became the fifth gate (baseline).
+
+**📖 The learning track** — the universe in the order humanity came to understand it: a 3D solar system
+(Three.js), N-body gravity (hand-written RK4 with conservation gauges), black-hole lensing (GLSL), a database
+of 6,000+ confirmed exoplanets, light curves and a hand-written BLS.
+
+**Stack** — React 19 · TypeScript · Three.js / React Three Fiber · GLSL · D3 · FastAPI · Python · NumPy ·
+lightkurve · astroquery. pytest 244 / vitest 250, CI (pytest · eslint · build · vitest) on every push.
+
+**How it was built** — pair-programmed with Claude (Anthropic), in Plan → Code → Test → Check cycles.
+
+📄 Final report (Korean): [`docs/report/final-report.md`](./docs/report/final-report.md) — its abstract is in
+English · 🔗 Live: [pale-blue-code.vercel.app](https://pale-blue-code.vercel.app)
+(the public site runs frontend-only; the NASA-data pages work with the backend running locally)
 
 <br/>
 
