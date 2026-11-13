@@ -20,8 +20,6 @@ import { ControlPanel } from '../components/solar/ControlPanel'
  *   ControlPanel 자체가 fixed positioning 이라 relative 가 필수는 아니지만,
  *   향후 *Canvas 위에 absolute 로 떠야 하는 추가 UI* (예: 정보 패널 sub-2-5)
  *   를 위해 미리 *positioned ancestor* 확보.
- *
- * 자세한 설계는 docs/specs/phase-2/PRD.md, TECHSPEC.md 참조.
  */
 export default function SolarPage() {
   return (

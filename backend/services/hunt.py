@@ -29,7 +29,7 @@ _tess_frontier_payload: dict | None = None
 # Interest, not an undiscovered signal. They exist to learn the vetter against a
 # catalogued disposition: run BLS + vetting, form your own verdict, then compare
 # with NASA's in the KOI cross-check. (An actual first-time hunt of stars with no
-# KOI entry is Phase 9-B — see docs/specs/phase-9/9B-PLAN.md, honesty nail #3.)
+# KOI entry is Phase 9-B.)
 # The exact disposition is left for the cross-check to reveal, not the card.
 _TARGETS = [
     {

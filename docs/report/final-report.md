@@ -1,7 +1,7 @@
 # 기계가 눈먼 곳에서: TESS 작은 왜성 328개의 단일 트랜짓 탐색과 그 정직한 빈손
 
 **Pale Blue Code — 최종 보고서 (Phase 12, v1.0)**
-권이건 · Claude (Anthropic) · 2026-09-27
+권이건 · 2026-09-27
 
 ---
 
@@ -168,5 +168,4 @@ lightkurve 2.4.2 — 에서 만들어졌다. `backend/requirements.txt`가 고�
 ### 기록
 
 - 관측 원장: [`docs/observations/instrument-log.md`](../observations/instrument-log.md)
-- sub-phase 회고: [`docs/checks/phase-11/`](../checks/phase-11/), [`docs/checks/phase-12/`](../checks/phase-12/)
 - 방향과 천장: [`docs/vision/finding-our-own-planet.md`](../vision/finding-our-own-planet.md)

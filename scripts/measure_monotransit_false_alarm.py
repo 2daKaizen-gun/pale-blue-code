@@ -128,7 +128,7 @@ def main():
     print(f"\nFALSE ALARMS (full chain, inverted nulls): {total_survivors} "
           f"survivor(s) across {len(_STARS)} curves.")
     print("A survivor here is a candidate produced by noise shape alone — the chance the")
-    print("hunt cries wolf. Record it in docs/checks/phase-11/sub-11-3.md (Light 5).")
+    print("hunt cries wolf.")
 
 
 if __name__ == "__main__":

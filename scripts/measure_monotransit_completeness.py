@@ -5,7 +5,7 @@ remains, run the full chain, count survivors — zero, even at inverted sig 23.5
 discriminator caught it). That is *specificity*. This measures *completeness*: press a
 single transit of KNOWN depth into a real curve and ask whether the full hunt promotes it.
 
-Two things come out, both recorded in docs/checks/phase-11/sub-11-4.md:
+Two things come out:
 
   depth floor of the full hunt
       the shallowest depth the whole chain (search + significance + discriminators)
@@ -138,7 +138,7 @@ def main():
         print(f"  {depth*100:6.2f}% {r:6d}/{t:<3d} {frac:6.0%}")
     print(f"\nDEPTH FLOOR (first depth with >=50% mid-segment recovery): "
           f"{floor*100:.2f}%" if floor else "\nDEPTH FLOOR: not reached in this grid")
-    print("Record the floor and the mid-vs-edge gap in docs/checks/phase-11/sub-11-4.md (Light 5).")
+    print("Record the floor and the mid-vs-edge gap.")
 
 
 if __name__ == "__main__":

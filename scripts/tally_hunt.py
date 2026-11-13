@@ -2,8 +2,8 @@
 
 The instrument log's cumulative tally (N of 50 searched: quiet / insignificant / rejected /
 candidates) is hand-maintained, and a hand count is exactly what went wrong once already: a
-sub-threshold edge blip got written up as a near-miss because nobody re-derived its disposition
-(see docs/checks/phase-11/sub-11-15.md). This script removes the hand from the count.
+sub-threshold edge blip got written up as a near-miss because nobody re-derived its disposition.
+This script removes the hand from the count.
 
 It reads the frontier pool, and for each star reports what the *caches on disk* actually say:
 

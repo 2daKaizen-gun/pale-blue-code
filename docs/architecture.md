@@ -70,9 +70,6 @@ pale-blue-code/
 │   └── expected_yield.py            기대 수율 — 발생률×기하×관측시간×실측감도 (Phase 12)
 │
 ├── docs/
-│   ├── COLLABORATION.md             📜 협업 헌장 (약속)
-│   ├── WORKFLOW.md                  🔄 PCTC 사이클 (작업)
-│   ├── HANDOFF.md                   🛰️ 인수인계 템플릿 (인계)
 │   ├── deploy.md                    배포·운영·비용 런북
 │   ├── maintenance.md               v1.0 이후 유지 모드 — 새 섹터 사냥 절차, 후보가 나오면
 │   ├── journey.md                   Phase 0~12 여정과 사냥 일지 (README에서 옮김)
@@ -85,18 +82,8 @@ pale-blue-code/
 │   │   ├── finding-our-own-planet.md   단일 트랜짓으로 진짜 발견 (Phase 11 방향)
 │   │   └── making-the-tool-legible.md  도구를 읽히게 (하나의 어휘·하나의 이야기)
 │   │
-│   ├── observations/                실측 장부 — 진짜 별에 검출기를 댄 정직한 기록
-│   │   └── instrument-log.md           별별 실측 결과 + 감도 레버 실측 (Phase 11)
-│   │
-│   ├── issues/                      GitHub 이슈 본문 원고 (issue-{N}-{M}-body.md)
-│   │
-│   ├── phase-handoffs/              Phase 종료 시 작성
-│   │   └── phase-{N}-to-{M}.md
-│   │
-│   └── checks/                      sub-phase별 회고 누적 (회고의 정본)
-│       ├── phase-{N}/
-│       │   └── sub-{N}-{M}.md
-│       └── infra/                   Phase 밖 인프라 회고 (배포 부활 등)
+│   └── observations/                실측 장부 — 진짜 별에 검출기를 댄 정직한 기록
+│       └── instrument-log.md           별별 실측 결과 + 감도 레버 실측 (Phase 11)
 │
 ├── frontend/                        React + TypeScript
 │   └── src/
